@@ -1,0 +1,9 @@
+import { Input, Select } from '@/shared/ui';
+import type { Agent } from '../types/agent.types';
+
+const models: Record<Agent['provider'], string[]> = { Mock: ['Mock Reasoning Pro', 'Mock Fast', 'Mock Multilingual'], OpenAI: ['GPT placeholder'], Google: ['Gemini placeholder'], Groq: ['Groq placeholder'] };
+
+export function ModelSelector({ agent, onChange }: { agent: Agent; onChange: (agent: Agent) => void }) {
+  const patch = (values: Partial<Agent>) => onChange({ ...agent, ...values });
+  return <section className="grid gap-5"><div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">Provider and model choices are UI configuration placeholders. The test console always uses deterministic local mock responses.</div><div className="grid gap-4 sm:grid-cols-2"><Select label="Model provider" onChange={(event) => { const provider = event.target.value as Agent['provider']; patch({ provider, model: models[provider][0]! }); }} options={(['Mock', 'OpenAI', 'Google', 'Groq'] as const).map((value) => ({ label: value, value }))} value={agent.provider} /><Select label="Model name" onChange={(event) => patch({ model: event.target.value })} options={models[agent.provider].map((value) => ({ label: value, value }))} value={agent.model} /><Input label={`Temperature (${agent.temperature.toFixed(1)})`} max="1" min="0" onChange={(event) => patch({ temperature: Number(event.target.value) })} step="0.1" type="range" value={agent.temperature} /><Select label="Response length" onChange={(event) => patch({ responseLength: event.target.value as Agent['responseLength'] })} options={['short', 'medium', 'long'].map((value) => ({ label: value[0]!.toUpperCase() + value.slice(1), value }))} value={agent.responseLength} /></div></section>;
+}

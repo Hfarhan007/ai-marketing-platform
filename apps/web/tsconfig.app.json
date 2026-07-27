@@ -1,0 +1,5 @@
+{
+  "extends":"@repo/typescript-config/react.json",
+  "compilerOptions":{"tsBuildInfoFile":"./node_modules/.tmp/tsconfig.app.tsbuildinfo","noEmit":true,"baseUrl":".","paths":{"@/app":["src/app"],"@/app/*":["src/app/*"],"@/assets":["src/assets"],"@/assets/*":["src/assets/*"],"@/layouts":["src/layouts"],"@/layouts/*":["src/layouts/*"],"@/shared":["src/shared"],"@/shared/*":["src/shared/*"],"@/features":["src/features"],"@/features/*":["src/features/*"],"@/mocks":["src/mocks"],"@/mocks/*":["src/mocks/*"]},"types":["vitest/globals","@testing-library/jest-dom"]},
+  "include":["src"]
+}

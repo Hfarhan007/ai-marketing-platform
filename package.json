@@ -1,0 +1,39 @@
+{
+  "name": "ai-marketing-platform",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
+    "test": "turbo test",
+    "test:e2e": "pnpm --filter @repo/web test:e2e",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky",
+    "audit:unused": "knip",
+    "audit:boundaries": "depcruise apps/web/src --config dependency-cruiser.config.js"
+  },
+  "devDependencies": {
+    "@changesets/cli": "latest",
+    "@commitlint/cli": "latest",
+    "@commitlint/config-conventional": "latest",
+    "@repo/eslint-config": "workspace:*",
+    "@types/node": "latest",
+    "eslint": "^9.39.5",
+    "husky": "latest",
+    "lint-staged": "latest",
+    "dependency-cruiser": "latest",
+    "knip": "latest",
+    "prettier": "latest",
+    "prettier-plugin-tailwindcss": "latest",
+    "turbo": "latest",
+    "typescript": "catalog:"
+  }
+}

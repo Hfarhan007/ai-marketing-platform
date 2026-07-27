@@ -1,0 +1,2 @@
+import { z } from 'zod';
+export const taskSchema = z.object({ assignedUser: z.string().min(1), createdAt: z.string(), description: z.string().max(2000), dueDate: z.string().min(1), priority: z.enum(['low', 'medium', 'high']), relatedContact: z.string().optional(), relatedDeal: z.string().optional(), status: z.enum(['todo', 'in-progress', 'done']), tags: z.array(z.string()), title: z.string().min(2).max(160) });

@@ -1,0 +1,10 @@
+import { Filter, Plus, Search, Settings2 } from 'lucide-react';
+import { Button, Input, Select } from '@/shared/ui';
+import type { Pipeline } from '../types/pipeline.types';
+
+export function PipelineToolbar({ assignee, onAssignee, onCreate, onOpenSettings, onPipeline, onSearch, pipelineId, pipelines, search, source, onSource }: {
+  assignee: string; onAssignee: (value: string) => void; onCreate: () => void; onOpenSettings: () => void; onPipeline: (value: string) => void;
+  onSearch: (value: string) => void; pipelineId: string; pipelines: readonly Pipeline[]; search: string; source: string; onSource: (value: string) => void;
+}) {
+  return <div className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900"><div className="grid gap-3 lg:grid-cols-[12rem_minmax(15rem,1fr)_10rem_10rem_auto]"><Select aria-label="Pipeline" onChange={(event) => onPipeline(event.target.value)} options={pipelines.map(({ id, name }) => ({ label: name, value: id }))} value={pipelineId} /><Input aria-label="Search deals" leading={<Search size={16} />} onChange={(event) => onSearch(event.target.value)} placeholder="Search deals, contacts, companies…" value={search} /><Select aria-label="Filter by owner" onChange={(event) => onAssignee(event.target.value)} options={[{ label: 'All owners', value: '' }, ...['Alex Morgan', 'Jordan Lee', 'Sam Rivera'].map((value) => ({ label: value, value }))]} value={assignee} /><Select aria-label="Filter by source" onChange={(event) => onSource(event.target.value)} options={[{ label: 'All sources', value: '' }, ...['Organic', 'Webinar', 'Referral', 'LinkedIn', 'Partner', 'Paid social', 'Conference'].map((value) => ({ label: value, value }))]} value={source} /><Button onClick={onCreate}><Plus size={16} />Create deal</Button></div><div className="flex items-center text-xs text-slate-500"><Filter className="mr-1.5" size={14} />Filters update the board instantly.<Button className="ml-auto" onClick={onOpenSettings} size="sm" variant="ghost"><Settings2 size={15} />Stage settings</Button></div></div>;
+}

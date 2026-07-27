@@ -1,0 +1,2 @@
+import type { NotificationRecord } from '../types/notification.types';
+export function NotificationItem({ item, onRead }: { item: NotificationRecord; onRead: () => void }) { return <button className="w-full rounded-lg border p-4 text-left hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900" onClick={onRead} type="button"><span className="flex items-center gap-2 font-medium">{!item.read && <span className="h-2 w-2 rounded-full bg-indigo-500" />} {item.title}</span><span className="mt-1 block text-sm text-slate-500">{item.message}</span></button>; }

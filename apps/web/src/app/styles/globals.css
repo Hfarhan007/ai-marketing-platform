@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import "./tokens.css";
+@import "./animations.css";
+@import "./utilities.css";
+@import "./print.css";
+
+@source "../../../../../packages/ui/src";
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html { background: var(--color-background); scroll-behavior: smooth; }
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+  }
+  #root { min-height: 100vh; }
+  button, a { cursor: pointer; }
+}

@@ -1,0 +1,1 @@
+export function MediaPreview({ name }: { name: string }) { return <div className="grid aspect-video place-items-center rounded-xl bg-slate-100 text-sm text-slate-500 dark:bg-slate-900">Preview: {name}</div>; }

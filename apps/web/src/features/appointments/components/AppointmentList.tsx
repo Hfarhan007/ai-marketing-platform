@@ -1,0 +1,3 @@
+import { Badge } from '@/shared/ui';
+import type { Appointment } from '../types/appointment.types';
+export function AppointmentList({ appointments }: { appointments: readonly Appointment[] }) { return <div className="grid gap-3">{appointments.map((item) => <article className="rounded-xl border p-4 dark:border-slate-700" key={item.id}><div className="flex justify-between gap-3"><div><h2 className="font-semibold">{item.service}</h2><p className="text-sm text-slate-500">{item.startsAt} · {item.staff}</p></div><Badge>{item.status}</Badge></div><p className="mt-2 text-sm">{item.location}</p></article>)}</div>; }

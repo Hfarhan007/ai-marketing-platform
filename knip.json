@@ -1,0 +1,27 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    "apps/web": {
+      "entry": ["src/app/main.tsx", "src/**/index.ts", "e2e/**/*.ts"]
+    }
+  },
+  "ignoreDependencies": [
+    "@commitlint/cli",
+    "@testing-library/user-event",
+    "axios",
+    "lint-staged",
+    "msw",
+    "prettier"
+  ],
+  "ignore": [
+    "apps/web/src/index.css",
+    "apps/web/src/shared/constants/routes.ts",
+    "apps/web/src/shared/lib/api-client.ts",
+    "apps/web/src/shared/types/navigation.ts"
+  ],
+  "rules": {
+    "duplicates": "off",
+    "exports": "off",
+    "types": "off"
+  }
+}

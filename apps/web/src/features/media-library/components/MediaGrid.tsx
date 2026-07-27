@@ -1,0 +1,3 @@
+import { File, Image, Video } from 'lucide-react';
+import type { MediaAsset } from '../types/media.types';
+export function MediaGrid({ assets }: { assets: readonly MediaAsset[] }) { return <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{assets.map((asset) => { const Icon = asset.kind === 'image' ? Image : asset.kind === 'video' ? Video : File; return <article className="rounded-xl border p-4 dark:border-slate-700" key={asset.id}><div className="grid aspect-video place-items-center rounded-lg bg-slate-100 dark:bg-slate-900"><Icon aria-hidden size={32} /></div><h2 className="mt-3 truncate font-medium">{asset.name}</h2><p className="text-xs text-slate-500">{asset.size} · Used {asset.usageCount} times</p></article>; })}</div>; }

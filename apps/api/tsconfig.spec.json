@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "declaration": false,
+    "declarationMap": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": ["src/**/*.spec.ts", "test/**/*.ts", "vitest.*.config.ts"],
+  "exclude": ["dist", "node_modules"]
+}

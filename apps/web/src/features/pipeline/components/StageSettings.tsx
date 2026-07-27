@@ -1,0 +1,6 @@
+import { Input, Modal } from '@/shared/ui';
+import type { PipelineStage, StageId } from '../types/pipeline.types';
+
+export function StageSettings({ onClose, onUpdate, open, stages }: { onClose: () => void; onUpdate: (id: StageId, updates: Pick<PipelineStage, 'color' | 'probability'>) => void; open: boolean; stages: readonly PipelineStage[] }) {
+  return <Modal onClose={onClose} open={open} title="Stage settings" description="Customize visual colors and forecast probabilities. Stage names remain fixed for reporting consistency."><div className="grid gap-3">{stages.map((stage) => <div className="grid grid-cols-[1fr_5rem_6rem] items-end gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700" key={stage.id}><div><p className="text-sm font-semibold">{stage.name}</p><p className="text-xs text-slate-500">Forecast probability</p></div><Input aria-label={`${stage.name} color`} onChange={(event) => onUpdate(stage.id, { color: event.target.value, probability: stage.probability })} type="color" value={stage.color} /><Input aria-label={`${stage.name} probability`} max="100" min="0" onChange={(event) => onUpdate(stage.id, { color: stage.color, probability: Number(event.target.value) })} type="number" value={stage.probability} /></div>)}</div></Modal>;
+}

@@ -1,0 +1,9 @@
+import { ArrowLeft, Braces, FlaskConical, Redo2, Save, Send, Undo2 } from 'lucide-react';
+import { Button, StatusDot, Tooltip } from '@/shared/ui';
+
+export function WorkflowToolbar({ canRedo, canUndo, dirty, name, onBack, onJson, onPublish, onRedo, onSave, onTest, onUndo, published }: {
+  canRedo: boolean; canUndo: boolean; dirty: boolean; name: string; onBack: () => void; onJson: () => void; onPublish: () => void;
+  onRedo: () => void; onSave: () => void; onTest: () => void; onUndo: () => void; published: boolean;
+}) {
+  return <header className="flex min-h-14 flex-wrap items-center gap-2 border-b border-slate-200 bg-white px-3 dark:border-slate-800 dark:bg-slate-950"><Button aria-label="Back to workflows" onClick={onBack} size="sm" variant="ghost"><ArrowLeft size={18} /></Button><div className="min-w-0"><p className="max-w-52 truncate text-sm font-semibold">{name}</p><StatusDot label={dirty ? 'Unsaved changes' : published ? 'Published' : 'Draft saved'} status={dirty ? 'warning' : 'success'} /></div><div className="ml-2 flex gap-1"><Tooltip content="Undo"><Button aria-label="Undo" disabled={!canUndo} onClick={onUndo} size="sm" variant="ghost"><Undo2 size={16} /></Button></Tooltip><Tooltip content="Redo"><Button aria-label="Redo" disabled={!canRedo} onClick={onRedo} size="sm" variant="ghost"><Redo2 size={16} /></Button></Tooltip></div><div className="ml-auto flex flex-wrap gap-2"><Button onClick={onJson} size="sm" variant="ghost"><Braces size={15} /><span className="hidden sm:inline">JSON</span></Button><Button onClick={onTest} size="sm" variant="outline"><FlaskConical size={15} /><span className="hidden sm:inline">Test</span></Button><Button onClick={onSave} size="sm" variant="outline"><Save size={15} /><span className="hidden sm:inline">Save draft</span></Button><Button onClick={onPublish} size="sm"><Send size={15} />Publish</Button></div></header>;
+}

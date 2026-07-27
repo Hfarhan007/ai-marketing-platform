@@ -1,0 +1,6 @@
+{
+  "name":"@repo/types","version":"0.0.0","private":true,"type":"module",
+  "exports":{".":{"types":"./src/index.ts","default":"./src/index.ts"}},
+  "scripts":{"build":"tsc -p tsconfig.json","lint":"eslint .","type-check":"tsc -p tsconfig.json --noEmit","test":"vitest run --passWithNoTests"},
+  "devDependencies":{"@repo/typescript-config":"workspace:*","vitest":"catalog:"}
+}

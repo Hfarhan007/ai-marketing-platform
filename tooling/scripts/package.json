@@ -1,0 +1,1 @@
+{"name":"@repo/scripts","version":"0.0.0","private":true,"type":"module","scripts":{"lint":"eslint .","type-check":"tsc -p tsconfig.json --noEmit","build":"tsc -p tsconfig.json","test":"vitest run --passWithNoTests"},"devDependencies":{"@repo/typescript-config":"workspace:*","vitest":"catalog:"}}
