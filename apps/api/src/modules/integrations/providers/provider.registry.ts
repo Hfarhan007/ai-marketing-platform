@@ -1,0 +1,18 @@
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { createHmac, timingSafeEqual } from 'node:crypto';
+import { PROVIDERS, type IntegrationProviderAdapter, type Provider, type ProviderConnectionContext, type ProviderCredentials, type ProviderHealth, type SyncRequest, type SyncResult, type WebhookEnvelope } from '../types/provider-adapter.js';
+abstract class BaseProviderAdapter implements IntegrationProviderAdapter {
+ abstract readonly provider:Provider;
+ connect():Promise<ProviderCredentials>{return Promise.reject(new ServiceUnavailableException(`${this.provider} OAuth adapter is not configured`))}
+ disconnect():Promise<void>{return Promise.resolve()}
+ refreshCredentials():Promise<ProviderCredentials>{return Promise.reject(new ServiceUnavailableException(`${this.provider} credential refresh is not configured`))}
+ validateConnection():Promise<boolean>{return Promise.resolve(false)}
+ sync(...args:[ProviderConnectionContext,SyncRequest]):Promise<SyncResult>{void args;return Promise.reject(new ServiceUnavailableException(`${this.provider} sync adapter is not configured`))}
+ subscribeWebhooks():Promise<void>{return Promise.reject(new ServiceUnavailableException(`${this.provider} webhook subscription is not configured`))}
+ handleWebhook(rawBody:Buffer,headers:Record<string,string|undefined>):Promise<WebhookEnvelope>{const timestamp=new Date(Number(headers['x-webhook-timestamp'])*1000),payload=JSON.parse(rawBody.toString('utf8'))as unknown;if(typeof payload!=='object'||payload===null)throw new Error('Invalid webhook payload');const record=payload as Record<string,unknown>,id=typeof record.id==='string'?record.id:(headers['x-event-id']??''),type=typeof record.type==='string'?record.type:'unknown';return Promise.resolve({eventId:id,eventType:type,timestamp,payload:record})}
+ verifyWebhook(rawBody:Buffer,headers:Record<string,string|undefined>,secret:string,toleranceSeconds:number){const timestamp=headers['x-webhook-timestamp']??'',signature=(headers['x-webhook-signature']??'').replace(/^sha256=/u,''),seconds=Number(timestamp);if(!Number.isFinite(seconds)||Math.abs(Date.now()/1000-seconds)>toleranceSeconds)return false;const expected=createHmac('sha256',secret).update(`${timestamp}.`).update(rawBody).digest('hex'),left=Buffer.from(signature),right=Buffer.from(expected);return left.length===right.length&&timingSafeEqual(left,right)}
+ healthCheck():Promise<ProviderHealth>{return Promise.resolve({healthy:false,message:'Provider adapter is not configured',checkedAt:new Date()})}
+}
+const providerClasses=PROVIDERS.map(provider=>class extends BaseProviderAdapter{readonly provider=provider});
+@Injectable()export class ProviderRegistry{private readonly adapters=new Map<Provider,IntegrationProviderAdapter>();constructor(){for(const Adapter of providerClasses){const adapter=new Adapter();this.adapters.set(adapter.provider,adapter)}}get(provider:Provider){const adapter=this.adapters.get(provider);if(!adapter)throw new ServiceUnavailableException(`Unsupported provider ${provider}`);return adapter}register(adapter:IntegrationProviderAdapter){this.adapters.set(adapter.provider,adapter)}}
+export class SignedFixtureProviderAdapter extends BaseProviderAdapter{constructor(readonly provider:Provider='stripe'){super()}override connect(input:Record<string,string>={}){return Promise.resolve({...('accessToken'in input?{accessToken:input.accessToken}:{}),...('refreshToken'in input?{refreshToken:input.refreshToken}:{}),...('webhookSecret'in input?{webhookSecret:input.webhookSecret}:{})})}override validateConnection(){return Promise.resolve(true)}override healthCheck(){return Promise.resolve({healthy:true,checkedAt:new Date()})}}

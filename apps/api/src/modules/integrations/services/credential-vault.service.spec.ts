@@ -1,0 +1,3 @@
+import { describe, expect, it } from 'vitest';
+import { CredentialVaultService } from './credential-vault.service.js';
+describe('CredentialVaultService',()=>{it('stores credentials only as encrypted payloads',()=>{const crypto={encrypt:(value:string)=>`encrypted:${Buffer.from(value).toString('base64')}`,decrypt:(value:string)=>Buffer.from(value.slice(10),'base64').toString()};const vault=new CredentialVaultService(crypto as never),sealed=vault.seal({accessToken:'secret-token',webhookSecret:'hook-secret'});expect(sealed).not.toContain('secret-token');expect(vault.open(sealed)).toEqual({accessToken:'secret-token',webhookSecret:'hook-secret'})})});

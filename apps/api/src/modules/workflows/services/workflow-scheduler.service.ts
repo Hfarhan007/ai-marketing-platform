@@ -1,0 +1,3 @@
+import{InjectQueue}from'@nestjs/bullmq';import{Injectable}from'@nestjs/common';import type{Queue}from'bullmq';
+export const WORKFLOW_SCHEDULER_QUEUE='workflow-scheduler';
+@Injectable()export class WorkflowSchedulerService{constructor(@InjectQueue(WORKFLOW_SCHEDULER_QUEUE)private readonly queue:Queue){}async schedule(workspaceId:string,definitionId:string,cronPattern:string,timezone:string){const schedulerId=`workflow-schedule-${workspaceId}-${definitionId}`;await this.queue.upsertJobScheduler(schedulerId,{pattern:cronPattern,tz:timezone},{name:'workflow.scheduled-trigger',data:{workspaceId,definitionId}});return{schedulerId}}remove(workspaceId:string,definitionId:string){return this.queue.removeJobScheduler(`workflow-schedule-${workspaceId}-${definitionId}`)}}

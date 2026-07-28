@@ -14,9 +14,11 @@ import { HealthModule } from './health/health.module.js';
 import { AdminModule } from './modules/admin/admin.module.js';
 import { AgentsModule } from './modules/agents/agents.module.js';
 import { AppointmentsModule } from './modules/appointments/appointments.module.js';
+import { AvailabilityModule } from './modules/availability/availability.module.js';
 import { AuditModule } from './modules/audit/audit.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { BillingModule } from './modules/billing/billing.module.js';
+import { BookingLinksModule } from './modules/booking-links/booking-links.module.js';
 import { CalendarModule } from './modules/calendar/calendar.module.js';
 import { CampaignsModule } from './modules/campaigns/campaigns.module.js';
 import { CompaniesModule } from './modules/companies/companies.module.js';
@@ -34,6 +36,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { PermissionsModule } from './modules/permissions/permissions.module.js';
 import { PipelinesModule } from './modules/pipelines/pipelines.module.js';
 import { RolesModule } from './modules/roles/roles.module.js';
+import { ServicesModule } from './modules/services/services.module.js';
 import { TasksModule } from './modules/tasks/tasks.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 import { WorkflowsModule } from './modules/workflows/workflows.module.js';
@@ -73,6 +76,9 @@ import { SecurityModule } from './security/security.module.js';
     CampaignsModule,
     CalendarModule,
     AppointmentsModule,
+    AvailabilityModule,
+    ServicesModule,
+    BookingLinksModule,
     FilesModule,
     IntegrationsModule,
     BillingModule,

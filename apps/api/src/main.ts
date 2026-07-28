@@ -16,20 +16,25 @@ import { registerCorrelationIdHook } from './common/middleware/correlation-id.mi
 export async function bootstrap(): Promise<NestFastifyApplication> {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ trustProxy: process.env.TRUST_PROXY === 'true' }),
-    { bufferLogs: true },
+    new FastifyAdapter({
+      trustProxy: process.env.TRUST_PROXY === 'true',
+      bodyLimit: Number(process.env.STORAGE_MAX_FILE_SIZE_BYTES ?? 52_428_800),
+    }),
+    { bufferLogs: true, rawBody: true },
   );
   const config = app.get(ConfigService);
   registerCorrelationIdHook(app);
   await app.register(cookie);
   app.useLogger(app.get(Logger));
   app.useGlobalFilters(new GlobalExceptionFilter(app.get(PinoLogger)));
-  app.useGlobalPipes(new ValidationPipe({
-    forbidNonWhitelisted: true,
-    forbidUnknownValues: true,
-    transform: true,
-    whitelist: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
+      transform: true,
+      whitelist: true,
+    }),
+  );
   app.setGlobalPrefix(API_PREFIX, { exclude: ['health/live', 'health/ready'] });
   app.enableShutdownHooks();
   await app.register(helmet);

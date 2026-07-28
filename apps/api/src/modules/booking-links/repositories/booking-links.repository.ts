@@ -1,0 +1,2 @@
+import{Injectable}from'@nestjs/common';import{InjectModel}from'@nestjs/mongoose';import type{Model}from'mongoose';import{CrmRepository}from'../../crm/crm.repository.js';import{BookingLink,type BookingLinkDocument}from'../schemas/booking-link.schema.js';
+@Injectable()export class BookingLinksRepository extends CrmRepository<BookingLink>{constructor(@InjectModel(BookingLink.name)m:Model<BookingLinkDocument>){super(m,new Set(['createdAt','slug','active']))}}

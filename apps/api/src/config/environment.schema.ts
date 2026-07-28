@@ -1,6 +1,20 @@
 import 'reflect-metadata';
-import { plainToInstance } from 'class-transformer';
-import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUrl, Matches, Max, Min, MinLength, validateSync } from 'class-validator';
+import { plainToInstance, Type } from 'class-transformer';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsIn,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Matches,
+  Max,
+  Min,
+  MinLength,
+  validateSync,
+} from 'class-validator';
 
 export enum Environment {
   Development = 'development',
@@ -9,6 +23,21 @@ export enum Environment {
 }
 
 export class EnvironmentVariables {
+  @IsIn(['fake', 'stripe'])
+  BILLING_PROVIDER = 'fake';
+
+  @IsOptional()
+  @IsString()
+  STRIPE_SECRET_KEY?: string;
+
+  @IsOptional()
+  @IsString()
+  STRIPE_WEBHOOK_SECRET?: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  BILLING_GRACE_PERIOD_DAYS = 7;
   @IsEnum(Environment)
   NODE_ENV: Environment = Environment.Development;
   @IsInt()
@@ -56,7 +85,17 @@ export class EnvironmentVariables {
   @IsBoolean()
   TRUST_PROXY = false;
   @IsUrl({ require_tld: false })
-  STORAGE_PUBLIC_URL = 'http://localhost:3001/files';
+  STORAGE_PUBLIC_URL = 'http://localhost:3001/api/v1/files';
+  @IsEnum(['local', 's3', 'r2'])
+  STORAGE_PROVIDER: 'local' | 's3' | 'r2' = 'local';
+  @IsString()
+  STORAGE_LOCAL_PATH = '.data/uploads';
+  @IsOptional() @IsString() STORAGE_BUCKET?: string;
+  @IsOptional() @IsString() STORAGE_REGION?: string;
+  @IsOptional() @IsUrl({ require_tld: false }) STORAGE_ENDPOINT?: string;
+  @IsOptional() @IsString() STORAGE_ACCESS_KEY_ID?: string;
+  @IsOptional() @IsString() STORAGE_SECRET_ACCESS_KEY?: string;
+  @IsInt() @Min(1) STORAGE_MAX_FILE_SIZE_BYTES = 52_428_800;
   @IsString()
   AUTH_ISSUER = 'ai-marketing-platform';
   @IsString()
@@ -86,8 +125,13 @@ export class EnvironmentVariables {
 }
 
 export function validateEnvironment(input: Record<string, unknown>): Record<string, unknown> {
-  const environment = plainToInstance(EnvironmentVariables, input, { enableImplicitConversion: true });
-  const errors = validateSync(environment, { forbidUnknownValues: true, skipMissingProperties: false });
+  const environment = plainToInstance(EnvironmentVariables, input, {
+    enableImplicitConversion: true,
+  });
+  const errors = validateSync(environment, {
+    forbidUnknownValues: true,
+    skipMissingProperties: false,
+  });
   if (errors.length > 0) {
     const messages = errors.flatMap((error) => Object.values(error.constraints ?? {}));
     throw new Error(`Environment validation failed: ${messages.join('; ')}`);

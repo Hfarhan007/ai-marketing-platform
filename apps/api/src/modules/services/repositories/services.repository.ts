@@ -1,0 +1,2 @@
+import{Injectable}from'@nestjs/common';import{InjectModel}from'@nestjs/mongoose';import type{Model}from'mongoose';import{CrmRepository}from'../../crm/crm.repository.js';import{BookingService,type BookingServiceDocument}from'../schemas/service.schema.js';
+@Injectable()export class ServicesRepository extends CrmRepository<BookingService>{constructor(@InjectModel(BookingService.name)m:Model<BookingServiceDocument>){super(m,new Set(['createdAt','name','durationMinutes','price']))}}
