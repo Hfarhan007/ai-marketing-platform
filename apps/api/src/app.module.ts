@@ -26,6 +26,7 @@ import { ComplianceModule } from './modules/compliance/compliance.module.js';
 import { ConsentModule } from './modules/consent/consent.module.js';
 import { ContactsModule } from './modules/contacts/contacts.module.js';
 import { DealsModule } from './modules/deals/deals.module.js';
+import { CustomFieldsModule } from './modules/custom-fields/custom-fields.module.js';
 import { FilesModule } from './modules/files/files.module.js';
 import { InboxModule } from './modules/inbox/inbox.module.js';
 import { IntegrationsModule } from './modules/integrations/integrations.module.js';
@@ -63,6 +64,7 @@ import { SecurityModule } from './security/security.module.js';
     WorkspaceSettingsModule,
     RolesModule,
     PermissionsModule,
+    CustomFieldsModule,
     ContactsModule,
     CompaniesModule,
     LeadsModule,

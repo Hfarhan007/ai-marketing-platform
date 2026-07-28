@@ -4,7 +4,9 @@ import type { CrmEntity } from '../../crm/crm.types.js';
 
 @Schema({ collection: 'companies', timestamps: true, versionKey: false })
 export class Company implements CrmEntity {
-  _id!: Types.ObjectId; createdAt!: Date; updatedAt!: Date;
+  _id!: Types.ObjectId;
+  createdAt!: Date;
+  updatedAt!: Date;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) createdBy!: Types.ObjectId;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) updatedBy!: Types.ObjectId;
@@ -21,9 +23,27 @@ export class Company implements CrmEntity {
   @Prop({ type: [MongooseSchema.Types.ObjectId], default: [] }) dealIds!: Types.ObjectId[];
   @Prop({ type: [String], default: [] }) tags!: string[];
   @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) customFields!: Record<string, unknown>;
+  @Prop({ type: MongooseSchema.Types.ObjectId, default: null })
+  parentCompanyId!: Types.ObjectId | null;
+  @Prop({ type: [MongooseSchema.Types.Mixed], default: [] }) contactRoles!: {
+    contactId: Types.ObjectId;
+    role: string;
+  }[];
 }
 export type CompanyDocument = HydratedDocument<Company>;
 export const CompanySchema = SchemaFactory.createForClass(Company);
-CompanySchema.index({ workspaceId: 1, domain: 1 }, { unique: true, partialFilterExpression: { domain: { $type: 'string', $gt: '' }, deletedAt: null } });
+CompanySchema.index(
+  { workspaceId: 1, domain: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { domain: { $type: 'string', $gt: '' }, deletedAt: null },
+  },
+);
 CompanySchema.index({ workspaceId: 1, ownerId: 1, createdAt: -1 });
-CompanySchema.index({ workspaceId: 1, name: 'text', domain: 'text', industry: 'text', tags: 'text' });
+CompanySchema.index({
+  workspaceId: 1,
+  name: 'text',
+  domain: 'text',
+  industry: 'text',
+  tags: 'text',
+});

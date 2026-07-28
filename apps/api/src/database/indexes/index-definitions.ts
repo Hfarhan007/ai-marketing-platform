@@ -10,6 +10,17 @@ export interface ExplicitIndexDefinition {
 
 export const INDEX_DEFINITIONS: readonly ExplicitIndexDefinition[] = [
   {
+    collection: 'custom_field_definitions',
+    name: 'workspace_entity_key_unique',
+    keys: { workspaceId: 1, entityType: 1, key: 1 },
+    options: { unique: true },
+  },
+  {
+    collection: 'custom_field_definitions',
+    name: 'workspace_entity_archived_group',
+    keys: { workspaceId: 1, entityType: 1, archived: 1, group: 1 },
+  },
+  {
     collection: MIGRATION_COLLECTION,
     name: 'migration_id_unique',
     keys: { migrationId: 1 },
@@ -138,8 +149,14 @@ export const INDEX_DEFINITIONS: readonly ExplicitIndexDefinition[] = [
   ),
   workspaceIndex('memberships', { status: 1, userId: 1 }, 'membership_workspace_status_user'),
   workspaceIndex('workspace_settings', {}, 'workspace_settings_workspace_unique', { unique: true }),
-  workspaceIndex('contacts', { 'emailAddresses.normalized': 1 }, 'contacts_workspace_email'),
-  workspaceIndex('contacts', { 'phoneNumbers.normalized': 1 }, 'contacts_workspace_phone'),
+  workspaceIndex('contacts', { 'emailAddresses.normalized': 1 }, 'contacts_workspace_email', {
+    unique: true,
+    partialFilterExpression: { 'emailAddresses.normalized': { $type: 'string' }, deletedAt: null },
+  }),
+  workspaceIndex('contacts', { 'phoneNumbers.normalized': 1 }, 'contacts_workspace_phone', {
+    unique: true,
+    partialFilterExpression: { 'phoneNumbers.normalized': { $type: 'string' }, deletedAt: null },
+  }),
   workspaceIndex('contacts', { ownerId: 1, createdAt: -1 }, 'contacts_workspace_owner_created'),
   workspaceIndex(
     'contacts',
@@ -151,6 +168,7 @@ export const INDEX_DEFINITIONS: readonly ExplicitIndexDefinition[] = [
     partialFilterExpression: { domain: { $type: 'string', $gt: '' }, deletedAt: null },
   }),
   workspaceIndex('companies', { ownerId: 1, createdAt: -1 }, 'companies_workspace_owner_created'),
+  workspaceIndex('companies', { parentCompanyId: 1 }, 'companies_workspace_parent'),
   workspaceIndex(
     'companies',
     { name: 'text', domain: 'text', industry: 'text', tags: 'text' },
@@ -159,6 +177,8 @@ export const INDEX_DEFINITIONS: readonly ExplicitIndexDefinition[] = [
   workspaceIndex('leads', { status: 1, createdAt: -1 }, 'leads_workspace_status_created'),
   workspaceIndex('leads', { ownerId: 1, followUpAt: 1 }, 'leads_workspace_owner_follow_up'),
   workspaceIndex('leads', { name: 'text', email: 'text', phone: 'text' }, 'leads_workspace_text'),
+  workspaceIndex('leads', { normalizedEmail: 1, status: 1 }, 'leads_workspace_normalized_email'),
+  workspaceIndex('leads', { normalizedPhone: 1, status: 1 }, 'leads_workspace_normalized_phone'),
   workspaceIndex(
     'deals',
     { pipelineId: 1, stageId: 1, status: 1 },
@@ -414,6 +434,40 @@ export const INDEX_DEFINITIONS: readonly ExplicitIndexDefinition[] = [
     keys: { code: 1 },
     options: { unique: true },
   },
+  {
+    collection: 'outbox_events',
+    name: 'outbox_event_id',
+    keys: { eventId: 1 },
+    options: { unique: true },
+  },
+  { collection: 'outbox_events', name: 'outbox_dispatch', keys: { status: 1, availableAt: 1 } },
+  workspaceIndex(
+    'outbox_events',
+    { aggregateType: 1, aggregateId: 1, occurredAt: 1 },
+    'outbox_workspace_aggregate_time',
+  ),
+  {
+    collection: 'inbox_events',
+    name: 'inbox_consumer_event',
+    keys: { consumerName: 1, eventId: 1 },
+    options: { unique: true },
+  },
+  {
+    collection: 'event_processing_failures',
+    name: 'event_failure_retry',
+    keys: { status: 1, nextAttemptAt: 1 },
+  },
+  workspaceIndex(
+    'knowledge_sources',
+    { idempotencyKey: 1 },
+    'knowledge_source_workspace_idempotency',
+    { unique: true },
+  ),
+  workspaceIndex(
+    'knowledge_sources',
+    { status: 1, createdAt: 1 },
+    'knowledge_source_workspace_status_created',
+  ),
 ] as const;
 
 export function workspaceIndex(

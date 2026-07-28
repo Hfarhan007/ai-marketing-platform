@@ -113,10 +113,7 @@ export class StripeBillingProvider implements BillingProvider {
       },
       { idempotencyKey: input.idempotencyKey },
     );
-    return this.map(
-      value,
-      typeof value.customer === 'string' ? value.customer : value.customer.id,
-    );
+    return this.map(value, typeof value.customer === 'string' ? value.customer : value.customer.id);
   }
   async cancelSubscription(id: string, atPeriodEnd: boolean) {
     if (atPeriodEnd) await this.client().subscriptions.update(id, { cancel_at_period_end: true });

@@ -1,5 +1,15 @@
-import { IsArray, IsInt, IsMongoId, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsMongoId,
+  IsObject,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+} from 'class-validator';
 export class CreateAppointmentDto {
+  @IsOptional() @IsObject() customFields: Record<string, unknown> = {};
   @IsMongoId() customerId!: string;
   @IsMongoId() staffId!: string;
   @IsMongoId() serviceId!: string;

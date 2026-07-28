@@ -3,7 +3,16 @@ import { Injectable } from '@nestjs/common';
 import type { Queue } from 'bullmq';
 
 export const CRM_DATA_QUEUE = 'crm-data';
-type EntityType = 'contacts' | 'companies' | 'leads' | 'deals' | 'pipelines' | 'tasks' | 'services' | 'availability' | 'booking-links';
+type EntityType =
+  | 'contacts'
+  | 'companies'
+  | 'leads'
+  | 'deals'
+  | 'pipelines'
+  | 'tasks'
+  | 'services'
+  | 'availability'
+  | 'booking-links';
 
 @Injectable()
 export class CrmJobsService {
@@ -17,12 +26,16 @@ export class CrmJobsService {
     options: Record<string, string | number | boolean>,
   ): Promise<{ jobId: string }> {
     const idempotencyKey = `${kind}:${entity}:${workspaceId}:${actorId}:${String(options.idempotencyKey ?? Date.now())}`;
-    const job = await this.queue.add(`${entity}.${kind}`, {
-      workspaceId,
-      actorId,
-      entity,
-      options,
-    }, { jobId: idempotencyKey.replaceAll(':', '-') });
+    const job = await this.queue.add(
+      `${entity}.${kind}`,
+      {
+        workspaceId,
+        actorId,
+        entity,
+        options,
+      },
+      { jobId: idempotencyKey.replaceAll(':', '-') },
+    );
     return { jobId: String(job.id) };
   }
 }

@@ -33,14 +33,42 @@ export class Contact implements CrmEntity {
   @Prop({ type: String, default: 'manual' }) source!: string;
   @Prop({ type: MongooseSchema.Types.ObjectId, default: null }) ownerId!: Types.ObjectId | null;
   @Prop({ type: [MongooseSchema.Types.ObjectId], default: [] }) companyIds!: Types.ObjectId[];
-  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) communicationPreferences!: Record<string, boolean>;
-  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) consentSummary!: Record<string, string | boolean>;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) communicationPreferences!: Record<
+    string,
+    boolean
+  >;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) consentSummary!: Record<
+    string,
+    string | boolean
+  >;
   @Prop({ type: String, default: 'subscriber' }) lifecycleStatus!: string;
-  @Prop({ type: MongooseSchema.Types.ObjectId, default: null }) mergedIntoId!: Types.ObjectId | null;
+  @Prop({ type: MongooseSchema.Types.ObjectId, default: null })
+  mergedIntoId!: Types.ObjectId | null;
+  @Prop({ type: [MongooseSchema.Types.ObjectId], default: [] })
+  duplicateCandidateIds!: Types.ObjectId[];
+  @Prop({ type: [MongooseSchema.Types.ObjectId], default: [] }) activityIds!: Types.ObjectId[];
+  @Prop({ type: Number, min: 0, max: 100, default: 0 }) dataQualityScore!: number;
 }
 export type ContactDocument = HydratedDocument<Contact>;
 export const ContactSchema = SchemaFactory.createForClass(Contact);
-ContactSchema.index({ workspaceId: 1, 'emailAddresses.normalized': 1 });
-ContactSchema.index({ workspaceId: 1, 'phoneNumbers.normalized': 1 });
+ContactSchema.index(
+  { workspaceId: 1, 'emailAddresses.normalized': 1 },
+  {
+    unique: true,
+    partialFilterExpression: { 'emailAddresses.normalized': { $type: 'string' }, deletedAt: null },
+  },
+);
+ContactSchema.index(
+  { workspaceId: 1, 'phoneNumbers.normalized': 1 },
+  {
+    unique: true,
+    partialFilterExpression: { 'phoneNumbers.normalized': { $type: 'string' }, deletedAt: null },
+  },
+);
 ContactSchema.index({ workspaceId: 1, ownerId: 1, createdAt: -1 });
-ContactSchema.index({ workspaceId: 1, displayName: 'text', 'emailAddresses.value': 'text', tags: 'text' });
+ContactSchema.index({
+  workspaceId: 1,
+  displayName: 'text',
+  'emailAddresses.value': 'text',
+  tags: 'text',
+});

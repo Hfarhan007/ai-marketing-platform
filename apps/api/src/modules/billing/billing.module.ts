@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { EventsModule } from '../../events/events.module.js';
 import { BillingController } from './controllers/billing.controller.js';
 import {
   BillingProviderRegistry,
@@ -32,6 +33,7 @@ import { BillingWebhookService } from './services/billing-webhook.service.js';
 import { SubscriptionStateMachine } from './services/subscription-state-machine.js';
 @Module({
   imports: [
+    EventsModule,
     MongooseModule.forFeature([
       { name: BillingPlan.name, schema: BillingPlanSchema },
       { name: BillingCustomer.name, schema: BillingCustomerSchema },

@@ -1,5 +1,16 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsInt, IsMongoId, IsObject, IsOptional, IsString, MaxLength, Min, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsInt,
+  IsMongoId,
+  IsObject,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 
 export class ContactPointDto {
   @IsString() @MaxLength(254) value!: string;
@@ -10,8 +21,16 @@ export class CreateContactDto {
   @IsOptional() @IsString() @MaxLength(100) firstName = '';
   @IsOptional() @IsString() @MaxLength(100) lastName = '';
   @IsString() @MaxLength(200) displayName!: string;
-  @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => ContactPointDto) emailAddresses: ContactPointDto[] = [];
-  @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => ContactPointDto) phoneNumbers: ContactPointDto[] = [];
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ContactPointDto)
+  emailAddresses: ContactPointDto[] = [];
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ContactPointDto)
+  phoneNumbers: ContactPointDto[] = [];
   @IsOptional() @IsArray() @IsObject({ each: true }) addresses: Record<string, string>[] = [];
   @IsOptional() @IsArray() @IsString({ each: true }) tags: string[] = [];
   @IsOptional() @IsObject() customFields: Record<string, unknown> = {};

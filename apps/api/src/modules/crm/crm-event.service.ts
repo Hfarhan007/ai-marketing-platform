@@ -1,7 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { CrmAuditEvent, type CrmAuditEventDocument, CrmDomainEvent, type CrmDomainEventDocument } from './crm.schema.js';
+import { randomUUID } from 'node:crypto';
+import { OutboxService } from '../../events/outbox.service.js';
+import {
+  CrmAuditEvent,
+  type CrmAuditEventDocument,
+  CrmDomainEvent,
+  type CrmDomainEventDocument,
+} from './crm.schema.js';
 import type { CrmEvent } from './crm.types.js';
 
 @Injectable()
@@ -9,6 +16,7 @@ export class CrmEventService {
   constructor(
     @InjectModel(CrmAuditEvent.name) private readonly audits: Model<CrmAuditEventDocument>,
     @InjectModel(CrmDomainEvent.name) private readonly events: Model<CrmDomainEventDocument>,
+    private readonly outbox: OutboxService,
   ) {}
 
   async record(event: CrmEvent): Promise<void> {
@@ -17,22 +25,39 @@ export class CrmEventService {
       metadata: event.metadata ?? {},
     };
     const audit = new this.audits({
-        ...common,
-        actorId: new Types.ObjectId(event.actorId),
-        entityType: event.entityType,
-        entityId: new Types.ObjectId(event.entityId),
-        action: event.action,
-      });
+      ...common,
+      actorId: new Types.ObjectId(event.actorId),
+      entityType: event.entityType,
+      entityId: new Types.ObjectId(event.entityId),
+      action: event.action,
+    });
     const domainEvent = new this.events({
-        ...common,
-        type: `${event.entityType}.${event.action}`,
-        aggregateType: event.entityType,
-        aggregateId: new Types.ObjectId(event.entityId),
-        publishedAt: null,
-      });
+      ...common,
+      type: `${event.entityType}.${event.action}`,
+      aggregateType: event.entityType,
+      aggregateId: new Types.ObjectId(event.entityId),
+      publishedAt: null,
+    });
     await Promise.all([
       audit.save(event.session ? { session: event.session } : {}),
       domainEvent.save(event.session ? { session: event.session } : {}),
+      ...(event.session
+        ? [
+            this.outbox.append(
+              {
+                eventType: `${event.entityType}.${event.action}`,
+                aggregateType: event.entityType,
+                aggregateId: event.entityId,
+                workspaceId: event.workspaceId,
+                payload: event.metadata ?? {},
+                metadata: { actorId: event.actorId },
+                correlationId: event.correlationId ?? randomUUID(),
+                ...(event.causationId ? { causationId: event.causationId } : {}),
+              },
+              event.session,
+            ),
+          ]
+        : []),
     ]);
   }
 }

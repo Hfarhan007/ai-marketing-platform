@@ -1,2 +1,61 @@
-import{Body,Controller,Param,Post}from'@nestjs/common';import{ApiTags}from'@nestjs/swagger';import{RequireWorkspace}from'../../../common/decorators/require-workspace.decorator.js';import{WorkspaceContext}from'../../../common/decorators/workspace-context.decorator.js';import{ParseMongoIdPipe}from'../../../common/pipes/parse-mongo-id.pipe.js';import type{WorkspaceRequestContext}from'../../../common/types/workspace-context.js';import{RequirePermissions}from'../../permissions/decorators/require-permissions.decorator.js';import{CreateCampaignDto,MetricDto,RunCommandDto,ScheduleCampaignDto,TestSendDto}from'../dto/campaign.dto.js';import{CampaignService}from'../services/campaign.service.js';
-@ApiTags('campaigns')@Controller('campaigns')@RequireWorkspace()export class CampaignController{constructor(private readonly service:CampaignService){}@Post()@RequirePermissions('campaigns.manage')create(@WorkspaceContext()c:WorkspaceRequestContext,@Body()d:CreateCampaignDto){return this.service.create(c,d)}@Post(':id/publish')@RequirePermissions('campaigns.approve')publish(@WorkspaceContext()c:WorkspaceRequestContext,@Param('id',ParseMongoIdPipe)id:string){return this.service.publish(c,id)}@Post(':id/schedule')@RequirePermissions('campaigns.manage')schedule(@WorkspaceContext()c:WorkspaceRequestContext,@Param('id',ParseMongoIdPipe)id:string,@Body()d:ScheduleCampaignDto){return this.service.schedule(c,id,d)}@Post(':id/test-send')@RequirePermissions('campaigns.manage')test(@WorkspaceContext()c:WorkspaceRequestContext,@Param('id',ParseMongoIdPipe)id:string,@Body()d:TestSendDto){return this.service.testSend(c,id,d)}@Post('runs/:id/command')@RequirePermissions('campaigns.manage')command(@WorkspaceContext()c:WorkspaceRequestContext,@Param('id',ParseMongoIdPipe)id:string,@Body()d:RunCommandDto){return this.service.command(c,id,d.command)}@Post('runs/:id/metrics')@RequirePermissions('campaigns.read')metric(@WorkspaceContext()c:WorkspaceRequestContext,@Param('id',ParseMongoIdPipe)id:string,@Body()d:MetricDto){return this.service.metric(c,id,d)}}
+import { Body, Controller, Param, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { RequireWorkspace } from '../../../common/decorators/require-workspace.decorator.js';
+import { WorkspaceContext } from '../../../common/decorators/workspace-context.decorator.js';
+import { ParseMongoIdPipe } from '../../../common/pipes/parse-mongo-id.pipe.js';
+import type { WorkspaceRequestContext } from '../../../common/types/workspace-context.js';
+import { RequirePermissions } from '../../permissions/decorators/require-permissions.decorator.js';
+import {
+  CreateCampaignDto,
+  MetricDto,
+  RunCommandDto,
+  ScheduleCampaignDto,
+  TestSendDto,
+} from '../dto/campaign.dto.js';
+import { CampaignService } from '../services/campaign.service.js';
+@ApiTags('campaigns')
+@Controller('campaigns')
+@RequireWorkspace()
+export class CampaignController {
+  constructor(private readonly service: CampaignService) {}
+  @Post() @RequirePermissions('campaigns.manage') create(
+    @WorkspaceContext() c: WorkspaceRequestContext,
+    @Body() d: CreateCampaignDto,
+  ) {
+    return this.service.create(c, d);
+  }
+  @Post(':id/publish') @RequirePermissions('campaigns.approve') publish(
+    @WorkspaceContext() c: WorkspaceRequestContext,
+    @Param('id', ParseMongoIdPipe) id: string,
+  ) {
+    return this.service.publish(c, id);
+  }
+  @Post(':id/schedule') @RequirePermissions('campaigns.manage') schedule(
+    @WorkspaceContext() c: WorkspaceRequestContext,
+    @Param('id', ParseMongoIdPipe) id: string,
+    @Body() d: ScheduleCampaignDto,
+  ) {
+    return this.service.schedule(c, id, d);
+  }
+  @Post(':id/test-send') @RequirePermissions('campaigns.manage') test(
+    @WorkspaceContext() c: WorkspaceRequestContext,
+    @Param('id', ParseMongoIdPipe) id: string,
+    @Body() d: TestSendDto,
+  ) {
+    return this.service.testSend(c, id, d);
+  }
+  @Post('runs/:id/command') @RequirePermissions('campaigns.manage') command(
+    @WorkspaceContext() c: WorkspaceRequestContext,
+    @Param('id', ParseMongoIdPipe) id: string,
+    @Body() d: RunCommandDto,
+  ) {
+    return this.service.command(c, id, d.command);
+  }
+  @Post('runs/:id/metrics') @RequirePermissions('campaigns.read') metric(
+    @WorkspaceContext() c: WorkspaceRequestContext,
+    @Param('id', ParseMongoIdPipe) id: string,
+    @Body() d: MetricDto,
+  ) {
+    return this.service.metric(c, id, d);
+  }
+}

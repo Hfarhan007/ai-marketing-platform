@@ -68,7 +68,8 @@ export class Subscription {
   @Prop({ type: String, required: true }) providerSubscriptionId!: string;
   @Prop({ type: String, enum: ['month', 'year'], required: true }) interval!: BillingInterval;
   @Prop({
-    type: String, enum: ['trialing', 'active', 'past_due', 'grace_period', 'cancelled', 'expired'],
+    type: String,
+    enum: ['trialing', 'active', 'past_due', 'grace_period', 'cancelled', 'expired'],
     required: true,
   })
   status!: SubscriptionStatus;
@@ -124,7 +125,8 @@ export class BillingWebhookEvent {
   updatedAt!: Date;
   @Prop({ type: String, required: true, unique: true }) providerEventId!: string;
   @Prop({ type: String, required: true }) type!: string;
-  @Prop({ type: String, default: 'received', enum: ['received', 'processed', 'failed'] }) status!: string;
+  @Prop({ type: String, default: 'received', enum: ['received', 'processed', 'failed'] })
+  status!: string;
   @Prop({ type: MongooseSchema.Types.ObjectId }) workspaceId?: Types.ObjectId;
   @Prop({ type: Date }) processedAt?: Date;
   @Prop({ type: String }) error?: string;

@@ -17,20 +17,38 @@ describe('CRM business rules', () => {
   it('normalizes domains and rejects a tenant-local duplicate', async () => {
     const repository = { findOne: vi.fn().mockResolvedValue({ _id: new Types.ObjectId() }) };
     const service = new CompaniesService(repository as never, events as never, jobs as never);
-    await expect(service.create(context, { name: 'Acme', domain: ' ACME.COM ', industry: '', size: '', revenueRange: '', addresses: [], contactIds: [], dealIds: [], tags: [], customFields: {} })).rejects.toBeInstanceOf(ConflictException);
-    expect(repository.findOne).toHaveBeenCalledWith(context.workspaceId, { domain: 'acme.com', deletedAt: null });
+    await expect(
+      service.create(context, {
+        name: 'Acme',
+        domain: ' ACME.COM ',
+        industry: '',
+        size: '',
+        revenueRange: '',
+        addresses: [],
+        contactIds: [],
+        dealIds: [],
+        tags: [],
+        customFields: {},
+      }),
+    ).rejects.toBeInstanceOf(ConflictException);
+    expect(repository.findOne).toHaveBeenCalledWith(context.workspaceId, {
+      domain: 'acme.com',
+      deletedAt: null,
+    });
   });
 
   it('rejects duplicate stage ordering', async () => {
     const service = new PipelinesService({} as never, events as never, jobs as never);
-    await expect(service.create(context, {
-      name: 'Sales',
-      status: 'active',
-      isDefault: false,
-      stages: [
-        { name: 'New', order: 0, probability: 10, rules: {} },
-        { name: 'Won', order: 0, probability: 100, rules: {} },
-      ],
-    })).rejects.toBeInstanceOf(BadRequestException);
+    await expect(
+      service.create(context, {
+        name: 'Sales',
+        status: 'active',
+        isDefault: false,
+        stages: [
+          { name: 'New', order: 0, probability: 10, rules: {} },
+          { name: 'Won', order: 0, probability: 100, rules: {} },
+        ],
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 });

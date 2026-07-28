@@ -25,6 +25,8 @@ export interface CrmEvent {
   entityId: string;
   action: string;
   metadata?: Record<string, string | number | boolean>;
+  correlationId?: string;
+  causationId?: string;
   session?: ClientSession;
 }
 

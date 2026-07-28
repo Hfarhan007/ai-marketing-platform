@@ -2,8 +2,79 @@ import type { Company } from '../companies/schemas/company.schema.js';
 import type { Deal } from '../deals/schemas/deal.schema.js';
 import type { Lead } from '../leads/schemas/lead.schema.js';
 import type { Pipeline } from '../pipelines/schemas/pipeline.schema.js';
-const base = (v: { _id: unknown; version: number; createdAt: Date; updatedAt: Date; deletedAt: Date | null }) => ({ id: String(v._id), version: v.version, createdAt: v.createdAt, updatedAt: v.updatedAt, deletedAt: v.deletedAt });
-export const mapCompany = (v: Company) => ({ ...base(v), name: v.name, domain: v.domain, industry: v.industry, size: v.size, revenueRange: v.revenueRange, ownerId: v.ownerId ? String(v.ownerId) : null, addresses: v.addresses, contactIds: v.contactIds.map(String), dealIds: v.dealIds.map(String), tags: v.tags, customFields: v.customFields });
-export const mapLead = (v: Lead) => ({ ...base(v), name: v.name, email: v.email, phone: v.phone, source: v.source, campaignId: v.campaignId ? String(v.campaignId) : null, score: v.score, qualification: v.qualification, status: v.status, ownerId: v.ownerId ? String(v.ownerId) : null, followUpAt: v.followUpAt, conversion: v.conversion, disqualificationReason: v.disqualificationReason, aiSummaryReferenceIds: v.aiSummaryReferenceIds.map(String), tags: v.tags });
-export const mapDeal = (v: Deal) => ({ ...base(v), title: v.title, value: v.value, currency: v.currency, pipelineId: String(v.pipelineId), stageId: String(v.stageId), probability: v.probability, status: v.status, ownerId: v.ownerId ? String(v.ownerId) : null, contactId: v.contactId ? String(v.contactId) : null, companyId: v.companyId ? String(v.companyId) : null, expectedCloseDate: v.expectedCloseDate, lineItems: v.lineItems, wonReason: v.wonReason, lostReason: v.lostReason });
-export const mapPipeline = (v: Pipeline) => ({ ...base(v), name: v.name, stages: v.stages.map((s) => ({ id: String(s._id), name: s.name, order: s.order, probability: s.probability, rules: s.rules })), status: v.status, isDefault: v.isDefault });
+const base = (v: {
+  _id: unknown;
+  version: number;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
+}) => ({
+  id: String(v._id),
+  version: v.version,
+  createdAt: v.createdAt,
+  updatedAt: v.updatedAt,
+  deletedAt: v.deletedAt,
+});
+export const mapCompany = (v: Company) => ({
+  ...base(v),
+  name: v.name,
+  domain: v.domain,
+  industry: v.industry,
+  size: v.size,
+  revenueRange: v.revenueRange,
+  ownerId: v.ownerId ? String(v.ownerId) : null,
+  addresses: v.addresses,
+  contactIds: v.contactIds.map(String),
+  dealIds: v.dealIds.map(String),
+  tags: v.tags,
+  customFields: v.customFields,
+});
+export const mapLead = (v: Lead) => ({
+  ...base(v),
+  name: v.name,
+  email: v.email,
+  phone: v.phone,
+  source: v.source,
+  campaignId: v.campaignId ? String(v.campaignId) : null,
+  score: v.score,
+  qualification: v.qualification,
+  status: v.status,
+  ownerId: v.ownerId ? String(v.ownerId) : null,
+  followUpAt: v.followUpAt,
+  conversion: v.conversion,
+  disqualificationReason: v.disqualificationReason,
+  aiSummaryReferenceIds: v.aiSummaryReferenceIds.map(String),
+  tags: v.tags,
+  customFields: v.customFields,
+});
+export const mapDeal = (v: Deal) => ({
+  ...base(v),
+  title: v.title,
+  value: v.value,
+  currency: v.currency,
+  pipelineId: String(v.pipelineId),
+  stageId: String(v.stageId),
+  probability: v.probability,
+  status: v.status,
+  ownerId: v.ownerId ? String(v.ownerId) : null,
+  contactId: v.contactId ? String(v.contactId) : null,
+  companyId: v.companyId ? String(v.companyId) : null,
+  expectedCloseDate: v.expectedCloseDate,
+  lineItems: v.lineItems,
+  wonReason: v.wonReason,
+  lostReason: v.lostReason,
+  customFields: v.customFields,
+});
+export const mapPipeline = (v: Pipeline) => ({
+  ...base(v),
+  name: v.name,
+  stages: v.stages.map((s) => ({
+    id: String(s._id),
+    name: s.name,
+    order: s.order,
+    probability: s.probability,
+    rules: s.rules,
+  })),
+  status: v.status,
+  isDefault: v.isDefault,
+});

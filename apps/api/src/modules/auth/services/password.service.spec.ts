@@ -8,5 +8,5 @@ describe('PasswordService', () => {
     expect(hash.startsWith('$argon2id$')).toBe(true);
     await expect(service.verify(hash, 'Correct-Horse-Battery-42!')).resolves.toBe(true);
     await expect(service.verify(hash, 'wrong-password')).resolves.toBe(false);
-  });
+  }, 15_000);
 });

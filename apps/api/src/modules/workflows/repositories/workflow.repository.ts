@@ -1,17 +1,251 @@
-import{ConflictException,Injectable,NotFoundException}from'@nestjs/common';import{InjectModel}from'@nestjs/mongoose';import type{ClientSession,Model}from'mongoose';import{Types}from'mongoose';import{WorkflowDefinition,type WorkflowDefinitionDocument,WorkflowDeduplicationKey,WorkflowRun,type WorkflowRunDocument,WorkflowStepRun,type WorkflowStepRunDocument,WorkflowVersion,type WorkflowVersionDocument,WorkflowWaitState}from'../schemas/workflow.schemas.js';import type{WorkflowGraph}from'../types/workflow.types.js';
-@Injectable()export class WorkflowRepository{constructor(@InjectModel(WorkflowDefinition.name)private readonly definitions:Model<WorkflowDefinitionDocument>,@InjectModel(WorkflowVersion.name)private readonly versions:Model<WorkflowVersionDocument>,@InjectModel(WorkflowRun.name)private readonly runs:Model<WorkflowRunDocument>,@InjectModel(WorkflowStepRun.name)private readonly steps:Model<WorkflowStepRunDocument>,@InjectModel(WorkflowWaitState.name)private readonly waits:Model<WorkflowWaitState>,@InjectModel(WorkflowDeduplicationKey.name)private readonly dedupe:Model<WorkflowDeduplicationKey>){}
- async create(workspaceId:string,userId:string,name:string,description:string,graph:WorkflowGraph){const definition=new this.definitions({workspaceId:new Types.ObjectId(workspaceId),name,description,createdBy:new Types.ObjectId(userId),updatedBy:new Types.ObjectId(userId),latestVersion:1});await definition.save();const version=new this.versions({workspaceId:new Types.ObjectId(workspaceId),workflowDefinitionId:definition._id,version:1,status:'draft',graph});await version.save();return{definition:definition.toObject(),version:version.toObject()}}
- async definition(workspaceId:string,id:string,session?:ClientSession){const v=await this.definitions.findOne({_id:new Types.ObjectId(id),workspaceId:new Types.ObjectId(workspaceId)}).session(session??null).lean<WorkflowDefinition>().exec();if(!v)throw new NotFoundException('Workflow not found');return v}
- async draft(workspaceId:string,definitionId:string,session?:ClientSession){const v=await this.versions.findOne({workspaceId:new Types.ObjectId(workspaceId),workflowDefinitionId:new Types.ObjectId(definitionId),status:'draft'}).session(session??null).lean<WorkflowVersion>().exec();if(!v)throw new NotFoundException('Draft version not found');return v}
- async published(workspaceId:string,definitionId:string,session?:ClientSession){const v=await this.versions.findOne({workspaceId:new Types.ObjectId(workspaceId),workflowDefinitionId:new Types.ObjectId(definitionId),status:'published'}).session(session??null).lean<WorkflowVersion>().exec();if(!v)throw new NotFoundException('Published workflow not found');return v}
- async updateDraft(workspaceId:string,definitionId:string,graph:WorkflowGraph){const v=await this.versions.findOneAndUpdate({workspaceId:new Types.ObjectId(workspaceId),workflowDefinitionId:new Types.ObjectId(definitionId),status:'draft'},{$set:{graph}},{new:true,runValidators:true}).lean<WorkflowVersion>().exec();if(!v)throw new ConflictException('Published versions are immutable');return v}
- async publish(workspaceId:string,definitionId:string,userId:string,checksum:string,session:ClientSession){const draft=await this.draft(workspaceId,definitionId,session);await this.versions.updateMany({workspaceId:new Types.ObjectId(workspaceId),workflowDefinitionId:new Types.ObjectId(definitionId),status:'published'},{$set:{status:'superseded'}},{session});const published=await this.versions.findOneAndUpdate({_id:draft._id,status:'draft'},{$set:{status:'published',publishedAt:new Date(),publishedBy:new Types.ObjectId(userId),checksum}},{new:true,session}).lean<WorkflowVersion>().exec();if(!published)throw new ConflictException('Version was already published');await this.definitions.updateOne({_id:new Types.ObjectId(definitionId),workspaceId:new Types.ObjectId(workspaceId)},{$set:{publishedVersion:draft.version,status:'active',updatedBy:new Types.ObjectId(userId)},$inc:{latestVersion:1}},{session});await new this.versions({workspaceId:new Types.ObjectId(workspaceId),workflowDefinitionId:new Types.ObjectId(definitionId),version:draft.version+1,status:'draft',graph:draft.graph}).save({session});return published}
- async reserveRun(input:{workspaceId:string;definitionId:string;versionId:string;correlationId:string;idempotencyKey:string;triggerType:string;payload:Record<string,unknown>},session:ClientSession){const existing=await this.runs.findOne({workspaceId:new Types.ObjectId(input.workspaceId),idempotencyKey:input.idempotencyKey}).session(session).lean<WorkflowRun>().exec();if(existing)return{run:existing,duplicate:true};const run=new this.runs({workspaceId:new Types.ObjectId(input.workspaceId),workflowDefinitionId:new Types.ObjectId(input.definitionId),workflowVersionId:new Types.ObjectId(input.versionId),correlationId:input.correlationId,idempotencyKey:input.idempotencyKey,triggerType:input.triggerType,input:input.payload,variables:{},status:'queued'});await run.save({session});await new this.dedupe({workspaceId:new Types.ObjectId(input.workspaceId),key:input.idempotencyKey,workflowRunId:run._id,expiresAt:new Date(Date.now()+30*86_400_000)}).save({session});return{run:run.toObject(),duplicate:false}}
- run(workspaceId:string,id:string){return this.runs.findOne({_id:new Types.ObjectId(id),workspaceId:new Types.ObjectId(workspaceId)}).lean<WorkflowRun>().exec()}
- versionById(workspaceId:string,id:string){return this.versions.findOne({_id:new Types.ObjectId(id),workspaceId:new Types.ObjectId(workspaceId)}).lean<WorkflowVersion>().exec()}
- setRun(workspaceId:string,id:string,update:object){return this.runs.findOneAndUpdate({_id:new Types.ObjectId(id),workspaceId:new Types.ObjectId(workspaceId),status:{$nin:['cancelled','completed']}},update,{new:true}).lean<WorkflowRun>().exec()}
- async step(input:object){const v=new this.steps(input);await v.save();return v.toObject()}
- finishStep(id:string,update:object){return this.steps.updateOne({_id:new Types.ObjectId(id)},update)}
- async wait(input:object){const v=new this.waits(input);await v.save();return v.toObject()}
- history(workspaceId:string,runId:string){return this.steps.find({workspaceId:new Types.ObjectId(workspaceId),workflowRunId:new Types.ObjectId(runId)}).sort({createdAt:1}).lean<WorkflowStepRun[]>().exec()}
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import type { ClientSession, Model } from 'mongoose';
+import { Types } from 'mongoose';
+import {
+  WorkflowDefinition,
+  type WorkflowDefinitionDocument,
+  WorkflowDeduplicationKey,
+  WorkflowRun,
+  type WorkflowRunDocument,
+  WorkflowStepRun,
+  type WorkflowStepRunDocument,
+  WorkflowVersion,
+  type WorkflowVersionDocument,
+  WorkflowWaitState,
+} from '../schemas/workflow.schemas.js';
+import type { WorkflowGraph } from '../types/workflow.types.js';
+@Injectable()
+export class WorkflowRepository {
+  constructor(
+    @InjectModel(WorkflowDefinition.name)
+    private readonly definitions: Model<WorkflowDefinitionDocument>,
+    @InjectModel(WorkflowVersion.name) private readonly versions: Model<WorkflowVersionDocument>,
+    @InjectModel(WorkflowRun.name) private readonly runs: Model<WorkflowRunDocument>,
+    @InjectModel(WorkflowStepRun.name) private readonly steps: Model<WorkflowStepRunDocument>,
+    @InjectModel(WorkflowWaitState.name) private readonly waits: Model<WorkflowWaitState>,
+    @InjectModel(WorkflowDeduplicationKey.name)
+    private readonly dedupe: Model<WorkflowDeduplicationKey>,
+  ) {}
+  async create(
+    workspaceId: string,
+    userId: string,
+    name: string,
+    description: string,
+    graph: WorkflowGraph,
+  ) {
+    const definition = new this.definitions({
+      workspaceId: new Types.ObjectId(workspaceId),
+      name,
+      description,
+      createdBy: new Types.ObjectId(userId),
+      updatedBy: new Types.ObjectId(userId),
+      latestVersion: 1,
+    });
+    await definition.save();
+    const version = new this.versions({
+      workspaceId: new Types.ObjectId(workspaceId),
+      workflowDefinitionId: definition._id,
+      version: 1,
+      status: 'draft',
+      graph,
+    });
+    await version.save();
+    return { definition: definition.toObject(), version: version.toObject() };
+  }
+  async definition(workspaceId: string, id: string, session?: ClientSession) {
+    const v = await this.definitions
+      .findOne({ _id: new Types.ObjectId(id), workspaceId: new Types.ObjectId(workspaceId) })
+      .session(session ?? null)
+      .lean<WorkflowDefinition>()
+      .exec();
+    if (!v) throw new NotFoundException('Workflow not found');
+    return v;
+  }
+  async draft(workspaceId: string, definitionId: string, session?: ClientSession) {
+    const v = await this.versions
+      .findOne({
+        workspaceId: new Types.ObjectId(workspaceId),
+        workflowDefinitionId: new Types.ObjectId(definitionId),
+        status: 'draft',
+      })
+      .session(session ?? null)
+      .lean<WorkflowVersion>()
+      .exec();
+    if (!v) throw new NotFoundException('Draft version not found');
+    return v;
+  }
+  async published(workspaceId: string, definitionId: string, session?: ClientSession) {
+    const v = await this.versions
+      .findOne({
+        workspaceId: new Types.ObjectId(workspaceId),
+        workflowDefinitionId: new Types.ObjectId(definitionId),
+        status: 'published',
+      })
+      .session(session ?? null)
+      .lean<WorkflowVersion>()
+      .exec();
+    if (!v) throw new NotFoundException('Published workflow not found');
+    return v;
+  }
+  async updateDraft(workspaceId: string, definitionId: string, graph: WorkflowGraph) {
+    const v = await this.versions
+      .findOneAndUpdate(
+        {
+          workspaceId: new Types.ObjectId(workspaceId),
+          workflowDefinitionId: new Types.ObjectId(definitionId),
+          status: 'draft',
+        },
+        { $set: { graph } },
+        { new: true, runValidators: true },
+      )
+      .lean<WorkflowVersion>()
+      .exec();
+    if (!v) throw new ConflictException('Published versions are immutable');
+    return v;
+  }
+  async publish(
+    workspaceId: string,
+    definitionId: string,
+    userId: string,
+    checksum: string,
+    session: ClientSession,
+  ) {
+    const draft = await this.draft(workspaceId, definitionId, session);
+    await this.versions.updateMany(
+      {
+        workspaceId: new Types.ObjectId(workspaceId),
+        workflowDefinitionId: new Types.ObjectId(definitionId),
+        status: 'published',
+      },
+      { $set: { status: 'superseded' } },
+      { session },
+    );
+    const published = await this.versions
+      .findOneAndUpdate(
+        { _id: draft._id, status: 'draft' },
+        {
+          $set: {
+            status: 'published',
+            publishedAt: new Date(),
+            publishedBy: new Types.ObjectId(userId),
+            checksum,
+          },
+        },
+        { new: true, session },
+      )
+      .lean<WorkflowVersion>()
+      .exec();
+    if (!published) throw new ConflictException('Version was already published');
+    await this.definitions.updateOne(
+      { _id: new Types.ObjectId(definitionId), workspaceId: new Types.ObjectId(workspaceId) },
+      {
+        $set: {
+          publishedVersion: draft.version,
+          status: 'active',
+          updatedBy: new Types.ObjectId(userId),
+        },
+        $inc: { latestVersion: 1 },
+      },
+      { session },
+    );
+    await new this.versions({
+      workspaceId: new Types.ObjectId(workspaceId),
+      workflowDefinitionId: new Types.ObjectId(definitionId),
+      version: draft.version + 1,
+      status: 'draft',
+      graph: draft.graph,
+    }).save({ session });
+    return published;
+  }
+  async reserveRun(
+    input: {
+      workspaceId: string;
+      definitionId: string;
+      versionId: string;
+      correlationId: string;
+      idempotencyKey: string;
+      triggerType: string;
+      payload: Record<string, unknown>;
+    },
+    session: ClientSession,
+  ) {
+    const existing = await this.runs
+      .findOne({
+        workspaceId: new Types.ObjectId(input.workspaceId),
+        idempotencyKey: input.idempotencyKey,
+      })
+      .session(session)
+      .lean<WorkflowRun>()
+      .exec();
+    if (existing) return { run: existing, duplicate: true };
+    const run = new this.runs({
+      workspaceId: new Types.ObjectId(input.workspaceId),
+      workflowDefinitionId: new Types.ObjectId(input.definitionId),
+      workflowVersionId: new Types.ObjectId(input.versionId),
+      correlationId: input.correlationId,
+      idempotencyKey: input.idempotencyKey,
+      triggerType: input.triggerType,
+      input: input.payload,
+      variables: {},
+      status: 'queued',
+    });
+    await run.save({ session });
+    await new this.dedupe({
+      workspaceId: new Types.ObjectId(input.workspaceId),
+      key: input.idempotencyKey,
+      workflowRunId: run._id,
+      expiresAt: new Date(Date.now() + 30 * 86_400_000),
+    }).save({ session });
+    return { run: run.toObject(), duplicate: false };
+  }
+  run(workspaceId: string, id: string) {
+    return this.runs
+      .findOne({ _id: new Types.ObjectId(id), workspaceId: new Types.ObjectId(workspaceId) })
+      .lean<WorkflowRun>()
+      .exec();
+  }
+  versionById(workspaceId: string, id: string) {
+    return this.versions
+      .findOne({ _id: new Types.ObjectId(id), workspaceId: new Types.ObjectId(workspaceId) })
+      .lean<WorkflowVersion>()
+      .exec();
+  }
+  setRun(workspaceId: string, id: string, update: object) {
+    return this.runs
+      .findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(id),
+          workspaceId: new Types.ObjectId(workspaceId),
+          status: { $nin: ['cancelled', 'completed'] },
+        },
+        update,
+        { new: true },
+      )
+      .lean<WorkflowRun>()
+      .exec();
+  }
+  async step(input: object) {
+    const v = new this.steps(input);
+    await v.save();
+    return v.toObject();
+  }
+  finishStep(id: string, update: object) {
+    return this.steps.updateOne({ _id: new Types.ObjectId(id) }, update);
+  }
+  async wait(input: object) {
+    const v = new this.waits(input);
+    await v.save();
+    return v.toObject();
+  }
+  history(workspaceId: string, runId: string) {
+    return this.steps
+      .find({
+        workspaceId: new Types.ObjectId(workspaceId),
+        workflowRunId: new Types.ObjectId(runId),
+      })
+      .sort({ createdAt: 1 })
+      .lean<WorkflowStepRun[]>()
+      .exec();
+  }
 }

@@ -3,7 +3,9 @@ import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose';
 import type { CrmEntity } from '../../crm/crm.types.js';
 @Schema({ collection: 'appointments', timestamps: true, versionKey: false })
 export class Appointment implements CrmEntity {
-  _id!: Types.ObjectId; createdAt!: Date; updatedAt!: Date;
+  _id!: Types.ObjectId;
+  createdAt!: Date;
+  updatedAt!: Date;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) createdBy!: Types.ObjectId;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) updatedBy!: Types.ObjectId;
@@ -15,7 +17,12 @@ export class Appointment implements CrmEntity {
   @Prop({ type: Date, required: true }) startAt!: Date;
   @Prop({ type: Date, required: true }) endAt!: Date;
   @Prop({ type: String, required: true }) timezone!: string;
-  @Prop({ type: String, enum: ['reserved', 'confirmed', 'completed', 'cancelled', 'no_show'], default: 'confirmed' }) status!: string;
+  @Prop({
+    type: String,
+    enum: ['reserved', 'confirmed', 'completed', 'cancelled', 'no_show'],
+    default: 'confirmed',
+  })
+  status!: string;
   @Prop({ type: String, default: '' }) location!: string;
   @Prop({ type: String, default: '' }) meetingLink!: string;
   @Prop({ type: [Number], default: [] }) reminders!: number[];
@@ -25,6 +32,7 @@ export class Appointment implements CrmEntity {
   @Prop({ type: String, required: true }) idempotencyKey!: string;
   @Prop({ type: Number, default: 0 }) bufferBeforeMinutes!: number;
   @Prop({ type: Number, default: 0 }) bufferAfterMinutes!: number;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) customFields!: Record<string, unknown>;
 }
 export type AppointmentDocument = HydratedDocument<Appointment>;
 export const AppointmentSchema = SchemaFactory.createForClass(Appointment);

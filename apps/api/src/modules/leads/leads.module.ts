@@ -7,5 +7,14 @@ import { LeadsController } from './controllers/leads.controller.js';
 import { LeadsRepository } from './repositories/leads.repository.js';
 import { Lead, LeadSchema } from './schemas/lead.schema.js';
 import { LeadsService } from './services/leads.service.js';
-@Module({ imports: [MongooseModule.forFeature([{ name: Lead.name, schema: LeadSchema }]), CrmModule, ContactsModule, DealsModule], controllers: [LeadsController], providers: [LeadsRepository, LeadsService] })
+@Module({
+  imports: [
+    MongooseModule.forFeature([{ name: Lead.name, schema: LeadSchema }]),
+    CrmModule,
+    ContactsModule,
+    DealsModule,
+  ],
+  controllers: [LeadsController],
+  providers: [LeadsRepository, LeadsService],
+})
 export class LeadsModule {}

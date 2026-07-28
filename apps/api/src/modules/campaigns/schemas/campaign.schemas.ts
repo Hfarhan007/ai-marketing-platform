@@ -1,20 +1,164 @@
-import{Prop,Schema,SchemaFactory}from'@nestjs/mongoose';import{HydratedDocument,Schema as MongooseSchema,Types}from'mongoose';
-export const CAMPAIGN_CHANNELS=['email','sms','whatsapp','social']as const;
-@Schema({collection:'campaigns',timestamps:true,versionKey:false})export class Campaign{_id!:Types.ObjectId;createdAt!:Date;updatedAt!:Date;@Prop({type:MongooseSchema.Types.ObjectId,required:true})workspaceId!:Types.ObjectId;@Prop({type:String,required:true})name!:string;@Prop({type:String,enum:CAMPAIGN_CHANNELS,required:true})channel!:string;@Prop({type:String,enum:['draft','scheduled','running','paused','completed','cancelled','failed','archived'],default:'draft'})status!:string;@Prop({type:String,enum:['draft','pending','approved','rejected'],default:'draft'})approvalStatus!:string;@Prop({type:MongooseSchema.Types.ObjectId,default:null})audienceId!:Types.ObjectId|null;@Prop({type:MongooseSchema.Types.ObjectId,default:null})segmentId!:Types.ObjectId|null;@Prop({type:Number,default:1})latestVersion!:number;@Prop({type:Number,default:null})publishedVersion!:number|null;@Prop({type:Date,default:null})scheduledAt!:Date|null;@Prop({type:String,default:'UTC'})timezone!:string;@Prop({type:MongooseSchema.Types.ObjectId,required:true})createdBy!:Types.ObjectId;@Prop({type:MongooseSchema.Types.ObjectId,required:true})updatedBy!:Types.ObjectId}
-export type CampaignDocument=HydratedDocument<Campaign>;export const CampaignSchema=SchemaFactory.createForClass(Campaign);CampaignSchema.index({workspaceId:1,status:1,scheduledAt:1});
-@Schema({collection:'campaign_versions',timestamps:true,versionKey:false})export class CampaignVersion{_id!:Types.ObjectId;@Prop({type:MongooseSchema.Types.ObjectId,required:true})workspaceId!:Types.ObjectId;@Prop({type:MongooseSchema.Types.ObjectId,required:true})campaignId!:Types.ObjectId;@Prop({type:Number,required:true})version!:number;@Prop({type:String,enum:['draft','published'],default:'draft'})status!:string;@Prop({type:[MongooseSchema.Types.Mixed],default:[]})variants!:Record<string,unknown>[];@Prop({type:MongooseSchema.Types.Mixed,default:{}})personalizationDefaults!:Record<string,string>;@Prop({type:MongooseSchema.Types.Mixed,default:{}})quietHours!:Record<string,number>;@Prop({type:Date,default:null})publishedAt!:Date|null}
-export const CampaignVersionSchema=SchemaFactory.createForClass(CampaignVersion);CampaignVersionSchema.index({workspaceId:1,campaignId:1,version:1},{unique:true});
-@Schema({collection:'audiences',timestamps:true,versionKey:false})export class Audience{_id!:Types.ObjectId;@Prop({type:MongooseSchema.Types.ObjectId,required:true})workspaceId!:Types.ObjectId;@Prop({type:String,required:true})name!:string;@Prop({type:[MongooseSchema.Types.ObjectId],default:[]})contactIds!:Types.ObjectId[];@Prop({type:[MongooseSchema.Types.ObjectId],default:[]})excludedContactIds!:Types.ObjectId[]}
-export const AudienceSchema=SchemaFactory.createForClass(Audience);AudienceSchema.index({workspaceId:1,name:1},{unique:true});
-@Schema({collection:'segments',timestamps:true,versionKey:false})export class Segment{_id!:Types.ObjectId;@Prop({type:MongooseSchema.Types.ObjectId,required:true})workspaceId!:Types.ObjectId;@Prop({type:String,required:true})name!:string;@Prop({type:[MongooseSchema.Types.Mixed],default:[]})rules!:Record<string,unknown>[];@Prop({type:[MongooseSchema.Types.ObjectId],default:[]})excludedContactIds!:Types.ObjectId[]}
-export const SegmentSchema=SchemaFactory.createForClass(Segment);SegmentSchema.index({workspaceId:1,name:1},{unique:true});
-@Schema({collection:'campaign_runs',timestamps:true,versionKey:false})export class CampaignRun{_id!:Types.ObjectId;createdAt!:Date;@Prop({type:MongooseSchema.Types.ObjectId,required:true})workspaceId!:Types.ObjectId;@Prop({type:MongooseSchema.Types.ObjectId,required:true})campaignId!:Types.ObjectId;@Prop({type:MongooseSchema.Types.ObjectId,required:true})campaignVersionId!:Types.ObjectId;@Prop({type:String,enum:['queued','running','paused','completed','cancelled','failed'],default:'queued'})status!:string;@Prop({type:String,required:true})idempotencyKey!:string;@Prop({type:Number,default:0})totalRecipients!:number;@Prop({type:[MongooseSchema.Types.Mixed],default:[]})audienceSnapshot!:Record<string,unknown>[];@Prop({type:Date,default:null})completedAt!:Date|null}
-export const CampaignRunSchema=SchemaFactory.createForClass(CampaignRun);CampaignRunSchema.index({workspaceId:1,idempotencyKey:1},{unique:true});CampaignRunSchema.index({workspaceId:1,campaignId:1,createdAt:-1});
-@Schema({collection:'campaign_deliveries',timestamps:true,versionKey:false})export class Delivery{_id!:Types.ObjectId;createdAt!:Date;@Prop({type:MongooseSchema.Types.ObjectId,required:true})workspaceId!:Types.ObjectId;@Prop({type:MongooseSchema.Types.ObjectId,required:true})campaignRunId!:Types.ObjectId;@Prop({type:MongooseSchema.Types.ObjectId,required:true})contactId!:Types.ObjectId;@Prop({type:String,required:true})channel!:string;@Prop({type:String,required:true})address!:string;@Prop({type:String,required:true})variantId!:string;@Prop({type:String,enum:['queued','sending','sent','delivered','failed','suppressed','cancelled'],default:'queued'})status!:string;@Prop({type:String,required:true})idempotencyKey!:string;@Prop({type:Number,default:0})attemptCount!:number;@Prop({type:String,default:null})providerMessageId!:string|null;@Prop({type:String,default:null})failureCode!:string|null;@Prop({type:Date,required:true})deliverAt!:Date}
-export const DeliverySchema=SchemaFactory.createForClass(Delivery);DeliverySchema.index({workspaceId:1,idempotencyKey:1},{unique:true});DeliverySchema.index({workspaceId:1,campaignRunId:1,status:1,deliverAt:1});
-@Schema({collection:'suppression_entries',timestamps:true,versionKey:false})export class SuppressionEntry{@Prop({type:MongooseSchema.Types.ObjectId,required:true})workspaceId!:Types.ObjectId;@Prop({type:String,required:true})channel!:string;@Prop({type:String,required:true})normalizedAddress!:string;@Prop({type:String,required:true})reason!:string;@Prop({type:Date,default:null})expiresAt!:Date|null}
-export const SuppressionEntrySchema=SchemaFactory.createForClass(SuppressionEntry);SuppressionEntrySchema.index({workspaceId:1,channel:1,normalizedAddress:1},{unique:true});
-@Schema({collection:'unsubscribe_events',timestamps:true,versionKey:false})export class UnsubscribeEvent{@Prop({type:MongooseSchema.Types.ObjectId,required:true})workspaceId!:Types.ObjectId;@Prop({type:MongooseSchema.Types.ObjectId,default:null})contactId!:Types.ObjectId|null;@Prop({type:String,required:true})channel!:string;@Prop({type:String,required:true})normalizedAddress!:string;@Prop({type:String,required:true})source!:string}
-export const UnsubscribeEventSchema=SchemaFactory.createForClass(UnsubscribeEvent);UnsubscribeEventSchema.index({workspaceId:1,normalizedAddress:1,createdAt:-1});
-@Schema({collection:'campaign_metrics',timestamps:true,versionKey:false})export class CampaignMetric{@Prop({type:MongooseSchema.Types.ObjectId,required:true})workspaceId!:Types.ObjectId;@Prop({type:MongooseSchema.Types.ObjectId,required:true})campaignRunId!:Types.ObjectId;@Prop({type:String,required:true})eventType!:string;@Prop({type:String,default:null})conversionEventId!:string|null;@Prop({type:Number,default:1})count!:number}
-export const CampaignMetricSchema=SchemaFactory.createForClass(CampaignMetric);CampaignMetricSchema.index({workspaceId:1,campaignRunId:1,eventType:1,conversionEventId:1},{unique:true});
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose';
+export const CAMPAIGN_CHANNELS = ['email', 'sms', 'whatsapp', 'social'] as const;
+@Schema({ collection: 'campaigns', timestamps: true, versionKey: false })
+export class Campaign {
+  _id!: Types.ObjectId;
+  createdAt!: Date;
+  updatedAt!: Date;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: String, required: true }) name!: string;
+  @Prop({ type: String, enum: CAMPAIGN_CHANNELS, required: true }) channel!: string;
+  @Prop({
+    type: String,
+    enum: [
+      'draft',
+      'scheduled',
+      'running',
+      'paused',
+      'completed',
+      'cancelled',
+      'failed',
+      'archived',
+    ],
+    default: 'draft',
+  })
+  status!: string;
+  @Prop({ type: String, enum: ['draft', 'pending', 'approved', 'rejected'], default: 'draft' })
+  approvalStatus!: string;
+  @Prop({ type: MongooseSchema.Types.ObjectId, default: null }) audienceId!: Types.ObjectId | null;
+  @Prop({ type: MongooseSchema.Types.ObjectId, default: null }) segmentId!: Types.ObjectId | null;
+  @Prop({ type: Number, default: 1 }) latestVersion!: number;
+  @Prop({ type: Number, default: null }) publishedVersion!: number | null;
+  @Prop({ type: Date, default: null }) scheduledAt!: Date | null;
+  @Prop({ type: String, default: 'UTC' }) timezone!: string;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) createdBy!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) updatedBy!: Types.ObjectId;
+}
+export type CampaignDocument = HydratedDocument<Campaign>;
+export const CampaignSchema = SchemaFactory.createForClass(Campaign);
+CampaignSchema.index({ workspaceId: 1, status: 1, scheduledAt: 1 });
+@Schema({ collection: 'campaign_versions', timestamps: true, versionKey: false })
+export class CampaignVersion {
+  _id!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) campaignId!: Types.ObjectId;
+  @Prop({ type: Number, required: true }) version!: number;
+  @Prop({ type: String, enum: ['draft', 'published'], default: 'draft' }) status!: string;
+  @Prop({ type: [MongooseSchema.Types.Mixed], default: [] }) variants!: Record<string, unknown>[];
+  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) personalizationDefaults!: Record<
+    string,
+    string
+  >;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) quietHours!: Record<string, number>;
+  @Prop({ type: Date, default: null }) publishedAt!: Date | null;
+}
+export const CampaignVersionSchema = SchemaFactory.createForClass(CampaignVersion);
+CampaignVersionSchema.index({ workspaceId: 1, campaignId: 1, version: 1 }, { unique: true });
+@Schema({ collection: 'audiences', timestamps: true, versionKey: false })
+export class Audience {
+  _id!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: String, required: true }) name!: string;
+  @Prop({ type: [MongooseSchema.Types.ObjectId], default: [] }) contactIds!: Types.ObjectId[];
+  @Prop({ type: [MongooseSchema.Types.ObjectId], default: [] })
+  excludedContactIds!: Types.ObjectId[];
+}
+export const AudienceSchema = SchemaFactory.createForClass(Audience);
+AudienceSchema.index({ workspaceId: 1, name: 1 }, { unique: true });
+@Schema({ collection: 'segments', timestamps: true, versionKey: false })
+export class Segment {
+  _id!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: String, required: true }) name!: string;
+  @Prop({ type: [MongooseSchema.Types.Mixed], default: [] }) rules!: Record<string, unknown>[];
+  @Prop({ type: [MongooseSchema.Types.ObjectId], default: [] })
+  excludedContactIds!: Types.ObjectId[];
+}
+export const SegmentSchema = SchemaFactory.createForClass(Segment);
+SegmentSchema.index({ workspaceId: 1, name: 1 }, { unique: true });
+@Schema({ collection: 'campaign_runs', timestamps: true, versionKey: false })
+export class CampaignRun {
+  _id!: Types.ObjectId;
+  createdAt!: Date;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) campaignId!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) campaignVersionId!: Types.ObjectId;
+  @Prop({
+    type: String,
+    enum: ['queued', 'running', 'paused', 'completed', 'cancelled', 'failed'],
+    default: 'queued',
+  })
+  status!: string;
+  @Prop({ type: String, required: true }) idempotencyKey!: string;
+  @Prop({ type: Number, default: 0 }) totalRecipients!: number;
+  @Prop({ type: [MongooseSchema.Types.Mixed], default: [] }) audienceSnapshot!: Record<
+    string,
+    unknown
+  >[];
+  @Prop({ type: Date, default: null }) completedAt!: Date | null;
+}
+export const CampaignRunSchema = SchemaFactory.createForClass(CampaignRun);
+CampaignRunSchema.index({ workspaceId: 1, idempotencyKey: 1 }, { unique: true });
+CampaignRunSchema.index({ workspaceId: 1, campaignId: 1, createdAt: -1 });
+@Schema({ collection: 'campaign_deliveries', timestamps: true, versionKey: false })
+export class Delivery {
+  _id!: Types.ObjectId;
+  createdAt!: Date;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) campaignRunId!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) contactId!: Types.ObjectId;
+  @Prop({ type: String, required: true }) channel!: string;
+  @Prop({ type: String, required: true }) address!: string;
+  @Prop({ type: String, required: true }) variantId!: string;
+  @Prop({
+    type: String,
+    enum: ['queued', 'sending', 'sent', 'delivered', 'failed', 'suppressed', 'cancelled'],
+    default: 'queued',
+  })
+  status!: string;
+  @Prop({ type: String, required: true }) idempotencyKey!: string;
+  @Prop({ type: Number, default: 0 }) attemptCount!: number;
+  @Prop({ type: String, default: null }) providerMessageId!: string | null;
+  @Prop({ type: String, default: null }) failureCode!: string | null;
+  @Prop({ type: Date, required: true }) deliverAt!: Date;
+}
+export const DeliverySchema = SchemaFactory.createForClass(Delivery);
+DeliverySchema.index({ workspaceId: 1, idempotencyKey: 1 }, { unique: true });
+DeliverySchema.index({ workspaceId: 1, campaignRunId: 1, status: 1, deliverAt: 1 });
+@Schema({ collection: 'suppression_entries', timestamps: true, versionKey: false })
+export class SuppressionEntry {
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: String, required: true }) channel!: string;
+  @Prop({ type: String, required: true }) normalizedAddress!: string;
+  @Prop({ type: String, required: true }) reason!: string;
+  @Prop({ type: Date, default: null }) expiresAt!: Date | null;
+}
+export const SuppressionEntrySchema = SchemaFactory.createForClass(SuppressionEntry);
+SuppressionEntrySchema.index(
+  { workspaceId: 1, channel: 1, normalizedAddress: 1 },
+  { unique: true },
+);
+@Schema({ collection: 'unsubscribe_events', timestamps: true, versionKey: false })
+export class UnsubscribeEvent {
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, default: null }) contactId!: Types.ObjectId | null;
+  @Prop({ type: String, required: true }) channel!: string;
+  @Prop({ type: String, required: true }) normalizedAddress!: string;
+  @Prop({ type: String, required: true }) source!: string;
+}
+export const UnsubscribeEventSchema = SchemaFactory.createForClass(UnsubscribeEvent);
+UnsubscribeEventSchema.index({ workspaceId: 1, normalizedAddress: 1, createdAt: -1 });
+@Schema({ collection: 'campaign_metrics', timestamps: true, versionKey: false })
+export class CampaignMetric {
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) campaignRunId!: Types.ObjectId;
+  @Prop({ type: String, required: true }) eventType!: string;
+  @Prop({ type: String, default: null }) conversionEventId!: string | null;
+  @Prop({ type: Number, default: 1 }) count!: number;
+}
+export const CampaignMetricSchema = SchemaFactory.createForClass(CampaignMetric);
+CampaignMetricSchema.index(
+  { workspaceId: 1, campaignRunId: 1, eventType: 1, conversionEventId: 1 },
+  { unique: true },
+);

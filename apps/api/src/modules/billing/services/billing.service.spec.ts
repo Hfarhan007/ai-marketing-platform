@@ -20,26 +20,30 @@ const sub = {
 function setup(usage = 0) {
   const repo = {
     subscription: vi.fn().mockResolvedValue(sub),
-    plan: vi
-      .fn()
-      .mockResolvedValue({
-        _id: sub.planId,
-        monthlyPrice: 10,
-        yearlyPrice: 100,
-        limits: { contacts: 10 },
-        features: [],
-      }),
+    plan: vi.fn().mockResolvedValue({
+      _id: sub.planId,
+      monthlyPrice: 10,
+      yearlyPrice: 100,
+      limits: { contacts: 10 },
+      features: [],
+    }),
     usage: vi.fn().mockResolvedValue({ contacts: usage }),
     updateSubscription: vi.fn().mockResolvedValue({}),
     addUsage: vi.fn().mockResolvedValue({}),
   };
   const providers = { get: () => ({ updateSubscription: vi.fn(), cancelSubscription: vi.fn() }) };
+  const transactions = {
+    run: <T>(operation: (session: never) => Promise<T>) => operation({} as never),
+  };
+  const outbox = { append: vi.fn().mockResolvedValue({}) };
   return {
     service: new BillingService(
       repo as never,
       providers as never,
       { transition: () => 'active' } as never,
       { get: () => 7 } as never,
+      transactions as never,
+      outbox as never,
     ),
     repo,
   };
@@ -61,17 +65,21 @@ describe('BillingService', () => {
       .mockResolvedValueOnce({ _id: sub.planId, monthlyPrice: 10, yearlyPrice: 100 })
       .mockResolvedValueOnce({ _id: 'low', monthlyPrice: 5, yearlyPrice: 50 });
     await service.changePlan(context, { planId: 'low', idempotencyKey: 'd' });
-    expect(repo.updateSubscription).toHaveBeenCalledWith(context.workspaceId, 0, {
-      scheduledPlanId: 'low',
-    });
+    expect(repo.updateSubscription).toHaveBeenCalledWith(
+      context.workspaceId,
+      0,
+      { scheduledPlanId: 'low' },
+      expect.anything(),
+    );
     repo.plan
       .mockResolvedValueOnce({ _id: sub.planId, monthlyPrice: 10, yearlyPrice: 100 })
       .mockResolvedValueOnce({ _id: 'high', monthlyPrice: 20, yearlyPrice: 200, code: 'high' });
     await service.changePlan(context, { planId: 'high', idempotencyKey: 'u' });
-    expect(repo.updateSubscription).toHaveBeenLastCalledWith(context.workspaceId, 0, {
-      planId: 'high',
-      scheduledPlanId: null,
-      status: 'active',
-    });
+    expect(repo.updateSubscription).toHaveBeenLastCalledWith(
+      context.workspaceId,
+      0,
+      { planId: 'high', scheduledPlanId: null, status: 'active' },
+      expect.anything(),
+    );
   });
 });

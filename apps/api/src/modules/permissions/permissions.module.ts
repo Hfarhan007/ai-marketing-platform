@@ -1,7 +1,7 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CacheModule } from '../../cache/cache.module.js';
-import { RolesModule } from '../roles/roles.module.js';
+import { RolePersistenceModule } from '../roles/role-persistence.module.js';
 import { PermissionGuard } from './guards/permission.guard.js';
 import { PermissionInvalidationListener } from './listeners/permission-invalidation.listener.js';
 import { PrivilegedAccessAudit, PrivilegedAccessAuditSchema } from './schemas/privileged-audit.schema.js';
@@ -13,7 +13,7 @@ import { PrivilegedAuditService } from './services/privileged-audit.service.js';
 @Module({
   imports: [
     CacheModule,
-    forwardRef(() => RolesModule),
+    RolePersistenceModule,
     MongooseModule.forFeature([
       { name: PrivilegedAccessAudit.name, schema: PrivilegedAccessAuditSchema },
     ]),

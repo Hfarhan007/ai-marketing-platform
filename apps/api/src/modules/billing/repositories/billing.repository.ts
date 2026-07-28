@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Types, type Model } from 'mongoose';
+import { Types, type ClientSession, type Model } from 'mongoose';
 import {
   BillingCustomer,
   BillingPlan,
@@ -47,15 +47,20 @@ export class BillingRepository {
       .lean<Subscription>()
       .exec();
   }
-  createSubscription(value: object) {
-    return new this.subscriptions(value).save();
+  createSubscription(value: object, session?: ClientSession) {
+    return new this.subscriptions(value).save(session ? { session } : {});
   }
-  updateSubscription(workspaceId: string, version: number, update: object) {
+  updateSubscription(
+    workspaceId: string,
+    version: number,
+    update: object,
+    session?: ClientSession,
+  ) {
     return this.subscriptions
       .findOneAndUpdate(
         { workspaceId: new Types.ObjectId(workspaceId), version },
         { $set: update, $inc: { version: 1 } },
-        { new: true },
+        { new: true, ...(session ? { session } : {}) },
       )
       .lean<Subscription>()
       .exec();

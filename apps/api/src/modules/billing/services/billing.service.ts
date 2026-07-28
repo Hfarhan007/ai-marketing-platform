@@ -7,13 +7,12 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Types } from 'mongoose';
 import type { WorkspaceRequestContext } from '../../../common/types/workspace-context.js';
+import { TransactionManagerService } from '../../../database/transactions/transaction-manager.service.js';
+import { OutboxService } from '../../../events/outbox.service.js';
 import type { ChangePlanDto, RecordUsageDto, StartSubscriptionDto } from '../dto/billing.dto.js';
 import { BillingProviderRegistry } from '../providers/billing.providers.js';
 import { BillingRepository } from '../repositories/billing.repository.js';
-import {
-  USAGE_CATEGORIES,
-  type UsageCategory,
-} from '../schemas/billing.schemas.js';
+import { USAGE_CATEGORIES, type UsageCategory } from '../schemas/billing.schemas.js';
 import { SubscriptionStateMachine, type BillingEvent } from './subscription-state-machine.js';
 
 @Injectable()
@@ -23,6 +22,8 @@ export class BillingService {
     private readonly providers: BillingProviderRegistry,
     private readonly states: SubscriptionStateMachine,
     private readonly config: ConfigService,
+    private readonly transactions: TransactionManagerService,
+    private readonly outbox: OutboxService,
   ) {}
   plans() {
     return this.repo.listPlans();
@@ -38,13 +39,11 @@ export class BillingService {
     const plan = await this.repo.plan(d.planId);
     let customer = await this.repo.customer(c.workspaceId);
     if (!customer) {
-      const remote = await this.providers
-        .get()
-        .createCustomer({
-          workspaceId: c.workspaceId,
-          email: d.billingEmail,
-          ...(d.billingName ? { name: d.billingName } : {}),
-        });
+      const remote = await this.providers.get().createCustomer({
+        workspaceId: c.workspaceId,
+        email: d.billingEmail,
+        ...(d.billingName ? { name: d.billingName } : {}),
+      });
       customer = (
         await this.repo.createCustomer({
           workspaceId: new Types.ObjectId(c.workspaceId),
@@ -57,27 +56,43 @@ export class BillingService {
     const priceId = d.interval === 'month' ? plan.stripeMonthlyPriceId : plan.stripeYearlyPriceId;
     if (!priceId && this.config.get<string>('billing.provider') === 'stripe')
       throw new ConflictException('Plan is not configured for Stripe');
-    const remote = await this.providers
-      .get()
-      .createSubscription({
-        customerId: customer.providerCustomerId,
-        priceId: priceId ?? `${plan.code}_${d.interval}`,
-        interval: d.interval,
-        trialDays: plan.trialDays,
-        ...(d.coupon ? { coupon: d.coupon } : {}),
-        idempotencyKey: d.idempotencyKey,
-      });
-    return this.repo.createSubscription({
-      workspaceId: new Types.ObjectId(c.workspaceId),
-      planId: plan._id,
-      providerSubscriptionId: remote.id,
+    const remote = await this.providers.get().createSubscription({
+      customerId: customer.providerCustomerId,
+      priceId: priceId ?? `${plan.code}_${d.interval}`,
       interval: d.interval,
-      status: remote.status === 'trialing' ? 'trialing' : 'active',
-      currentPeriodStart: remote.currentPeriodStart,
-      currentPeriodEnd: remote.currentPeriodEnd,
-      ...(remote.trialEndsAt ? { trialEndsAt: remote.trialEndsAt } : {}),
-      couponCode: d.coupon,
-      version: 0,
+      trialDays: plan.trialDays,
+      ...(d.coupon ? { coupon: d.coupon } : {}),
+      idempotencyKey: d.idempotencyKey,
+    });
+    return this.transactions.run(async (session) => {
+      const subscription = await this.repo.createSubscription(
+        {
+          workspaceId: new Types.ObjectId(c.workspaceId),
+          planId: plan._id,
+          providerSubscriptionId: remote.id,
+          interval: d.interval,
+          status: remote.status === 'trialing' ? 'trialing' : 'active',
+          currentPeriodStart: remote.currentPeriodStart,
+          currentPeriodEnd: remote.currentPeriodEnd,
+          ...(remote.trialEndsAt ? { trialEndsAt: remote.trialEndsAt } : {}),
+          couponCode: d.coupon,
+          version: 0,
+        },
+        session,
+      );
+      await this.outbox.append(
+        {
+          eventId: `subscription-start:${d.idempotencyKey}`,
+          eventType: 'billing.subscription.started',
+          aggregateType: 'subscription',
+          aggregateId: String(subscription._id),
+          workspaceId: c.workspaceId,
+          payload: { planId: d.planId, interval: d.interval, status: subscription.status },
+          correlationId: d.idempotencyKey,
+        },
+        session,
+      );
+      return subscription;
     });
   }
   async changePlan(c: WorkspaceRequestContext, d: ChangePlanDto) {
@@ -88,45 +103,61 @@ export class BillingService {
       (current.interval === 'month' ? next.monthlyPrice : next.yearlyPrice) >
       (current.interval === 'month' ? oldPlan.monthlyPrice : oldPlan.yearlyPrice);
     if (!upgrade)
-      return this.repo.updateSubscription(c.workspaceId, current.version, {
-        scheduledPlanId: next._id,
-      });
+      return this.persistSubscriptionChange(
+        c.workspaceId,
+        current.version,
+        { scheduledPlanId: next._id },
+        'billing.subscription.downgrade_scheduled',
+        d.idempotencyKey,
+      );
     const priceId =
       current.interval === 'month' ? next.stripeMonthlyPriceId : next.stripeYearlyPriceId;
-    await this.providers
-      .get()
-      .updateSubscription({
-        subscriptionId: current.providerSubscriptionId,
-        priceId: priceId ?? `${next.code}_${current.interval}`,
-        proration: 'invoice_now',
-        idempotencyKey: d.idempotencyKey,
-      });
-    return this.repo.updateSubscription(c.workspaceId, current.version, {
-      planId: next._id,
-      scheduledPlanId: null,
-      status: 'active',
+    await this.providers.get().updateSubscription({
+      subscriptionId: current.providerSubscriptionId,
+      priceId: priceId ?? `${next.code}_${current.interval}`,
+      proration: 'invoice_now',
+      idempotencyKey: d.idempotencyKey,
     });
+    return this.persistSubscriptionChange(
+      c.workspaceId,
+      current.version,
+      {
+        planId: next._id,
+        scheduledPlanId: null,
+        status: 'active',
+      },
+      'billing.subscription.upgraded',
+      d.idempotencyKey,
+    );
   }
   async cancel(c: WorkspaceRequestContext, atPeriodEnd = true) {
     const current = await this.requiredSubscription(c.workspaceId);
     await this.providers.get().cancelSubscription(current.providerSubscriptionId, atPeriodEnd);
-    return this.repo.updateSubscription(
+    return this.persistSubscriptionChange(
       c.workspaceId,
       current.version,
       atPeriodEnd ? { cancelAtPeriodEnd: true } : { status: 'cancelled', cancelledAt: new Date() },
+      'billing.subscription.cancelled',
+      `cancel:${current.providerSubscriptionId}:${current.version}`,
     );
   }
   async applyEvent(workspaceId: string, event: BillingEvent) {
     const current = await this.requiredSubscription(workspaceId),
       status = this.states.transition(current.status, event),
       graceDays = this.config.get<number>('billing.gracePeriodDays') ?? 7;
-    return this.repo.updateSubscription(workspaceId, current.version, {
-      status,
-      ...(status === 'grace_period'
-        ? { graceEndsAt: new Date(Date.now() + graceDays * 86_400_000) }
-        : {}),
-      ...(status === 'cancelled' ? { cancelledAt: new Date() } : {}),
-    });
+    return this.persistSubscriptionChange(
+      workspaceId,
+      current.version,
+      {
+        status,
+        ...(status === 'grace_period'
+          ? { graceEndsAt: new Date(Date.now() + graceDays * 86_400_000) }
+          : {}),
+        ...(status === 'cancelled' ? { cancelledAt: new Date() } : {}),
+      },
+      `billing.subscription.${event}`,
+      `provider:${current.providerSubscriptionId}:${event}:${current.version}`,
+    );
   }
   async recordUsage(c: WorkspaceRequestContext, d: RecordUsageDto) {
     await this.enforce(c.workspaceId, d.category, d.quantity);
@@ -180,9 +211,10 @@ export class BillingService {
         number
       >,
       overages = Object.fromEntries(
-        USAGE_CATEGORIES.map(
-          (k): [UsageCategory, number] => [k, Math.max(0, complete[k] - plan.limits[k])],
-        ).filter((entry) => entry[1] > 0),
+        USAGE_CATEGORIES.map((k): [UsageCategory, number] => [
+          k,
+          Math.max(0, complete[k] - plan.limits[k]),
+        ]).filter((entry) => entry[1] > 0),
       );
     return this.repo.snapshot({
       workspaceId: new Types.ObjectId(workspaceId),
@@ -196,5 +228,29 @@ export class BillingService {
     const value = await this.repo.subscription(workspaceId);
     if (!value) throw new NotFoundException('Subscription not found');
     return value;
+  }
+  private persistSubscriptionChange(
+    workspaceId: string,
+    version: number,
+    update: object,
+    eventType: string,
+    correlationId: string,
+  ) {
+    return this.transactions.run(async (session) => {
+      const changed = await this.repo.updateSubscription(workspaceId, version, update, session);
+      if (!changed) throw new ConflictException('Subscription changed concurrently');
+      await this.outbox.append(
+        {
+          eventType,
+          aggregateType: 'subscription',
+          aggregateId: String(changed._id),
+          workspaceId,
+          payload: { status: changed.status, planId: String(changed.planId) },
+          correlationId,
+        },
+        session,
+      );
+      return changed;
+    });
   }
 }

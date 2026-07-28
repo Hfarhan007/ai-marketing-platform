@@ -7,5 +7,17 @@ import { AppointmentsController } from './controllers/appointments.controller.js
 import { AppointmentsRepository } from './repositories/appointments.repository.js';
 import { Appointment, AppointmentSchema } from './schemas/appointment.schema.js';
 import { AppointmentsService } from './services/appointments.service.js';
-@Module({ imports: [MongooseModule.forFeature([{ name: Appointment.name, schema: AppointmentSchema }]), SchedulingModule, AvailabilityModule, ServicesModule], controllers: [AppointmentsController], providers: [AppointmentsRepository, AppointmentsService], exports: [AppointmentsRepository, AppointmentsService] })
+import { CustomFieldsModule } from '../custom-fields/custom-fields.module.js';
+@Module({
+  imports: [
+    MongooseModule.forFeature([{ name: Appointment.name, schema: AppointmentSchema }]),
+    SchedulingModule,
+    AvailabilityModule,
+    ServicesModule,
+    CustomFieldsModule,
+  ],
+  controllers: [AppointmentsController],
+  providers: [AppointmentsRepository, AppointmentsService],
+  exports: [AppointmentsRepository, AppointmentsService],
+})
 export class AppointmentsModule {}

@@ -1,6 +1,20 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsDate, IsEmail, IsInt, IsMongoId, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import {
+  IsArray,
+  IsDate,
+  IsEmail,
+  IsInt,
+  IsMongoId,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
 export class CreateLeadDto {
+  @IsOptional() @IsObject() customFields: Record<string, unknown> = {};
   @IsString() @MaxLength(200) name!: string;
   @IsOptional() @IsEmail() email = '';
   @IsOptional() @IsString() phone = '';
@@ -15,7 +29,9 @@ export class CreateLeadDto {
   @IsOptional() @IsArray() @IsMongoId({ each: true }) aiSummaryReferenceIds: string[] = [];
   @IsOptional() @IsArray() @IsString({ each: true }) tags: string[] = [];
 }
-export class UpdateLeadDto extends CreateLeadDto { @IsInt() @Min(0) version!: number; }
+export class UpdateLeadDto extends CreateLeadDto {
+  @IsInt() @Min(0) version!: number;
+}
 export class ConvertLeadDto {
   @IsInt() @Min(0) version!: number;
   @IsOptional() @IsMongoId() pipelineId?: string;

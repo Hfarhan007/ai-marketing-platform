@@ -5,8 +5,16 @@ export const mapContact = (contact: Contact) => ({
   firstName: contact.firstName,
   lastName: contact.lastName,
   displayName: contact.displayName,
-  emailAddresses: contact.emailAddresses.map(({ value, label, primary }) => ({ value, label, primary })),
-  phoneNumbers: contact.phoneNumbers.map(({ value, label, primary }) => ({ value, label, primary })),
+  emailAddresses: contact.emailAddresses.map(({ value, label, primary }) => ({
+    value,
+    label,
+    primary,
+  })),
+  phoneNumbers: contact.phoneNumbers.map(({ value, label, primary }) => ({
+    value,
+    label,
+    primary,
+  })),
   addresses: contact.addresses,
   tags: contact.tags,
   customFields: contact.customFields,
