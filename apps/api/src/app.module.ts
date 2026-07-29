@@ -13,6 +13,7 @@ import { EventsModule } from './events/events.module.js';
 import { HealthModule } from './health/health.module.js';
 import { AdminModule } from './modules/admin/admin.module.js';
 import { AgentsModule } from './modules/agents/agents.module.js';
+import { AiModule } from './modules/ai/ai.module.js';
 import { AppointmentsModule } from './modules/appointments/appointments.module.js';
 import { AvailabilityModule } from './modules/availability/availability.module.js';
 import { AuditModule } from './modules/audit/audit.module.js';
@@ -60,6 +61,7 @@ import { SagasModule } from './modules/sagas/sagas.module.js';
     EventsModule,
     SecurityModule,
     SearchModule,
+    AiModule,
     SagasModule,
     HealthModule,
     AuthModule,

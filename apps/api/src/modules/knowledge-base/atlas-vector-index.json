@@ -1,0 +1,16 @@
+{
+  "name": "knowledge_chunks_vector",
+  "type": "vectorSearch",
+  "definition": {
+    "fields": [
+      { "type": "vector", "path": "embedding", "numDimensions": 1536, "similarity": "cosine" },
+      { "type": "filter", "path": "workspaceId" },
+      { "type": "filter", "path": "collectionIds" },
+      { "type": "filter", "path": "sourceId" },
+      { "type": "filter", "path": "documentId" },
+      { "type": "filter", "path": "language" },
+      { "type": "filter", "path": "status" },
+      { "type": "filter", "path": "metadata" }
+    ]
+  }
+}

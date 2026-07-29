@@ -143,6 +143,20 @@ export class EnvironmentVariables {
   AUTH_RESET_REVOKES_ALL_SESSIONS = true;
   @IsString()
   AI_PROVIDER = 'disabled';
+  @IsString()
+  AI_ALLOWED_PROVIDERS = 'ollama';
+  @IsInt() @Min(100) AI_TIMEOUT_MS = 30_000;
+  @IsInt() @Min(1) AI_MONTHLY_TOKEN_QUOTA = 1_000_000;
+  @Type(() => Number) @Min(0) AI_MONTHLY_COST_QUOTA_USD = 100;
+  @IsOptional() @IsString() OPENAI_API_KEY?: string;
+  @IsOptional() @IsUrl({ require_tld: false }) OPENAI_BASE_URL?: string;
+  @IsOptional() @IsString() GEMINI_API_KEY?: string;
+  @IsOptional() @IsUrl({ require_tld: false }) GEMINI_BASE_URL?: string;
+  @IsOptional() @IsString() GROQ_API_KEY?: string;
+  @IsOptional() @IsUrl({ require_tld: false }) GROQ_BASE_URL?: string;
+  @IsOptional() @IsString() OPENROUTER_API_KEY?: string;
+  @IsOptional() @IsUrl({ require_tld: false }) OPENROUTER_BASE_URL?: string;
+  @IsUrl({ require_tld: false }) OLLAMA_BASE_URL = 'http://127.0.0.1:11434';
 }
 
 export function validateEnvironment(input: Record<string, unknown>): Record<string, unknown> {

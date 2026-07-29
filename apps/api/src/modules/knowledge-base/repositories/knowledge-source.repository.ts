@@ -13,7 +13,7 @@ export class KnowledgeSourceRepository {
   async reserve(
     workspaceId: string,
     userId: string,
-    input: { name: string; sourceType: string; sourceReference: string; idempotencyKey: string },
+    input: { name: string; sourceType: string; sourceReference: string; idempotencyKey: string; collectionIds?: string[] },
     session: ClientSession,
   ) {
     const existing = await this.sources

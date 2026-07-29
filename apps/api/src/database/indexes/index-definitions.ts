@@ -546,6 +546,13 @@ export const INDEX_DEFINITIONS: readonly ExplicitIndexDefinition[] = [
     'knowledge_source_workspace_idempotency',
     { unique: true },
   ),
+  workspaceIndex('knowledge_documents', { sourceId: 1, contentHash: 1 }, 'knowledge_document_content_unique', { unique: true }),
+  workspaceIndex('knowledge_chunks', { documentId: 1, ordinal: 1 }, 'knowledge_chunk_ordinal_unique', { unique: true }),
+  workspaceIndex('knowledge_chunks', { sourceId: 1, status: 1 }, 'knowledge_chunk_source_status'),
+  workspaceIndex('knowledge_ingestion_jobs', { idempotencyKey: 1 }, 'knowledge_ingestion_job_idempotency', { unique: true }),
+  workspaceIndex('knowledge_ingestion_jobs', { status: 1, updatedAt: 1 }, 'knowledge_ingestion_job_recovery'),
+  workspaceIndex('knowledge_retrieval_logs', { createdAt: -1 }, 'knowledge_retrieval_workspace_time'),
+  workspaceIndex('knowledge_rag_evaluations', { correlationId: 1 }, 'knowledge_evaluation_correlation'),
   workspaceIndex(
     'knowledge_sources',
     { status: 1, createdAt: 1 },
@@ -641,6 +648,38 @@ export const INDEX_DEFINITIONS: readonly ExplicitIndexDefinition[] = [
     name: 'lifecycle_scheduled_review',
     keys: { state: 1, scheduledDeletionAt: 1 },
   },
+  workspaceIndex(
+    'ai_prompt_templates',
+    { key: 1 },
+    'ai_prompt_template_workspace_key',
+    { unique: true },
+  ),
+  workspaceIndex(
+    'ai_prompt_versions',
+    { templateId: 1, version: 1 },
+    'ai_prompt_version_workspace_template',
+    { unique: true },
+  ),
+  {
+    collection: 'ai_usage_records',
+    name: 'ai_usage_request_unique',
+    keys: { requestId: 1 },
+    options: { unique: true },
+  },
+  workspaceIndex(
+    'ai_usage_records',
+    { createdAt: -1 },
+    'ai_usage_workspace_created',
+  ),
+  { collection: 'ai_safety_policies', name: 'ai_safety_policy_workspace', keys: { workspaceId: 1 }, options: { unique: true } },
+  { collection: 'ai_execution_traces', name: 'ai_trace_request_unique', keys: { requestId: 1 }, options: { unique: true } },
+  workspaceIndex('ai_execution_traces', { createdAt: -1 }, 'ai_trace_workspace_time'),
+  workspaceIndex('ai_execution_traces', { status: 1, createdAt: -1 }, 'ai_trace_workspace_status'),
+  workspaceIndex('ai_feedback', { requestId: 1, userId: 1, kind: 1 }, 'ai_feedback_unique', { unique: true }),
+  workspaceIndex('ai_safety_interventions', { createdAt: -1 }, 'ai_safety_intervention_time'),
+  workspaceIndex('ai_incidents', { status: 1, severity: 1, createdAt: -1 }, 'ai_incident_queue'),
+  workspaceIndex('ai_golden_cases', { name: 1 }, 'ai_golden_case_name', { unique: true }),
+  workspaceIndex('ai_evaluation_runs', { suite: 1, createdAt: -1 }, 'ai_evaluation_trend'),
 ] as const;
 
 export function workspaceIndex(
