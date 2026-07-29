@@ -186,7 +186,7 @@ export class InboxService {
       await this.queue.add(
         'message.deliver',
         { workspaceId: c.workspaceId, messageId: String(result._id), conversationId },
-        { jobId: `deliver-${String(result._id)}` },
+        { jobId: `deliver-${String(result._id)}`, priority: 1 },
       );
     this.realtime.conversation(
       c.workspaceId,
@@ -280,7 +280,7 @@ export class InboxService {
     await this.queue.add(
       'message.deliver',
       { workspaceId: c.workspaceId, messageId, conversationId: String(message.conversationId) },
-      { jobId: `retry-${messageId}-${message.attemptCount}` },
+      { jobId: `retry-${messageId}-${message.attemptCount}`, priority: 1 },
     );
     return mapMessage(message);
   }

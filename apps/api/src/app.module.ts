@@ -26,6 +26,7 @@ import { ComplianceModule } from './modules/compliance/compliance.module.js';
 import { ConsentModule } from './modules/consent/consent.module.js';
 import { ContactsModule } from './modules/contacts/contacts.module.js';
 import { DealsModule } from './modules/deals/deals.module.js';
+import { DataTransferModule } from './modules/data-transfer/data-transfer.module.js';
 import { CustomFieldsModule } from './modules/custom-fields/custom-fields.module.js';
 import { FilesModule } from './modules/files/files.module.js';
 import { InboxModule } from './modules/inbox/inbox.module.js';
@@ -46,6 +47,8 @@ import { WorkspaceSettingsModule } from './modules/workspace-settings/workspace-
 import { ObservabilityModule } from './observability/observability.module.js';
 import { QueuesModule } from './queues/queues.module.js';
 import { SecurityModule } from './security/security.module.js';
+import { SearchModule } from './modules/search/search.module.js';
+import { SagasModule } from './modules/sagas/sagas.module.js';
 
 @Module({
   imports: [
@@ -56,6 +59,8 @@ import { SecurityModule } from './security/security.module.js';
     QueuesModule,
     EventsModule,
     SecurityModule,
+    SearchModule,
+    SagasModule,
     HealthModule,
     AuthModule,
     UsersModule,
@@ -69,6 +74,7 @@ import { SecurityModule } from './security/security.module.js';
     CompaniesModule,
     LeadsModule,
     DealsModule,
+    DataTransferModule,
     PipelinesModule,
     TasksModule,
     InboxModule,

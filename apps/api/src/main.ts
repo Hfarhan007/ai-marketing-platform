@@ -12,6 +12,7 @@ import { AppModule } from './app.module.js';
 import { API_PREFIX, OPENAPI_PATH } from './common/constants/application.constants.js';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter.js';
 import { registerCorrelationIdHook } from './common/middleware/correlation-id.middleware.js';
+import { registerRequestProtection } from './resilience/request-protection.js';
 
 export async function bootstrap(): Promise<NestFastifyApplication> {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -24,6 +25,11 @@ export async function bootstrap(): Promise<NestFastifyApplication> {
   );
   const config = app.get(ConfigService);
   registerCorrelationIdHook(app);
+  registerRequestProtection(app, {
+    timeoutMs: Number(process.env.REQUEST_TIMEOUT_MS ?? 30_000),
+    maxInflight: Number(process.env.MAX_INFLIGHT_REQUESTS ?? 1_000),
+    maxEventLoopLagMs: Number(process.env.MAX_EVENT_LOOP_LAG_MS ?? 250),
+  });
   await app.register(cookie);
   app.useLogger(app.get(Logger));
   app.useGlobalFilters(new GlobalExceptionFilter(app.get(PinoLogger)));

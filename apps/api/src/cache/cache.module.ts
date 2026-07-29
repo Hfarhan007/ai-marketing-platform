@@ -14,7 +14,14 @@ import { RedisLifecycleService } from './redis-lifecycle.service.js';
         new Redis(config.getOrThrow<string>('redis.url'), {
           enableOfflineQueue: false,
           lazyConnect: true,
-          maxRetriesPerRequest: 1,
+          enableReadyCheck: true,
+          maxRetriesPerRequest: 2,
+          connectTimeout: 5_000,
+          commandTimeout: 2_000,
+          keepAlive: 10_000,
+          retryStrategy: (attempt) => Math.min(2_000, 50 * 2 ** Math.min(attempt, 6)),
+          reconnectOnError: (error) =>
+            /READONLY|ECONNRESET|ETIMEDOUT/u.test(error.message) ? 1 : false,
         }),
     },
   ],

@@ -20,12 +20,22 @@ export async function startApplication(config = loadConfig()): Promise<WorkerRes
       maxRetriesPerRequest: null,
       enableReadyCheck: true,
       lazyConnect: true,
+      connectTimeout: 5_000,
+      commandTimeout: 5_000,
+      keepAlive: 10_000,
+      retryStrategy: (attempt) => Math.min(2_000, 50 * 2 ** Math.min(attempt, 6)),
+      reconnectOnError: (error) =>
+        /READONLY|ECONNRESET|ETIMEDOUT/u.test(error.message) ? 1 : false,
     });
   await redis.connect();
   await mongoose.connect(config.MONGODB_URI, {
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45_000,
-    maxPoolSize: 10,
+    minPoolSize: config.MONGODB_MIN_POOL_SIZE,
+    maxPoolSize: config.MONGODB_MAX_POOL_SIZE,
+    maxConnecting: config.MONGODB_MAX_CONNECTING,
+    waitQueueTimeoutMS: config.MONGODB_WAIT_QUEUE_TIMEOUT_MS,
+    maxIdleTimeMS: 60_000,
     autoIndex: config.NODE_ENV !== 'production',
   });
   const queues = new QueueRegistry(redis, config.WORKER_PREFIX),

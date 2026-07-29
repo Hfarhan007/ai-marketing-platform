@@ -123,6 +123,7 @@ describe('InboxService', () => {
     await service.retry(context, String(failed._id));
     expect(queue.add).toHaveBeenCalledWith('message.deliver', expect.anything(), {
       jobId: `retry-${String(failed._id)}-2`,
+      priority: 1,
     });
     repo.retryFailedMessage.mockResolvedValueOnce(null);
     await expect(service.retry(context, String(failed._id))).rejects.toBeInstanceOf(

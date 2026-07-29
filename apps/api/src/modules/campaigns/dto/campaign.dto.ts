@@ -23,6 +23,8 @@ class VariantDto {
 export class CreateCampaignDto {
   @IsString() @MaxLength(200) name!: string;
   @IsIn(CAMPAIGN_CHANNELS) channel!: 'email' | 'sms' | 'whatsapp' | 'social';
+  @IsIn(['transactional', 'marketing'])
+  communicationType: 'transactional' | 'marketing' = 'marketing';
   @IsOptional() @IsMongoId() audienceId?: string;
   @IsOptional() @IsMongoId() segmentId?: string;
   @IsString() timezone = 'UTC';

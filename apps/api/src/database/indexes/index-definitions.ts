@@ -10,6 +10,89 @@ export interface ExplicitIndexDefinition {
 
 export const INDEX_DEFINITIONS: readonly ExplicitIndexDefinition[] = [
   {
+    collection: 'notification_definitions',
+    name: 'workspace_notification_key_unique',
+    keys: { workspaceId: 1, key: 1 },
+    options: { unique: true },
+  },
+  {
+    collection: 'notification_preferences',
+    name: 'workspace_user_notification_unique',
+    keys: { workspaceId: 1, userId: 1, definitionKey: 1 },
+    options: { unique: true },
+  },
+  {
+    collection: 'notification_templates',
+    name: 'workspace_notification_template_unique',
+    keys: { workspaceId: 1, definitionKey: 1, channel: 1, locale: 1 },
+    options: { unique: true },
+  },
+  {
+    collection: 'notification_delivery_requests',
+    name: 'notification_deduplication_unique',
+    keys: { workspaceId: 1, deduplicationKey: 1, channel: 1, destination: 1 },
+    options: { unique: true },
+  },
+  {
+    collection: 'notification_delivery_requests',
+    name: 'notification_delivery_schedule',
+    keys: { status: 1, deliverAt: 1 },
+  },
+  {
+    collection: 'notification_suppressions',
+    name: 'notification_suppression_lookup',
+    keys: { workspaceId: 1, channel: 1, destination: 1, definitionKey: 1 },
+  },
+  {
+    collection: 'data_transfer_jobs',
+    name: 'workspace_idempotency_unique',
+    keys: { workspaceId: 1, idempotencyKey: 1 },
+    options: { unique: true },
+  },
+  {
+    collection: 'data_transfer_jobs',
+    name: 'workspace_created',
+    keys: { workspaceId: 1, createdAt: -1 },
+  },
+  {
+    collection: 'data_transfer_jobs',
+    name: 'transfer_expiry_review',
+    keys: { workspaceId: 1, expiresAt: 1 },
+  },
+  {
+    collection: 'data_transfer_row_receipts',
+    name: 'transfer_row_receipt_unique',
+    keys: { workspaceId: 1, jobId: 1, rowNumber: 1, rowHash: 1 },
+    options: { unique: true },
+  },
+  {
+    collection: 'data_transfer_row_errors',
+    name: 'transfer_row_errors',
+    keys: { workspaceId: 1, jobId: 1, rowNumber: 1 },
+  },
+  {
+    collection: 'activities',
+    name: 'workspace_source_event_unique',
+    keys: { workspaceId: 1, sourceEventId: 1 },
+    options: { unique: true },
+  },
+  {
+    collection: 'activities',
+    name: 'workspace_timeline',
+    keys: { workspaceId: 1, occurredAt: -1, _id: -1 },
+  },
+  {
+    collection: 'activities',
+    name: 'workspace_entity_timeline',
+    keys: { workspaceId: 1, aggregateType: 1, aggregateId: 1, occurredAt: -1, _id: -1 },
+  },
+  {
+    collection: 'activities',
+    name: 'activity_retention_ttl',
+    keys: { retainUntil: 1 },
+    options: { expireAfterSeconds: 0 },
+  },
+  {
     collection: 'custom_field_definitions',
     name: 'workspace_entity_key_unique',
     keys: { workspaceId: 1, entityType: 1, key: 1 },
@@ -468,6 +551,96 @@ export const INDEX_DEFINITIONS: readonly ExplicitIndexDefinition[] = [
     { status: 1, createdAt: 1 },
     'knowledge_source_workspace_status_created',
   ),
+  workspaceIndex('consent_purpose_definitions', { key: 1 }, 'consent_purpose_workspace_key', {
+    unique: true,
+  }),
+  workspaceIndex('consent_policies', { region: 1 }, 'consent_policy_workspace_region', {
+    unique: true,
+  }),
+  workspaceIndex(
+    'consent_policy_versions',
+    { policyId: 1, version: 1 },
+    'consent_policy_version_unique',
+    { unique: true },
+  ),
+  workspaceIndex(
+    'consent_legal_bases',
+    { purpose: 1, region: 1, active: 1 },
+    'consent_legal_basis_evaluation',
+  ),
+  workspaceIndex(
+    'consent_receipts',
+    { subjectId: 1, purpose: 1, recordedAt: -1 },
+    'consent_receipt_evaluation',
+  ),
+  workspaceIndex(
+    'consent_withdrawals',
+    { subjectId: 1, purpose: 1, withdrawnAt: -1 },
+    'consent_withdrawal_evaluation',
+  ),
+  workspaceIndex(
+    'consent_audit_events',
+    { subjectId: 1, purpose: 1, createdAt: -1 },
+    'consent_audit_subject_history',
+  ),
+  workspaceIndex('ai_memory_records', { subjectId: 1, key: 1 }, 'ai_memory_workspace_subject_key', {
+    unique: true,
+  }),
+  workspaceIndex('sagas', { correlationId: 1 }, 'saga_workspace_correlation', { unique: true }),
+  {
+    collection: 'sagas',
+    name: 'saga_status_retry',
+    keys: { status: 1, nextAttemptAt: 1 },
+  },
+  {
+    collection: 'sagas',
+    name: 'saga_status_progress',
+    keys: { status: 1, lastProgressAt: 1 },
+  },
+  {
+    collection: 'saga_alerts',
+    name: 'saga_alert_unique',
+    keys: { sagaId: 1, kind: 1 },
+    options: { unique: true },
+  },
+  workspaceIndex(
+    'saga_alerts',
+    { acknowledgedAt: 1, createdAt: -1 },
+    'saga_alert_workspace_acknowledged',
+  ),
+  workspaceIndex(
+    'data_lifecycle_policies',
+    { dataClass: 1 },
+    'lifecycle_policy_workspace_class',
+    { unique: true },
+  ),
+  workspaceIndex(
+    'data_legal_holds',
+    { dataClass: 1, recordId: 1, releasedAt: 1 },
+    'legal_hold_workspace_target',
+  ),
+  workspaceIndex(
+    'data_deletion_manifests',
+    { idempotencyKey: 1 },
+    'deletion_manifest_workspace_idempotency',
+    { unique: true },
+  ),
+  {
+    collection: 'data_deletion_manifests',
+    name: 'deletion_manifest_status_updated',
+    keys: { status: 1, updatedAt: 1 },
+  },
+  workspaceIndex(
+    'data_lifecycle_records',
+    { dataClass: 1, recordId: 1 },
+    'lifecycle_record_workspace_target',
+    { unique: true },
+  ),
+  {
+    collection: 'data_lifecycle_records',
+    name: 'lifecycle_scheduled_review',
+    keys: { state: 1, scheduledDeletionAt: 1 },
+  },
 ] as const;
 
 export function workspaceIndex(

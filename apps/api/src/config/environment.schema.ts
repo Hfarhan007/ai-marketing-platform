@@ -65,14 +65,35 @@ export class EnvironmentVariables {
   @Min(2)
   MONGODB_MAX_POOL_SIZE = 20;
   @IsInt()
+  @Min(1)
+  @Max(20)
+  MONGODB_MAX_CONNECTING = 4;
+  @IsInt()
+  @Min(1_000)
+  MONGODB_MAX_IDLE_TIME_MS = 60_000;
+  @IsInt()
+  @Min(100)
+  MONGODB_WAIT_QUEUE_TIMEOUT_MS = 2_000;
+  @IsInt()
   @Min(500)
   MONGODB_SERVER_SELECTION_TIMEOUT_MS = 5_000;
   @IsInt()
   @Min(1_000)
   MONGODB_SOCKET_TIMEOUT_MS = 45_000;
+  @IsBoolean()
+  MONGODB_ATLAS_SEARCH_ENABLED = false;
   @IsString()
   @IsNotEmpty()
   REDIS_URL = 'redis://localhost:6379';
+  @IsInt()
+  @Min(100)
+  REQUEST_TIMEOUT_MS = 30_000;
+  @IsInt()
+  @Min(10)
+  MAX_INFLIGHT_REQUESTS = 1_000;
+  @IsInt()
+  @Min(10)
+  MAX_EVENT_LOOP_LAG_MS = 250;
   @IsString()
   @IsNotEmpty()
   CORS_ORIGINS = 'http://localhost:3000,http://localhost:5173';

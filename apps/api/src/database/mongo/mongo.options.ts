@@ -7,6 +7,9 @@ export interface MongoConfiguration {
   databasePrefix: string;
   minPoolSize: number;
   maxPoolSize: number;
+  maxConnecting: number;
+  maxIdleTimeMs: number;
+  waitQueueTimeoutMs: number;
   serverSelectionTimeoutMs: number;
   socketTimeoutMs: number;
 }
@@ -29,10 +32,14 @@ export function createMongoOptions(config: MongoConfiguration): MongooseModuleOp
     dbName: resolveDatabaseName(config),
     minPoolSize: config.minPoolSize,
     maxPoolSize: config.maxPoolSize,
+    maxConnecting: config.maxConnecting,
+    maxIdleTimeMS: config.maxIdleTimeMs,
+    waitQueueTimeoutMS: config.waitQueueTimeoutMs,
     serverSelectionTimeoutMS: config.serverSelectionTimeoutMs,
     socketTimeoutMS: config.socketTimeoutMs,
     connectTimeoutMS: 10_000,
     heartbeatFrequencyMS: 10_000,
+    compressors: ['zstd', 'snappy', 'zlib'],
     retryAttempts: 3,
     retryDelay: 1_000,
     autoIndex: false,

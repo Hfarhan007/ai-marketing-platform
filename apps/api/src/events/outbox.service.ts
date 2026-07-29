@@ -23,7 +23,7 @@ export class OutboxService {
     @InjectModel(OutboxEvent.name) private readonly events: Model<OutboxEventDocument>,
     private readonly redactor: EventRedactor,
   ) {}
-  async append(input: AppendOutboxEvent, session: ClientSession) {
+  async append(input: AppendOutboxEvent, session?: ClientSession) {
     const event = new this.events({
       eventId: input.eventId ?? randomUUID(),
       eventType: input.eventType,
@@ -39,7 +39,7 @@ export class OutboxService {
       status: 'pending',
       attempts: 0,
     });
-    await event.save({ session });
+    await event.save(session ? { session } : {});
     return event.toObject();
   }
   async claim() {
@@ -94,5 +94,12 @@ export class OutboxService {
         this.events.countDocuments({ status: 'quarantined' }),
       ]);
     return { pending, delayed, failed, quarantined };
+  }
+  retained(workspaceId: string) {
+    return this.events
+      .find({ workspaceId: new Types.ObjectId(workspaceId) })
+      .sort({ occurredAt: 1, _id: 1 })
+      .lean<OutboxEvent>()
+      .cursor();
   }
 }

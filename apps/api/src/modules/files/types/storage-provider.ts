@@ -19,5 +19,8 @@ export interface StorageProvider {
   presignDownload(key: string, expiresSeconds: number): Promise<string>;
   head(key: string): Promise<StorageObjectMetadata | null>;
   read(key: string, maxBytes?: number): Promise<Buffer>;
+  readStream(key: string): Promise<Readable>;
+  writeStream(key: string, body: Readable, contentType: string, size: number): Promise<void>;
   delete(key: string): Promise<void>;
 }
+import type { Readable } from 'node:stream';

@@ -37,6 +37,6 @@ import { MockMalwareScanner } from './virus-scan/malware-scanner.js';
     OrphanCleanupProcessor,
     OrphanCleanupScheduler,
   ],
-  exports: [FilesService, StorageProviderRegistry],
+  exports: [FilesService, FilesRepository, StorageProviderRegistry],
 })
 export class FilesModule {}

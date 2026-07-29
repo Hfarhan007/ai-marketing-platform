@@ -9,6 +9,8 @@ export class Campaign {
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
   @Prop({ type: String, required: true }) name!: string;
   @Prop({ type: String, enum: CAMPAIGN_CHANNELS, required: true }) channel!: string;
+  @Prop({ type: String, enum: ['transactional', 'marketing'], default: 'marketing' })
+  communicationType!: string;
   @Prop({
     type: String,
     enum: [
@@ -109,6 +111,9 @@ export class Delivery {
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) campaignRunId!: Types.ObjectId;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) contactId!: Types.ObjectId;
   @Prop({ type: String, required: true }) channel!: string;
+  @Prop({ type: String, enum: ['transactional', 'marketing'], required: true })
+  communicationType!: string;
+  @Prop({ type: String, default: 'GLOBAL' }) region!: string;
   @Prop({ type: String, required: true }) address!: string;
   @Prop({ type: String, required: true }) variantId!: string;
   @Prop({

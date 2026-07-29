@@ -6,6 +6,8 @@ import type { WorkspaceRequestContext } from '../../../common/types/workspace-co
 import { TransactionManagerService } from '../../../database/transactions/transaction-manager.service.js';
 import { OutboxService } from '../../../events/outbox.service.js';
 import { ContactsRepository } from '../../contacts/repositories/contacts.repository.js';
+import { ConsentEvaluationService } from '../../consent/consent-evaluation.service.js';
+import { purposeForCommunication } from '../../consent/consent.types.js';
 import { assertTimeZone, parseInstant } from '../../scheduling/time.js';
 import type {
   CreateCampaignDto,
@@ -33,10 +35,13 @@ export class CampaignService {
     @InjectQueue(CAMPAIGN_QUEUE) private readonly queue: Queue,
     private readonly transactions: TransactionManagerService,
     private readonly outbox: OutboxService,
+    private readonly consent: ConsentEvaluationService,
   ) {}
   create(c: WorkspaceRequestContext, d: CreateCampaignDto) {
     assertTimeZone(d.timezone);
     if (!d.variants.length) throw new BadRequestException('At least one variant is required');
+    if (d.communicationType === 'transactional' && d.channel !== 'email')
+      throw new BadRequestException('Only email supports the transactional consent purpose');
     return this.repository.create(
       c.workspaceId,
       c.userId,
@@ -80,6 +85,7 @@ export class CampaignService {
         c.workspaceId,
         String(reserved.run._id),
         campaign.channel,
+        campaign.communicationType,
         snapshot,
         session,
       );
@@ -118,6 +124,7 @@ export class CampaignService {
           jobId: `campaign-${String(reserved.run._id)}-batch-${index / batchSize}`,
           delay: Math.max(0, scheduledAt.valueOf() - Date.now()),
           attempts: 5,
+          priority: 10,
           backoff: { type: 'exponential', delay: 1000 },
         },
       );
@@ -155,6 +162,7 @@ export class CampaignService {
     workspaceId: string,
     campaign: {
       channel: string;
+      communicationType: string;
       audienceId: Types.ObjectId | null;
       segmentId: Types.ObjectId | null;
       timezone: string;
@@ -187,19 +195,44 @@ export class CampaignService {
       deletedAt: null,
     });
     const candidates = contacts.flatMap((contact) => {
-      if (!this.policy.isConsented(contact, campaign.channel as CampaignChannel)) return [];
       const address =
         campaign.channel === 'email'
           ? contact.emailAddresses.find((p) => p.primary)?.normalized
           : contact.phoneNumbers.find((p) => p.primary)?.normalized;
       if (!address) return [];
-      return [{ contact, address }];
+      const region =
+        typeof contact.customFields.region === 'string'
+          ? contact.customFields.region.toUpperCase()
+          : 'GLOBAL';
+      return [{ contact, address, region }];
     });
+    const purpose =
+      campaign.channel === 'social'
+        ? 'third_party_sharing'
+        : purposeForCommunication(
+            campaign.channel as 'email' | 'sms' | 'whatsapp',
+            campaign.communicationType as 'transactional' | 'marketing',
+          );
+    const consented = (
+      await Promise.all(
+        candidates.map(async (candidate) => ({
+          candidate,
+          evaluation: await this.consent.evaluate({
+            workspaceId,
+            subjectId: String(candidate.contact._id),
+            purpose,
+            region: candidate.region,
+          }),
+        })),
+      )
+    )
+      .filter(({ evaluation }) => evaluation.allowed)
+      .map(({ candidate }) => candidate);
     const suppressed = new Set(
       await this.repository.suppressionAddresses(
         workspaceId,
         campaign.channel,
-        candidates.map((v) => v.address),
+        consented.map((v) => v.address),
       ),
     );
     const variants = version.variants as unknown as CampaignVariant[],
@@ -207,9 +240,9 @@ export class CampaignService {
         startMinutes: Number(version.quietHours.startMinutes ?? 1320),
         endMinutes: Number(version.quietHours.endMinutes ?? 480),
       };
-    return candidates
+    return consented
       .filter((v) => !suppressed.has(v.address))
-      .map(({ contact, address }): RecipientSnapshot => {
+      .map(({ contact, address, region }): RecipientSnapshot => {
         const timezone =
           typeof contact.customFields.timezone === 'string'
             ? contact.customFields.timezone
@@ -221,6 +254,7 @@ export class CampaignService {
           timezone,
           variantId: variant.id,
           deliverAt: this.policy.nextDelivery(scheduledAt, timezone, quiet),
+          region,
           personalization: {
             firstName: contact.firstName,
             lastName: contact.lastName,

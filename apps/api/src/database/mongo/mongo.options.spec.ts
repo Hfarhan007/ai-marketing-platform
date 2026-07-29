@@ -7,6 +7,9 @@ const base: MongoConfiguration = {
   databasePrefix: 'marketing',
   minPoolSize: 2,
   maxPoolSize: 12,
+  maxConnecting: 3,
+  maxIdleTimeMs: 60_000,
+  waitQueueTimeoutMs: 2_000,
   serverSelectionTimeoutMs: 4_000,
   socketTimeoutMs: 30_000,
 };
@@ -19,6 +22,9 @@ describe('Mongo connection configuration', () => {
       autoIndex: false,
       minPoolSize: 2,
       maxPoolSize: 12,
+      maxConnecting: 3,
+      maxIdleTimeMS: 60_000,
+      waitQueueTimeoutMS: 2_000,
       serverSelectionTimeoutMS: 4_000,
       socketTimeoutMS: 30_000,
     });

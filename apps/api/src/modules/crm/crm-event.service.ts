@@ -41,23 +41,19 @@ export class CrmEventService {
     await Promise.all([
       audit.save(event.session ? { session: event.session } : {}),
       domainEvent.save(event.session ? { session: event.session } : {}),
-      ...(event.session
-        ? [
-            this.outbox.append(
-              {
-                eventType: `${event.entityType}.${event.action}`,
-                aggregateType: event.entityType,
-                aggregateId: event.entityId,
-                workspaceId: event.workspaceId,
-                payload: event.metadata ?? {},
-                metadata: { actorId: event.actorId },
-                correlationId: event.correlationId ?? randomUUID(),
-                ...(event.causationId ? { causationId: event.causationId } : {}),
-              },
-              event.session,
-            ),
-          ]
-        : []),
+      this.outbox.append(
+        {
+          eventType: `${event.entityType}.${event.action}`,
+          aggregateType: event.entityType,
+          aggregateId: event.entityId,
+          workspaceId: event.workspaceId,
+          payload: event.metadata ?? {},
+          metadata: { actorId: event.actorId },
+          correlationId: event.correlationId ?? randomUUID(),
+          ...(event.causationId ? { causationId: event.causationId } : {}),
+        },
+        event.session,
+      ),
     ]);
   }
 }

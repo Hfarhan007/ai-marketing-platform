@@ -6,6 +6,7 @@ export interface RecipientSnapshot {
   personalization: Record<string, string>;
   variantId: string;
   deliverAt: Date;
+  region: string;
 }
 export interface CampaignVariant {
   id: string;

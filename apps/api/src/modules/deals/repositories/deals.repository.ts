@@ -25,21 +25,21 @@ export class DealsRepository extends CrmRepository<Deal> {
     migrations: Record<string, string>,
     session: ClientSession,
   ) {
-    return Promise.all(
-      Object.entries(migrations).map(([from, to]) =>
-        this.model.updateMany(
-          {
+    return this.model.bulkWrite(
+      Object.entries(migrations).map(([from, to]) => ({
+        updateMany: {
+          filter: {
             workspaceId: new Types.ObjectId(workspaceId),
             pipelineId: new Types.ObjectId(pipelineId),
             stageId: new Types.ObjectId(from),
           },
-          {
+          update: {
             $set: { stageId: new Types.ObjectId(to), stageEnteredAt: new Date() },
             $inc: { version: 1 },
           },
-          { session },
-        ),
-      ),
+        },
+      })),
+      { session, ordered: false },
     );
   }
 }

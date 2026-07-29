@@ -18,7 +18,8 @@
     "format:check": "prettier --check .",
     "prepare": "husky",
     "audit:unused": "knip",
-    "audit:boundaries": "depcruise apps/web/src apps/api/src apps/worker/src --config dependency-cruiser.config.js"
+    "audit:boundaries": "depcruise apps/web/src apps/api/src apps/worker/src --config dependency-cruiser.config.js",
+    "perf:k6": "k6 run performance/k6/backend-hot-paths.js"
   },
   "devDependencies": {
     "@changesets/cli": "latest",

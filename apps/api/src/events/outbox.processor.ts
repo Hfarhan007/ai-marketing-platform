@@ -3,6 +3,8 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import type { Job, Queue } from 'bullmq';
 import { OutboxService } from './outbox.service.js';
 import { InboxService, type ConsumedEvent } from './inbox.service.js';
+import { ActivityProjectionService } from '../modules/activities/activity-projection.service.js';
+import { NotificationOrchestrator } from '../modules/notifications/services/notification-orchestrator.service.js';
 export const OUTBOX_PUBLISH_QUEUE = 'outbox-publish';
 export const DOMAIN_EVENTS_QUEUE = 'domain-events';
 @Processor(OUTBOX_PUBLISH_QUEUE, { concurrency: 2 })
@@ -67,8 +69,12 @@ export class OutboxScheduler implements OnModuleInit {
   }
 }
 
-interface PublishedDomainEvent extends ConsumedEvent {
+export interface PublishedDomainEvent extends ConsumedEvent {
   eventType: string;
+  aggregateType: string;
+  aggregateId: string;
+  metadata: Record<string, unknown>;
+  occurredAt: string;
   correlationId: string;
   causationId?: string;
 }
@@ -76,11 +82,17 @@ interface PublishedDomainEvent extends ConsumedEvent {
 @Processor(DOMAIN_EVENTS_QUEUE, { concurrency: 10 })
 export class DomainEventConsumerProcessor extends WorkerHost {
   private readonly logger = new Logger(DomainEventConsumerProcessor.name);
-  constructor(private readonly inbox: InboxService) {
+  constructor(
+    private readonly inbox: InboxService,
+    private readonly activities: ActivityProjectionService,
+    private readonly notifications: NotificationOrchestrator,
+  ) {
     super();
   }
   process(job: Job<PublishedDomainEvent>) {
-    return this.inbox.consume(`domain-event:${job.name}`, job.data, () => {
+    return this.inbox.consume(`domain-event:${job.name}`, job.data, async () => {
+      const activity = await this.activities.project(job.data);
+      const notifications = await this.notifications.consume(job.data);
       this.logger.log(
         {
           eventId: job.data.eventId,
@@ -91,7 +103,7 @@ export class DomainEventConsumerProcessor extends WorkerHost {
         },
         'domain integration event consumed',
       );
-      return Promise.resolve({ accepted: true });
+      return { accepted: true, activity, notifications };
     });
   }
 }

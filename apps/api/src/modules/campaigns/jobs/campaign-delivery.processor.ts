@@ -5,6 +5,8 @@ import { ProviderAdapterRegistry } from '../providers/provider-adapter.js';
 import { CampaignRepository } from '../repositories/campaign.repository.js';
 import { CAMPAIGN_QUEUE } from '../services/campaign.service.js';
 import type { CampaignVariant } from '../types/campaign.types.js';
+import { ConsentEvaluationService } from '../../consent/consent-evaluation.service.js';
+import { purposeForCommunication } from '../../consent/consent.types.js';
 interface BatchJob {
   workspaceId: string;
   runId: string;
@@ -16,6 +18,7 @@ export class CampaignDeliveryProcessor extends WorkerHost {
   constructor(
     private readonly repository: CampaignRepository,
     private readonly providers: ProviderAdapterRegistry,
+    private readonly consent: ConsentEvaluationService,
     @InjectQueue(CAMPAIGN_QUEUE) private readonly queue: Queue,
   ) {
     super();
@@ -58,6 +61,28 @@ export class CampaignDeliveryProcessor extends WorkerHost {
           id,
           {},
           { $set: { status: 'failed', failureCode: 'variant_missing' } },
+        );
+        continue;
+      }
+      const purpose =
+        delivery.channel === 'social'
+          ? 'third_party_sharing'
+          : purposeForCommunication(
+              delivery.channel as 'email' | 'sms' | 'whatsapp',
+              delivery.communicationType as 'transactional' | 'marketing',
+            );
+      const evaluation = await this.consent.evaluate({
+        workspaceId: job.data.workspaceId,
+        subjectId: String(delivery.contactId),
+        purpose,
+        region: delivery.region,
+      });
+      if (!evaluation.allowed) {
+        await this.repository.updateDelivery(
+          job.data.workspaceId,
+          id,
+          { status: 'sending' },
+          { $set: { status: 'suppressed', failureCode: `consent_${evaluation.reason}` } },
         );
         continue;
       }

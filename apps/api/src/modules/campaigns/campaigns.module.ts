@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EventsModule } from '../../events/events.module.js';
 import { ContactsModule } from '../contacts/contacts.module.js';
+import { ConsentModule } from '../consent/consent.module.js';
 import { CampaignController } from './controllers/campaign.controller.js';
 import { CampaignDeliveryProcessor } from './jobs/campaign-delivery.processor.js';
 import { ProviderAdapterRegistry } from './providers/provider-adapter.js';
@@ -32,6 +33,7 @@ import { CAMPAIGN_QUEUE, CampaignService } from './services/campaign.service.js'
 @Module({
   imports: [
     ContactsModule,
+    ConsentModule,
     EventsModule,
     BullModule.registerQueue({ name: CAMPAIGN_QUEUE }),
     MongooseModule.forFeature([

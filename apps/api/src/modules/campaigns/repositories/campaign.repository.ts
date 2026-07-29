@@ -147,6 +147,7 @@ export class CampaignRepository {
     workspaceId: string,
     runId: string,
     channel: string,
+    communicationType: string,
     snapshot: RecipientSnapshot[],
     session?: ClientSession,
   ) {
@@ -157,6 +158,8 @@ export class CampaignRepository {
         campaignRunId: new Types.ObjectId(runId),
         contactId: new Types.ObjectId(r.contactId),
         channel,
+        communicationType,
+        region: r.region,
         address: r.address,
         variantId: r.variantId,
         idempotencyKey: `${runId}:${r.contactId}:${channel}`,

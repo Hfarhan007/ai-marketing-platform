@@ -158,6 +158,7 @@ export class WorkflowService {
       jobId: `${job.runId}-${job.nodeId}-${job.attempt}-${Date.now()}`,
       delay,
       attempts: retry?.attempts ?? 3,
+      priority: 5,
       backoff: { type: 'exponential', delay: retry?.backoffMs ?? 1000 },
     });
   }

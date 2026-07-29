@@ -9,6 +9,10 @@ const schema = z.object({
   WORKER_CONCURRENCY: z.coerce.number().int().min(1).max(100).default(5),
   WORKER_WORKSPACE_CONCURRENCY: z.coerce.number().int().min(1).max(50).default(2),
   WORKER_JOB_TIMEOUT_MS: z.coerce.number().int().min(1000).default(120_000),
+  MONGODB_MIN_POOL_SIZE: z.coerce.number().int().min(0).default(1),
+  MONGODB_MAX_POOL_SIZE: z.coerce.number().int().min(2).default(10),
+  MONGODB_MAX_CONNECTING: z.coerce.number().int().min(1).max(20).default(2),
+  MONGODB_WAIT_QUEUE_TIMEOUT_MS: z.coerce.number().int().min(100).default(2_000),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 });
 export type WorkerConfig = z.infer<typeof schema>;

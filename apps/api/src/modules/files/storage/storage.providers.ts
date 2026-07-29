@@ -11,6 +11,9 @@ import { Injectable, ServiceUnavailableException, UnauthorizedException } from '
 import { ConfigService } from '@nestjs/config';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile, stat, unlink, writeFile } from 'node:fs/promises';
+import { createReadStream, createWriteStream } from 'node:fs';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { dirname, resolve, sep } from 'node:path';
 import type { StorageObjectMetadata, StorageProvider } from '../types/storage-provider.js';
 @Injectable()
@@ -30,9 +33,7 @@ export class S3StorageProvider implements StorageProvider {
       region: config.get<string>('storage.region') ?? 'auto',
       forcePathStyle: provider === 'r2',
       ...(endpoint ? { endpoint } : {}),
-      ...(accessKeyId && secretAccessKey
-        ? { credentials: { accessKeyId, secretAccessKey } }
-        : {}),
+      ...(accessKeyId && secretAccessKey ? { credentials: { accessKeyId, secretAccessKey } } : {}),
     };
     this.client = new S3Client(options);
   }
@@ -73,6 +74,22 @@ export class S3StorageProvider implements StorageProvider {
     if (!bytes) throw new Error('Storage object body unavailable');
     if (bytes.byteLength > maxBytes) throw new Error('Storage object exceeds processing limit');
     return Buffer.from(bytes);
+  }
+  async readStream(key: string) {
+    const result = await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: key }));
+    if (!result.Body) throw new Error('Storage object body unavailable');
+    return result.Body as Readable;
+  }
+  async writeStream(key: string, body: Readable, contentType: string, size: number) {
+    await this.client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: body,
+        ContentType: contentType,
+        ContentLength: size,
+      }),
+    );
   }
   async delete(key: string) {
     await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
@@ -137,6 +154,14 @@ export class LocalStorageProvider implements StorageProvider {
     const value = await readFile(this.path(key));
     if (value.byteLength > maxBytes) throw new Error('Storage object exceeds processing limit');
     return value;
+  }
+  readStream(key: string) {
+    return Promise.resolve(createReadStream(this.path(key)));
+  }
+  async writeStream(key: string, body: Readable) {
+    const path = this.path(key);
+    await mkdir(dirname(path), { recursive: true });
+    await pipeline(body, createWriteStream(path, { flags: 'wx' }));
   }
   async delete(key: string) {
     try {

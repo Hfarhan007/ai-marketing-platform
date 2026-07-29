@@ -18,6 +18,9 @@ import { createMongoOptions } from './mongo.options.js';
           databasePrefix: config.getOrThrow<string>('database.databasePrefix'),
           minPoolSize: config.getOrThrow<number>('database.minPoolSize'),
           maxPoolSize: config.getOrThrow<number>('database.maxPoolSize'),
+          maxConnecting: config.getOrThrow<number>('database.maxConnecting'),
+          maxIdleTimeMs: config.getOrThrow<number>('database.maxIdleTimeMs'),
+          waitQueueTimeoutMs: config.getOrThrow<number>('database.waitQueueTimeoutMs'),
           serverSelectionTimeoutMs: config.getOrThrow<number>('database.serverSelectionTimeoutMs'),
           socketTimeoutMs: config.getOrThrow<number>('database.socketTimeoutMs'),
         });
