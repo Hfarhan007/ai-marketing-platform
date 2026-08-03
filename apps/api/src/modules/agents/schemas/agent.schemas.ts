@@ -51,15 +51,80 @@ export class AgentRun {
   @Prop({ type: String, required: true, unique: true }) requestId!: string;
   @Prop({ type: String, required: true }) correlationId!: string;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) userId!: Types.ObjectId;
-  @Prop({ type: String, enum: ['running', 'waiting_approval', 'handed_off', 'completed', 'failed', 'cancelled'], default: 'running' }) status!: string;
+  @Prop({ type: String, enum: ['queued', 'planning', 'retrieving', 'awaiting_tool', 'executing_tool', 'awaiting_approval', 'responding', 'completed', 'failed', 'cancelled', 'timed_out'], default: 'queued' }) status!: string;
   @Prop({ type: Number, default: 0 }) iteration!: number;
   @Prop({ type: Number, default: 0 }) toolCallCount!: number;
   @Prop({ type: Number, default: 0 }) costUsd!: number;
+  @Prop({ type: Number, default: 0 }) inputTokens!: number;
+  @Prop({ type: Number, default: 0 }) outputTokens!: number;
+  @Prop({ type: Number, required: true, default: 25 }) maxSteps!: number;
+  @Prop({ type: Number, required: true, default: 10 }) maxToolCalls!: number;
+  @Prop({ type: Number, required: true, default: 100000 }) maxTokens!: number;
+  @Prop({ type: Number, required: true, default: 10 }) maxCostUsd!: number;
+  @Prop({ type: Boolean, default: false }) cancellationRequested!: boolean;
+  @Prop({ type: Date, default: null }) heartbeatAt!: Date | null;
   @Prop({ type: Date, required: true }) deadline!: Date;
   @Prop({ type: String, default: null }) stopReason!: string | null;
 }
 export const AgentRunSchema = SchemaFactory.createForClass(AgentRun);
 AgentRunSchema.index({ workspaceId: 1, agentId: 1, createdAt: -1 });
+AgentRunSchema.index({ status: 1, heartbeatAt: 1 });
+
+@Schema({ collection: 'agent_run_steps', timestamps: true, versionKey: false })
+export class AgentRunStep {
+  _id!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) runId!: Types.ObjectId;
+  @Prop({ type: String, required: true }) key!: string;
+  @Prop({ type: Number, required: true }) sequence!: number;
+  @Prop({ type: String, required: true }) kind!: string;
+  @Prop({ type: String, enum: ['started', 'completed', 'failed'], default: 'started' }) status!: string;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: null }) input!: unknown;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: null }) output!: unknown;
+  @Prop({ type: String, default: null }) errorCode!: string | null;
+}
+export const AgentRunStepSchema = SchemaFactory.createForClass(AgentRunStep);
+AgentRunStepSchema.index({ runId: 1, key: 1 }, { unique: true });
+
+@Schema({ collection: 'agent_model_calls', timestamps: true, versionKey: false })
+export class AgentModelCall {
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) runId!: Types.ObjectId;
+  @Prop({ type: String, required: true }) stepKey!: string;
+  @Prop({ type: String, required: true }) provider!: string;
+  @Prop({ type: String, required: true }) model!: string;
+  @Prop({ type: MongooseSchema.Types.Mixed, required: true, select: false }) response!: unknown;
+  @Prop({ type: Number, default: 0 }) inputTokens!: number;
+  @Prop({ type: Number, default: 0 }) outputTokens!: number;
+  @Prop({ type: Number, default: 0 }) costUsd!: number;
+}
+export const AgentModelCallSchema = SchemaFactory.createForClass(AgentModelCall);
+AgentModelCallSchema.index({ runId: 1, stepKey: 1 }, { unique: true });
+
+@Schema({ collection: 'agent_approvals', timestamps: true, versionKey: false })
+export class AgentApproval {
+  _id!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) runId!: Types.ObjectId;
+  @Prop({ type: String, required: true }) stepKey!: string;
+  @Prop({ type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' }) status!: string;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) request!: unknown;
+  @Prop({ type: MongooseSchema.Types.ObjectId, default: null }) decidedBy!: Types.ObjectId | null;
+  @Prop({ type: Date, default: null }) decidedAt!: Date | null;
+}
+export const AgentApprovalSchema = SchemaFactory.createForClass(AgentApproval);
+AgentApprovalSchema.index({ runId: 1, stepKey: 1 }, { unique: true });
+
+@Schema({ collection: 'agent_run_artifacts', timestamps: true, versionKey: false })
+export class AgentRunArtifact {
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) runId!: Types.ObjectId;
+  @Prop({ type: String, enum: ['retrieved_source', 'safety_decision', 'error'], required: true }) kind!: string;
+  @Prop({ type: String, required: true }) key!: string;
+  @Prop({ type: MongooseSchema.Types.Mixed, required: true }) value!: unknown;
+}
+export const AgentRunArtifactSchema = SchemaFactory.createForClass(AgentRunArtifact);
+AgentRunArtifactSchema.index({ runId: 1, kind: 1, key: 1 }, { unique: true });
 
 @Schema({ collection: 'agent_messages', timestamps: true, versionKey: false })
 export class AgentMessage {
@@ -93,11 +158,17 @@ export class ToolExecution {
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) runId!: Types.ObjectId;
   @Prop({ type: String, required: true }) toolName!: string;
+  @Prop({ type: String, required: true, default: '1.0.0' }) toolVersion!: string;
+  @Prop({ type: String, required: true, default: 'read-only' }) risk!: string;
   @Prop({ type: String, required: true }) idempotencyKey!: string;
   @Prop({ type: String, enum: ['pending_approval', 'running', 'completed', 'failed', 'rejected'], required: true }) status!: string;
   @Prop({ type: MongooseSchema.Types.Mixed, default: null }) result!: unknown;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: null, select: false }) requestedArguments!: unknown;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: null, select: false }) approvedArguments!: unknown;
+  @Prop({ type: Boolean, default: false }) simulation!: boolean;
   @Prop({ type: String, default: null }) error!: string | null;
   @Prop({ type: MongooseSchema.Types.ObjectId, default: null }) approvedBy!: Types.ObjectId | null;
+  @Prop({ type: MongooseSchema.Types.ObjectId, default: null }) approvalId!: Types.ObjectId | null;
 }
 export const ToolExecutionSchema = SchemaFactory.createForClass(ToolExecution);
 ToolExecutionSchema.index({ workspaceId: 1, idempotencyKey: 1 }, { unique: true });

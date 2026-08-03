@@ -1,5 +1,5 @@
 export type AiProviderName = 'openai' | 'gemini' | 'groq' | 'openrouter' | 'ollama';
-export type AiCapability = 'chat' | 'json' | 'embeddings' | 'streaming' | 'tools';
+export type AiCapability = 'chat' | 'json' | 'vision' | 'embeddings' | 'streaming' | 'tools';
 export interface AiMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content: string;
@@ -28,6 +28,8 @@ export interface AiUsage {
 }
 export interface AiResponse {
   content: string;
+  provider?: AiProviderName;
+  model?: string;
   structured?: unknown;
   usage: AiUsage;
   providerRequestId?: string;

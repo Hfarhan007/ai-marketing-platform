@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 import { AiEvaluationService } from './evaluations/ai-evaluation.service.js';
-import { MockAiProvider } from './providers/mock.provider.js';
 import { AiSafetyService } from './safety/ai-safety.service.js';
 import { ModerationService } from './safety/moderation.service.js';
 import { PiiRedactionService } from './safety/pii-redaction.service.js';
@@ -40,7 +39,7 @@ describe('AI safety and evaluation governance', () => {
     expect(repository.incident).toHaveBeenCalledOnce();
   });
   it('scores relevance, citations, groundedness, tools and policy deterministically', () => {
-    const service = new AiEvaluationService({} as never);
+    const service = new AiEvaluationService({} as never, {} as never);
     expect(service.score({ answer: 'Paris is the capital', expectedTerms: ['Paris', 'capital'], citations: [{ sourceId: 'source' }], expectedSourceIds: ['source'], toolCalls: ['search'], expectedTools: ['search'] })).toEqual({ answerRelevance: 1, citationAccuracy: 1, groundedness: 1, toolCallCorrectness: 1, policyCompliance: 1 });
   });
   it('runs deterministic golden evaluations for provider and prompt comparisons', async () => {
@@ -48,7 +47,8 @@ describe('AI safety and evaluation governance', () => {
       goldenCases: vi.fn().mockResolvedValue([{ _id: 'case', input: 'question', expectations: { expectedTerms: ['approved'] } }]),
       evaluation: vi.fn().mockResolvedValue({}),
     };
-    const result = await new AiEvaluationService(repository as never).compare({ workspaceId: 'w', suite: 'regression', provider: new MockAiProvider('approved'), model: 'mock', promptVersion: 'v2' });
+    const controlPlane = { execute: vi.fn().mockResolvedValue({ response: { content: 'approved' } }) };
+    const result = await new AiEvaluationService(repository as never, controlPlane as never).compare({ workspaceId: 'w', userId: 'u', suite: 'regression', provider: 'ollama', model: 'mock', promptVersion: 'v2' });
     expect(result.scores.answerRelevance).toBe(1);
     expect(repository.evaluation).toHaveBeenCalledWith(expect.objectContaining({ provider: 'ollama', promptVersion: 'v2' }));
   });

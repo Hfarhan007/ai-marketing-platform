@@ -8,6 +8,11 @@ export interface ModelCapability {
   maxOutputTokens: number;
   inputCostPerMillion: number;
   outputCostPerMillion: number;
+  latencyClass: 'realtime' | 'standard' | 'batch';
+  qualityClass: 'economy' | 'balanced' | 'premium';
+  regions: readonly string[];
+  privacy: 'local' | 'zero_retention' | 'standard';
+  languages: readonly string[];
 }
 @Injectable()
 export class CapabilityRegistry {
@@ -17,20 +22,22 @@ export class CapabilityRegistry {
       {
         provider: 'openai',
         model: 'gpt-4.1-mini',
-        capabilities: ['chat', 'json', 'streaming', 'tools'],
+        capabilities: ['chat', 'json', 'vision', 'streaming', 'tools'],
         contextTokens: 1_000_000,
         maxOutputTokens: 32_768,
         inputCostPerMillion: 0.4,
         outputCostPerMillion: 1.6,
+        latencyClass: 'standard', qualityClass: 'balanced', regions: ['us', 'eu'], privacy: 'zero_retention', languages: ['*'],
       },
       {
         provider: 'gemini',
         model: 'gemini-2.5-flash',
-        capabilities: ['chat', 'json', 'embeddings', 'streaming', 'tools'],
+        capabilities: ['chat', 'json', 'vision', 'embeddings', 'streaming', 'tools'],
         contextTokens: 1_000_000,
         maxOutputTokens: 65_536,
         inputCostPerMillion: 0.3,
         outputCostPerMillion: 2.5,
+        latencyClass: 'realtime', qualityClass: 'balanced', regions: ['us', 'eu', 'apac'], privacy: 'standard', languages: ['*'],
       },
       {
         provider: 'groq',
@@ -40,6 +47,7 @@ export class CapabilityRegistry {
         maxOutputTokens: 32_768,
         inputCostPerMillion: 0.59,
         outputCostPerMillion: 0.79,
+        latencyClass: 'realtime', qualityClass: 'balanced', regions: ['us'], privacy: 'standard', languages: ['en', 'es', 'fr', 'de'],
       },
       {
         provider: 'openrouter',
@@ -49,6 +57,7 @@ export class CapabilityRegistry {
         maxOutputTokens: 32_768,
         inputCostPerMillion: 0.4,
         outputCostPerMillion: 1.6,
+        latencyClass: 'standard', qualityClass: 'premium', regions: ['us', 'eu'], privacy: 'standard', languages: ['*'],
       },
       {
         provider: 'ollama',
@@ -58,6 +67,7 @@ export class CapabilityRegistry {
         maxOutputTokens: 8_192,
         inputCostPerMillion: 0,
         outputCostPerMillion: 0,
+        latencyClass: 'standard', qualityClass: 'economy', regions: ['local'], privacy: 'local', languages: ['*'],
       },
       {
         provider: 'openai',
@@ -67,6 +77,7 @@ export class CapabilityRegistry {
         maxOutputTokens: 0,
         inputCostPerMillion: 0.02,
         outputCostPerMillion: 0,
+        latencyClass: 'standard', qualityClass: 'balanced', regions: ['us', 'eu'], privacy: 'zero_retention', languages: ['*'],
       },
     ] as ModelCapability[])
       this.models.set(`${v.provider}:${v.model}`, v);

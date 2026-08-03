@@ -9,6 +9,10 @@ export class AiSafetyPolicy {
   @Prop({ type: Boolean, default: true }) redactPii!: boolean;
   @Prop({ type: Boolean, default: true }) escalateOnOutputBlock!: boolean;
   @Prop({ type: Number, min: 0, max: 365, default: 0 }) promptRetentionDays!: number;
+  @Prop({ type: [String], default: [] }) allowedProviders!: string[];
+  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) featureQuotas!: Record<string, { tokens?: number; costUsd?: number }>;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) featureRoutingPolicies!: Record<string, Record<string, unknown>>;
+  @Prop({ type: Number, min: 0, default: 10 }) maximumExecutionCostUsd!: number;
 }
 export const AiSafetyPolicySchema = SchemaFactory.createForClass(AiSafetyPolicy);
 AiSafetyPolicySchema.index({ workspaceId: 1 }, { unique: true });
@@ -19,6 +23,14 @@ export class AiExecutionTrace {
   @Prop({ type: String, required: true, unique: true }) requestId!: string;
   @Prop({ type: String, required: true }) correlationId!: string;
   @Prop({ type: String, required: true }) feature!: string;
+  @Prop({ type: String, default: null }) agentId!: string | null;
+  @Prop({ type: String, default: null }) purpose!: string | null;
+  @Prop({ type: String, default: null }) promptVersion!: string | null;
+  @Prop({ type: [String], default: [] }) knowledgeScope!: string[];
+  @Prop({ type: [String], default: [] }) permittedTools!: string[];
+  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) retentionPolicy!: Record<string, unknown>;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) budget!: Record<string, unknown>;
+  @Prop({ type: Date, default: null }) deadline!: Date | null;
   @Prop({ type: String, default: null }) provider!: string | null;
   @Prop({ type: String, default: null }) model!: string | null;
   @Prop({ type: Number, default: 0 }) latencyMs!: number;
@@ -27,6 +39,8 @@ export class AiExecutionTrace {
   @Prop({ type: Number, default: 0 }) costUsd!: number;
   @Prop({ type: Number, default: 0 }) retries!: number;
   @Prop({ type: Boolean, default: false }) fallbackUsed!: boolean;
+  @Prop({ type: String, default: null }) selectionReason!: string | null;
+  @Prop({ type: String, default: null }) fallbackReason!: string | null;
   @Prop({ type: Boolean, default: false }) cacheHit!: boolean;
   @Prop({ type: [String], default: [] }) retrievalSources!: string[];
   @Prop({ type: [String], default: [] }) toolCalls!: string[];

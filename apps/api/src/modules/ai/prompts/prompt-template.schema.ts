@@ -5,6 +5,9 @@ export class PromptTemplate {
   _id!: Types.ObjectId;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
   @Prop({ type: String, required: true }) key!: string;
+  @Prop({ type: String, required: true }) name!: string;
+  @Prop({ type: String, default: '' }) description!: string;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) createdBy!: Types.ObjectId;
   @Prop({ type: Number, default: 1 }) activeVersion!: number;
   @Prop({ type: Boolean, default: true }) enabled!: boolean;
 }

@@ -660,6 +660,8 @@ export const INDEX_DEFINITIONS: readonly ExplicitIndexDefinition[] = [
     'ai_prompt_version_workspace_template',
     { unique: true },
   ),
+  workspaceIndex('ai_prompt_assignments', { templateId: 1, feature: 1, environment: 1 }, 'ai_prompt_assignment_unique', { unique: true }),
+  workspaceIndex('ai_prompt_approval_audits', { templateId: 1, version: 1, createdAt: -1 }, 'ai_prompt_approval_history'),
   {
     collection: 'ai_usage_records',
     name: 'ai_usage_request_unique',

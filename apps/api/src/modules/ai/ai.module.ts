@@ -1,4 +1,5 @@
 import { Module, OnModuleInit } from '@nestjs/common';
+import { BullModule } from '@nestjs/bullmq';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CacheModule } from '../../cache/cache.module.js';
 import { AiGatewayService } from './ai-gateway.service.js';
@@ -30,12 +31,22 @@ import { AiFeedbackService } from './feedback/ai-feedback.service.js';
 import { AiEvaluationService } from './evaluations/ai-evaluation.service.js';
 import { AiAdminReportService } from './observability/ai-admin-report.service.js';
 import { AiGovernanceController } from './controllers/ai-governance.controller.js';
+import { AiControlPlaneService } from './control-plane/ai-control-plane.service.js';
+import { AI_TOOL_EXECUTION_PORT, DenyByDefaultAiToolExecutor } from './control-plane/ai-tool-execution.port.js';
+import { WorkspaceAiPolicyResolver } from './control-plane/workspace-ai-policy-resolver.service.js';
+import { AI_EXECUTION_QUEUE, AiAsyncExecutionService, AiExecutionProcessor } from './control-plane/ai-async-execution.service.js';
+import { ProviderHealthService } from './routing/provider-health.service.js';
+import { PromptApprovalAudit, PromptApprovalAuditSchema, PromptAssignment, PromptAssignmentSchema } from './prompts/prompt-lifecycle.schemas.js';
+import { PromptLifecycleService } from './prompts/prompt-lifecycle.service.js';
 @Module({
   imports: [
     CacheModule,
+    BullModule.registerQueue({ name: AI_EXECUTION_QUEUE }),
     MongooseModule.forFeature([
       { name: PromptTemplate.name, schema: PromptTemplateSchema },
       { name: PromptVersion.name, schema: PromptVersionSchema },
+      { name: PromptAssignment.name, schema: PromptAssignmentSchema },
+      { name: PromptApprovalAudit.name, schema: PromptApprovalAuditSchema },
       { name: AiSafetyPolicy.name, schema: AiSafetyPolicySchema },
       { name: AiExecutionTrace.name, schema: AiExecutionTraceSchema },
       { name: AiFeedback.name, schema: AiFeedbackSchema },
@@ -72,8 +83,15 @@ import { AiGovernanceController } from './controllers/ai-governance.controller.j
     AiFeedbackService,
     AiEvaluationService,
     AiAdminReportService,
+    AiControlPlaneService,
+    WorkspaceAiPolicyResolver,
+    { provide: AI_TOOL_EXECUTION_PORT, useClass: DenyByDefaultAiToolExecutor },
+    AiAsyncExecutionService,
+    AiExecutionProcessor,
+    ProviderHealthService,
+    PromptLifecycleService,
   ],
-  exports: [AiGatewayService, AiStreamingService, PromptRegistryService, PromptInjectionDetector, AiSafetyService, AiFeedbackService, AiEvaluationService, AiObservabilityService, AiAdminReportService],
+  exports: [AiGatewayService, AiControlPlaneService, AiAsyncExecutionService, AiStreamingService, PromptRegistryService, PromptLifecycleService, PromptInjectionDetector, PiiRedactionService, AiSafetyService, AiFeedbackService, AiEvaluationService, AiObservabilityService, AiAdminReportService],
 })
 export class AiModule implements OnModuleInit {
   constructor(
