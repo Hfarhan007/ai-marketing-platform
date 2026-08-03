@@ -34,6 +34,7 @@ export class AiExecutionTrace {
   @Prop({ type: String, default: null }) provider!: string | null;
   @Prop({ type: String, default: null }) model!: string | null;
   @Prop({ type: Number, default: 0 }) latencyMs!: number;
+  @Prop({ type: Number, default: 0 }) queueDelayMs!: number;
   @Prop({ type: Number, default: 0 }) inputTokens!: number;
   @Prop({ type: Number, default: 0 }) outputTokens!: number;
   @Prop({ type: Number, default: 0 }) costUsd!: number;
@@ -45,7 +46,7 @@ export class AiExecutionTrace {
   @Prop({ type: [String], default: [] }) retrievalSources!: string[];
   @Prop({ type: [String], default: [] }) toolCalls!: string[];
   @Prop({ type: [String], default: [] }) safetyInterventions!: string[];
-  @Prop({ type: String, enum: ['running', 'completed', 'failed', 'blocked'], default: 'running' }) status!: string;
+  @Prop({ type: String, enum: ['running', 'completed', 'failed', 'blocked', 'cancelled', 'degraded'], default: 'running' }) status!: string;
   @Prop({ type: String, default: null }) errorCode!: string | null;
   @Prop({ type: String, default: null, select: false }) retainedPrompt!: string | null;
   @Prop({ type: Date, default: null }) deleteAfter!: Date | null;
@@ -54,15 +55,64 @@ export const AiExecutionTraceSchema = SchemaFactory.createForClass(AiExecutionTr
 
 @Schema({ collection: 'ai_feedback', timestamps: true, versionKey: false })
 export class AiFeedback {
+  _id!: Types.ObjectId;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
   @Prop({ type: String, required: true }) requestId!: string;
+  @Prop({ type: String, required: true }) executionId!: string;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) userId!: Types.ObjectId;
-  @Prop({ type: String, enum: ['positive', 'negative', 'hallucination', 'unsafe', 'bad_citation'], required: true }) kind!: string;
+  @Prop({ type: String, enum: ['thumbs_up', 'thumbs_down'], required: true }) kind!: string;
+  @Prop({ type: [String], default: [] }) reasonCodes!: string[];
+  @Prop({ type: String, default: null, select: false }) editedResponse!: string | null;
+  @Prop({ type: String, default: null, select: false }) incorrectFact!: string | null;
   @Prop({ type: String, default: null, select: false }) comment!: string | null;
   @Prop({ type: String, default: null }) commentHash!: string | null;
+  @Prop({ type: String, required: true }) deduplicationKey!: string;
+  @Prop({ type: String, default: null }) promptVersion!: string | null;
+  @Prop({ type: String, default: null }) provider!: string | null;
+  @Prop({ type: String, default: null }) model!: string | null;
+  @Prop({ type: [String], default: [] }) retrievedSources!: string[];
+  @Prop({ type: [String], default: [] }) toolCalls!: string[];
+  @Prop({ type: [String], default: [] }) safetyDecisions!: string[];
+  @Prop({ type: [String], default: [] }) userRoles!: string[];
+  @Prop({ type: String, default: null, select: false }) inputSnapshot!: string | null;
+  @Prop({ type: String, default: null, select: false }) outputSnapshot!: string | null;
+  @Prop({ type: Boolean, default: false }) rawSnapshotPolicyPermitted!: boolean;
+  @Prop({ type: String, enum: ['quality', 'factuality', 'safety', 'tooling', 'escalation'], required: true }) reviewerQueue!: string;
+  @Prop({ type: String, enum: ['unresolved', 'in_review', 'resolved', 'rejected'], default: 'unresolved' }) status!: string;
+  @Prop({ type: MongooseSchema.Types.ObjectId, default: null }) reviewerId!: Types.ObjectId | null;
+  @Prop({ type: String, enum: ['approved', 'rejected', 'needs_more_information', null], default: null }) adjudication!: string | null;
+  @Prop({ type: String, default: null, select: false }) adjudicationNotes!: string | null;
+  @Prop({ type: Date, default: null }) resolvedAt!: Date | null;
 }
 export const AiFeedbackSchema = SchemaFactory.createForClass(AiFeedback);
-AiFeedbackSchema.index({ workspaceId: 1, requestId: 1, userId: 1, kind: 1 }, { unique: true });
+AiFeedbackSchema.index({ workspaceId: 1, deduplicationKey: 1 }, { unique: true });
+AiFeedbackSchema.index({ workspaceId: 1, reviewerQueue: 1, status: 1, createdAt: 1 });
+
+@Schema({ collection: 'ai_feedback_evaluation_dataset', timestamps: true, versionKey: false })
+export class AiFeedbackEvaluationCase {
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true, unique: true }) feedbackId!: Types.ObjectId;
+  @Prop({ type: String, required: true, select: false }) input!: string;
+  @Prop({ type: String, required: true, select: false }) expectedOutput!: string;
+  @Prop({ type: [String], default: [] }) expectedSourceIds!: string[];
+  @Prop({ type: [String], default: [] }) expectedTools!: string[];
+  @Prop({ type: String, default: null }) promptVersion!: string | null;
+  @Prop({ type: String, default: null }) provider!: string | null;
+  @Prop({ type: String, default: null }) model!: string | null;
+  @Prop({ type: String, enum: ['approved_feedback'], default: 'approved_feedback' }) origin!: string;
+}
+export const AiFeedbackEvaluationCaseSchema = SchemaFactory.createForClass(AiFeedbackEvaluationCase);
+
+@Schema({ collection: 'ai_feedback_regression_alerts', timestamps: true, versionKey: false })
+export class AiFeedbackRegressionAlert {
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: String, required: true }) dimension!: string;
+  @Prop({ type: String, required: true }) candidate!: string;
+  @Prop({ type: Number, required: true }) observedRate!: number;
+  @Prop({ type: Number, required: true }) threshold!: number;
+  @Prop({ type: String, enum: ['open', 'acknowledged', 'resolved'], default: 'open' }) status!: string;
+}
+export const AiFeedbackRegressionAlertSchema = SchemaFactory.createForClass(AiFeedbackRegressionAlert);
 
 @Schema({ collection: 'ai_safety_interventions', timestamps: true, versionKey: false })
 export class AiSafetyIntervention {

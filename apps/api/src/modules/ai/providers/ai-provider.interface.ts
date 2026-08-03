@@ -54,6 +54,7 @@ export class AiProviderError extends Error {
     message: string,
     readonly retryable: boolean,
     readonly status?: number,
+    readonly retryAfterMs?: number,
   ) {
     super(message);
   }

@@ -23,7 +23,7 @@ import { AiCacheService } from './cache/ai-cache.service.js';
 import { ModerationService } from './safety/moderation.service.js';
 import { PiiRedactionService } from './safety/pii-redaction.service.js';
 import { PromptInjectionDetector } from './safety/prompt-injection-detector.js';
-import { AiEvaluationRun, AiEvaluationRunSchema, AiExecutionTrace, AiExecutionTraceSchema, AiFeedback, AiFeedbackSchema, AiGoldenCase, AiGoldenCaseSchema, AiIncident, AiIncidentSchema, AiSafetyIntervention, AiSafetyInterventionSchema, AiSafetyPolicy, AiSafetyPolicySchema } from './schemas/ai-governance.schemas.js';
+import { AiEvaluationRun, AiEvaluationRunSchema, AiExecutionTrace, AiExecutionTraceSchema, AiFeedback, AiFeedbackEvaluationCase, AiFeedbackEvaluationCaseSchema, AiFeedbackRegressionAlert, AiFeedbackRegressionAlertSchema, AiFeedbackSchema, AiGoldenCase, AiGoldenCaseSchema, AiIncident, AiIncidentSchema, AiSafetyIntervention, AiSafetyInterventionSchema, AiSafetyPolicy, AiSafetyPolicySchema } from './schemas/ai-governance.schemas.js';
 import { AiGovernanceRepository } from './repositories/ai-governance.repository.js';
 import { AiSafetyService } from './safety/ai-safety.service.js';
 import { AiObservabilityService } from './observability/ai-observability.service.js';
@@ -38,6 +38,9 @@ import { AI_EXECUTION_QUEUE, AiAsyncExecutionService, AiExecutionProcessor } fro
 import { ProviderHealthService } from './routing/provider-health.service.js';
 import { PromptApprovalAudit, PromptApprovalAuditSchema, PromptAssignment, PromptAssignmentSchema } from './prompts/prompt-lifecycle.schemas.js';
 import { PromptLifecycleService } from './prompts/prompt-lifecycle.service.js';
+import { ResponseControlsService } from './control-plane/response-controls.service.js';
+import { AiReliabilityService } from './reliability/ai-reliability.service.js';
+import { AiReliabilityMetricsService } from './reliability/ai-reliability-metrics.service.js';
 @Module({
   imports: [
     CacheModule,
@@ -50,6 +53,8 @@ import { PromptLifecycleService } from './prompts/prompt-lifecycle.service.js';
       { name: AiSafetyPolicy.name, schema: AiSafetyPolicySchema },
       { name: AiExecutionTrace.name, schema: AiExecutionTraceSchema },
       { name: AiFeedback.name, schema: AiFeedbackSchema },
+      { name: AiFeedbackEvaluationCase.name, schema: AiFeedbackEvaluationCaseSchema },
+      { name: AiFeedbackRegressionAlert.name, schema: AiFeedbackRegressionAlertSchema },
       { name: AiSafetyIntervention.name, schema: AiSafetyInterventionSchema },
       { name: AiIncident.name, schema: AiIncidentSchema },
       { name: AiGoldenCase.name, schema: AiGoldenCaseSchema },
@@ -90,8 +95,11 @@ import { PromptLifecycleService } from './prompts/prompt-lifecycle.service.js';
     AiExecutionProcessor,
     ProviderHealthService,
     PromptLifecycleService,
+    ResponseControlsService,
+    AiReliabilityService,
+    AiReliabilityMetricsService,
   ],
-  exports: [AiGatewayService, AiControlPlaneService, AiAsyncExecutionService, AiStreamingService, PromptRegistryService, PromptLifecycleService, PromptInjectionDetector, PiiRedactionService, AiSafetyService, AiFeedbackService, AiEvaluationService, AiObservabilityService, AiAdminReportService],
+  exports: [AiGatewayService, AiControlPlaneService, AiAsyncExecutionService, AiStreamingService, PromptRegistryService, PromptLifecycleService, PromptInjectionDetector, PiiRedactionService, AiSafetyService, AiFeedbackService, AiEvaluationService, AiObservabilityService, AiAdminReportService, AiReliabilityService, AiReliabilityMetricsService],
 })
 export class AiModule implements OnModuleInit {
   constructor(

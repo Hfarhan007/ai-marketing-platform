@@ -30,6 +30,8 @@ import { AiSafetyService } from './safety/ai-safety.service.js';
 import { AiObservabilityService } from './observability/ai-observability.service.js';
 import { WorkspaceAiPolicyResolver } from './control-plane/workspace-ai-policy-resolver.service.js';
 import type { ModelRoutingRequest } from './routing/model-router.service.js';
+import { parseStructuredJson } from './control-plane/structured-json.js';
+import { AiReliabilityService, type ReliabilityReservation } from './reliability/ai-reliability.service.js';
 export interface AiGatewayCommand {
   requestId?: string;
   correlationId: string;
@@ -49,7 +51,9 @@ export interface AiGatewayCommand {
   dataClassification?: 'public' | 'internal' | 'confidential' | 'restricted';
   signal?: AbortSignal;
   cacheable?: boolean;
-  executionContext?: { agentId: string | null; purpose: string; promptVersion: string | null; knowledgeScope: string[]; permittedTools: string[]; retentionPolicy: { retainPrompt: boolean; days: number }; budget: { maxCostUsd: number; maxOutputTokens: number }; deadline: Date };
+  cacheMode?: 'exact' | 'semantic';
+  cacheVersion?: string;
+  executionContext?: { agentId: string | null; purpose: string; promptVersion: string | null; knowledgeScope: string[]; permittedTools: string[]; retentionPolicy: { retainPrompt: boolean; days: number }; budget: { maxCostUsd: number; maxOutputTokens: number }; deadline: Date; queueDelayMs?: number };
   routingPolicy?: Omit<ModelRoutingRequest, 'capabilities' | 'allowedProviders' | 'preferredModel' | 'maxCostPerMillion'> & { timeoutMs?: number; retries?: number; hedgedSafe?: boolean; hedgeDelayMs?: number };
 }
 export interface AiEmbeddingCommand {
@@ -82,6 +86,7 @@ export class AiGatewayService {
     @Optional() private readonly advancedSafety?: AiSafetyService,
     @Optional() private readonly observability?: AiObservabilityService,
     @Optional() private readonly workspacePolicy?: WorkspaceAiPolicyResolver,
+    @Optional() private readonly reliability?: AiReliabilityService,
   ) {}
   register(provider: AiProvider) {
     this.providers.set(provider.name, provider);
@@ -159,12 +164,7 @@ export class AiGatewayService {
     const request = { ...command, requestId, model: model.model, messages };
     const cacheKey =
       command.cacheable && command.temperature === 0 && !command.tools?.length
-        ? this.cache.key({
-            workspaceId: command.workspaceId,
-            model: model.model,
-            messages,
-            jsonSchema: command.jsonSchema,
-          })
+        ? this.cache.scopedKey({ workspaceId: command.workspaceId, feature: command.feature, dataClassification: command.dataClassification ?? 'internal', ...(command.cacheVersion ? { version: command.cacheVersion } : {}) }, command.cacheMode === 'semantic' ? messages.map((message) => `${message.role}:${message.content}`).join('\n') : { model: model.model, messages, jsonSchema: command.jsonSchema }, command.cacheMode ?? 'exact')
         : null;
     if (cacheKey) {
       const hit = await this.cache.get(cacheKey);
@@ -178,20 +178,23 @@ export class AiGatewayService {
       .filter((value): value is { provider: AiProvider; model: string } => Boolean(value.provider));
     if (!ordered.length)
       throw new ServiceUnavailableException('No configured AI provider is available');
-    let result: Awaited<ReturnType<FallbackPolicyService['execute']>>;
+    let result: Awaited<ReturnType<FallbackPolicyService['execute']>>, reservation: ReliabilityReservation | undefined;
     try {
+      reservation = await this.reliability?.reserve({ workspaceId: command.workspaceId, feature: command.feature, ...(command.executionContext?.agentId ? { agentId: command.executionContext.agentId } : {}), estimatedTokens: inputTokens + command.maxTokens, estimatedCostUsd: estimate });
       result = await this.fallback.execute(ordered, request, { retries: command.routingPolicy?.retries ?? 2, timeoutMs: Math.min(command.routingPolicy?.timeoutMs ?? 30_000, command.executionContext ? Math.max(1, command.executionContext.deadline.valueOf() - Date.now()) : 30_000), retrySafe: true, hedgedSafe: command.routingPolicy?.hedgedSafe === true, ...(command.routingPolicy?.hedgeDelayMs === undefined ? {} : { hedgeDelayMs: command.routingPolicy.hedgeDelayMs }) });
     } catch (error) {
+      if (reservation) await this.reliability?.release(reservation);
       await this.observability?.finish(requestId, { model: model.model, latencyMs: Date.now() - startedAt, status: 'failed', errorCode: error instanceof Error ? error.name : 'provider_failure' });
       throw error;
     }
     const actualModel = this.capabilities.get(result.provider.name, result.model) ?? model;
     const actualCost = this.costs.actual(actualModel, result.response.usage);
+    if (reservation) await this.reliability?.reconcile(reservation, { tokens: result.response.usage.inputTokens + result.response.usage.outputTokens, costUsd: actualCost });
     let response = result.response;
     response = { ...response, provider: result.provider.name, model: result.model };
     if (command.jsonSchema) {
       try {
-        const structured = JSON.parse(response.content) as unknown;
+        const structured = parseStructuredJson(response.content);
         this.validateStructured(structured, command.jsonSchema);
         response = { ...response, structured };
       } catch {
@@ -221,9 +224,10 @@ export class AiGatewayService {
       promptHash: this.cache.key(messages),
       dataClassification: command.dataClassification ?? 'internal',
       promptVersion: effectivePromptVersion,
+      ...(command.executionContext?.agentId ? { agentId: command.executionContext.agentId } : {}),
     });
     if (cacheKey) await this.cache.set(cacheKey, response);
-    await this.observability?.finish(requestId, { provider: result.provider.name, model: result.model, latencyMs: Date.now() - startedAt, inputTokens: response.usage.inputTokens, outputTokens: response.usage.outputTokens, costUsd: actualCost, retries: result.retries, fallbackUsed: result.fallbackUsed, fallbackReason: result.fallbackReason, selectionReason: routing.selectionReason, cacheHit: false, toolCalls: response.toolCalls?.map((tool) => tool.name) ?? [], safetyInterventions: safety?.interventions ?? [], status: 'completed' });
+    await this.observability?.finish(requestId, { provider: result.provider.name, model: result.model, latencyMs: Date.now() - startedAt, inputTokens: response.usage.inputTokens, outputTokens: response.usage.outputTokens, costUsd: actualCost, retries: result.retries, fallbackUsed: result.fallbackUsed, fallbackReason: result.fallbackReason, selectionReason: routing.selectionReason, cacheHit: false, toolCalls: response.toolCalls?.map((tool) => tool.name) ?? [], safetyInterventions: [...(safety?.interventions ?? []), ...(reservation?.warning ? ['soft_budget_limit'] : [])], status: 'completed' });
     return response;
   }
   private validateStructured(value: unknown, schema: Record<string, unknown>, path = '$') {

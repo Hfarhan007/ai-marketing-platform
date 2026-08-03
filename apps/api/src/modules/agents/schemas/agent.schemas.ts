@@ -126,6 +126,19 @@ export class AgentRunArtifact {
 export const AgentRunArtifactSchema = SchemaFactory.createForClass(AgentRunArtifact);
 AgentRunArtifactSchema.index({ runId: 1, kind: 1, key: 1 }, { unique: true });
 
+@Schema({ collection: 'agent_orchestration_runs', timestamps: true, versionKey: false })
+export class AgentOrchestrationRun {
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
+  @Prop({ type: String, required: true }) workflow!: string;
+  @Prop({ type: String, required: true }) status!: string;
+  @Prop({ type: [MongooseSchema.Types.Mixed], default: [] }) results!: unknown[];
+  @Prop({ type: Number, required: true }) totalTokens!: number;
+  @Prop({ type: Number, required: true }) totalCostUsd!: number;
+  @Prop({ type: Number, required: true }) latencyMs!: number;
+}
+export const AgentOrchestrationRunSchema = SchemaFactory.createForClass(AgentOrchestrationRun);
+AgentOrchestrationRunSchema.index({ workspaceId: 1, createdAt: -1 });
+
 @Schema({ collection: 'agent_messages', timestamps: true, versionKey: false })
 export class AgentMessage {
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;

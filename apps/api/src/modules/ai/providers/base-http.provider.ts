@@ -17,6 +17,7 @@ export abstract class BaseHttpAiProvider {
           `AI provider returned ${response.status}`,
           response.status === 429 || response.status >= 500,
           response.status,
+          response.status === 429 ? this.retryAfterMs(response.headers.get('retry-after')) : undefined,
         );
       return (await response.json()) as Record<string, unknown>;
     } catch (error) {
@@ -29,6 +30,13 @@ export abstract class BaseHttpAiProvider {
       clearTimeout(timer);
       signal?.removeEventListener('abort', abort);
     }
+  }
+  private retryAfterMs(value: string | null) {
+    if (!value) return undefined;
+    const seconds = Number(value);
+    if (Number.isFinite(seconds)) return Math.max(0, seconds * 1_000);
+    const date = Date.parse(value);
+    return Number.isNaN(date) ? undefined : Math.max(0, date - Date.now());
   }
   protected response(content: string, inputTokens = 0, outputTokens = 0): AiResponse {
     return { content, usage: { inputTokens, outputTokens } };

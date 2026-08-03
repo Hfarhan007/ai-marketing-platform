@@ -17,6 +17,7 @@ export class FallbackPolicyService {
       for (let attempt = 0; attempt <= retries; attempt++) {
         try {
           const response = await this.invoke(route, request, policy.timeoutMs);
+          this.assertResponse(response);
           this.health?.success(route.provider.name);
           return { response, provider: route.provider, model: route.model, retries: attempts, fallbackUsed: routeIndex > 0, fallbackReason };
         } catch (error) {
@@ -25,7 +26,7 @@ export class FallbackPolicyService {
           errors.push(`${route.provider.name}:${reason}`); fallbackReason ??= `${route.provider.name}:${reason}`;
           if (this.health && !this.health.available(route.provider.name)) break;
           if (!(error as AiProviderError).retryable) break;
-          if (attempt < retries) await new Promise((resolve) => setTimeout(resolve, Math.min(1_000, 100 * 2 ** attempt)));
+          if (attempt < retries) await new Promise((resolve) => setTimeout(resolve, Math.min(30_000, (error as AiProviderError).retryAfterMs ?? 100 * 2 ** attempt)));
         }
       }
     }
@@ -56,6 +57,9 @@ export class FallbackPolicyService {
     const timer = setTimeout(() => controller.abort(new Error('AI provider timeout budget exceeded')), timeoutMs);
     try { return await route.provider.chat({ ...request, model: route.model, signal: controller.signal }); }
     finally { clearTimeout(timer); request.signal?.removeEventListener('abort', abort); }
+  }
+  private assertResponse(value: AiResponse) {
+    if (typeof value?.content !== 'string' || !value.usage || !Number.isFinite(value.usage.inputTokens) || !Number.isFinite(value.usage.outputTokens)) throw new Error('AI provider returned a malformed response');
   }
   private async invokeEmbedding(route: ProviderRoute, request: Omit<AiRequest, 'messages'> & { inputs: string[] }, timeoutMs = 30_000) {
     const controller = new AbortController(), abort = () => controller.abort(request.signal?.reason ?? new Error('AI invocation cancelled'));
