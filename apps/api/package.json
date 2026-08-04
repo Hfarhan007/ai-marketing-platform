@@ -13,6 +13,9 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "db:indexes": "tsx src/database/database.cli.ts indexes",
+    "db:vector:deploy": "tsx src/database/database.cli.ts vector-deploy",
+    "db:vector:health": "tsx src/database/database.cli.ts vector-health",
+    "db:vector:activate": "tsx src/database/database.cli.ts vector-activate",
     "db:migrate": "tsx src/database/database.cli.ts migrate",
     "db:seed": "tsx src/database/database.cli.ts seed"
   },
@@ -48,8 +51,8 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "socket.io": "^4.8.3",
-    "stripe": "^22.3.2"
-    ,"zod": "^4.4.3"
+    "stripe": "^22.3.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

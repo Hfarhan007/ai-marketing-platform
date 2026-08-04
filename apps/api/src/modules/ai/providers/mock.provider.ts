@@ -1,4 +1,5 @@
 import type { AiProvider, AiRequest, AiStreamChunk } from './ai-provider.interface.js';
+import { createHash } from 'node:crypto';
 export class MockAiProvider implements AiProvider {
   readonly name = 'ollama' as const;
   failures = 0;
@@ -16,7 +17,10 @@ export class MockAiProvider implements AiProvider {
   }
   embed(r: Omit<AiRequest, 'messages'> & { inputs: string[] }) {
     return Promise.resolve({
-      vectors: r.inputs.map((_, i) => [i, 1]),
+      vectors: r.inputs.map((input) => {
+        const bytes = createHash('sha256').update(`${r.model}:${input}`).digest();
+        return Array.from({ length: 8 }, (_, index) => bytes[index]! / 127.5 - 1);
+      }),
       usage: { inputTokens: r.inputs.length, outputTokens: 0 },
     });
   }

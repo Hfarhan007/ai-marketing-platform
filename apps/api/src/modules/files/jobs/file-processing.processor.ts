@@ -8,6 +8,10 @@ import { StorageProviderRegistry } from '../storage/storage.providers.js';
 import { MockMalwareScanner } from '../virus-scan/malware-scanner.js';
 import { FilePolicyService } from '../services/file-policy.service.js';
 import { FILE_PROCESSING_QUEUE } from '../services/files.service.js';
+import { TextExtractionRepository } from '../repositories/text-extraction.repository.js';
+import { SandboxedExtractionService } from '../extraction/sandboxed-extraction.service.js';
+import { MimeDetectionService } from '../extraction/mime-detection.service.js';
+import { EXTRACTION_TOOL_VERSION } from '../extraction/secure-text-extractor.js';
 interface FileJob {
   workspaceId: string;
   fileId: string;
@@ -20,6 +24,9 @@ export class FileProcessingProcessor extends WorkerHost {
     private readonly storage: StorageProviderRegistry,
     private readonly scanner: MockMalwareScanner,
     private readonly policy: FilePolicyService,
+    private readonly extractionRepository: TextExtractionRepository,
+    private readonly extraction: SandboxedExtractionService,
+    private readonly mimeDetection: MimeDetectionService,
   ) {
     super();
   }
@@ -33,9 +40,7 @@ export class FileProcessingProcessor extends WorkerHost {
       { $set: { processingStatus: 'processing' } },
     );
     const detected = await fileTypeFromBuffer(content),
-      mime =
-        detected?.mime ??
-        (file.extension === '.txt' || file.extension === '.csv' ? 'text/plain' : '');
+      mime = detected?.mime ?? await this.mimeDetection.detect(content, file.extension);
     try {
       this.policy.validateDetected(file.extension, mime);
     } catch (error) {
@@ -63,6 +68,11 @@ export class FileProcessingProcessor extends WorkerHost {
     if (mime.startsWith('image/')) {
       const value = imageSize(content);
       if (value.width && value.height) dimensions = { width: value.width, height: value.height };
+    }
+    const extractable = ['.pdf', '.docx', '.pptx', '.xlsx', '.csv', '.txt', '.md', '.markdown', '.html', '.htm', '.json', '.eml'].includes(file.extension);
+    if (extractable && !(await this.extractionRepository.completed(job.data.workspaceId, job.data.fileId, file.checksum, EXTRACTION_TOOL_VERSION))) {
+      const result = await this.extraction.extract({ content, extension: file.extension, mimeType: mime, timeoutMs: 30_000, limits: { maxFileBytes: 52_428_800, maxExpandedBytes: 100_000_000, maxCompressionRatio: 100, maxEntries: 10_000 } });
+      await this.extractionRepository.save(job.data.workspaceId, job.data.fileId, file.checksum, result);
     }
     await this.repository.update(
       job.data.workspaceId,

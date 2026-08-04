@@ -11,16 +11,26 @@ import { developmentSeed } from './seeds/development.seed.js';
 import { SeedRunnerService } from './seeds/seed-runner.service.js';
 import type { Seed } from './seeds/seed.interface.js';
 import { testSeed } from './seeds/test.seed.js';
+import { AtlasVectorIndexManagerService } from './indexes/atlas-vector-index-manager.service.js';
+import { atlasVectorIndex } from './indexes/vector-index-definitions.js';
 
 @Module({ imports: [ConfigurationModule, DatabaseModule] })
 class DatabaseCliModule {}
 
-type DatabaseCommand = 'indexes' | 'migrate' | 'seed';
+type DatabaseCommand =
+  'indexes' | 'migrate' | 'seed' | 'vector-deploy' | 'vector-health' | 'vector-activate';
 
 async function run(): Promise<void> {
   const command = process.argv[2] as DatabaseCommand | undefined;
-  if (!command || !['indexes', 'migrate', 'seed'].includes(command)) {
-    throw new Error('Expected one command: indexes, migrate, or seed');
+  if (
+    !command ||
+    !['indexes', 'migrate', 'seed', 'vector-deploy', 'vector-health', 'vector-activate'].includes(
+      command,
+    )
+  ) {
+    throw new Error(
+      'Expected one command: indexes, migrate, seed, vector-deploy, vector-health, or vector-activate',
+    );
   }
   const app = await NestFactory.createApplicationContext(DatabaseCliModule, { logger: false });
   try {
@@ -29,8 +39,34 @@ async function run(): Promise<void> {
       const drift = await app.get(IndexManagerService).createMissingIndexes();
       if (drift.length > 0) throw new Error(`Unresolved index drift: ${JSON.stringify(drift)}`);
       result = { status: 'ok', command, drift: [] };
+    } else if (command.startsWith('vector-')) {
+      const config = app.get(ConfigService),
+        environment = config.getOrThrow<string>('app.environment');
+      const version = process.argv[3] ?? config.get<string>('database.vectorIndexVersion') ?? 'v1';
+      const dimensions = Number(process.argv[4] ?? 1536),
+        definition = atlasVectorIndex(environment, version, dimensions);
+      const manager = app.get(AtlasVectorIndexManagerService);
+      if (command === 'vector-deploy')
+        result = {
+          status: 'ok',
+          command,
+          index: definition.name,
+          health: await manager.deploy(definition),
+        };
+      else if (command === 'vector-health')
+        result = {
+          status: 'ok',
+          command,
+          index: definition.name,
+          health: await manager.health(definition.collection, definition.name),
+        };
+      else result = { status: 'ok', command, index: await manager.activate(definition) };
     } else if (command === 'migrate') {
-      result = { status: 'ok', command, migrations: await app.get(MigrationRunnerService).run(migrations) };
+      result = {
+        status: 'ok',
+        command,
+        migrations: await app.get(MigrationRunnerService).run(migrations),
+      };
     } else {
       const environment = app.get(ConfigService).getOrThrow<string>('app.environment');
       const seeds = selectSeeds(environment);

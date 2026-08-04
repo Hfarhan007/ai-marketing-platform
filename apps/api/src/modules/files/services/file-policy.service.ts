@@ -9,10 +9,17 @@ const ALLOWED: ReadonlyMap<string, readonly string[]> = new Map([
   ['.pdf', ['application/pdf']],
   ['.txt', ['text/plain']],
   ['.csv', ['text/csv', 'text/plain']],
+  ['.md', ['text/markdown', 'text/plain']],
+  ['.markdown', ['text/markdown', 'text/plain']],
+  ['.html', ['text/html']],
+  ['.htm', ['text/html']],
+  ['.json', ['application/json', 'text/json']],
+  ['.eml', ['message/rfc822', 'text/plain']],
   ['.mp4', ['video/mp4']],
   ['.mp3', ['audio/mpeg']],
   ['.wav', ['audio/wav', 'audio/x-wav']],
   ['.docx', ['application/vnd.openxmlformats-officedocument.wordprocessingml.document']],
+  ['.pptx', ['application/vnd.openxmlformats-officedocument.presentationml.presentation']],
   ['.xlsx', ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']],
 ]);
 @Injectable()

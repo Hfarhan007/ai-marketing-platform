@@ -19,10 +19,14 @@ import {
   StorageProviderRegistry,
 } from './storage/storage.providers.js';
 import { MockMalwareScanner } from './virus-scan/malware-scanner.js';
+import { FileTextExtraction, FileTextExtractionSchema } from './schemas/text-extraction.schema.js';
+import { TextExtractionRepository } from './repositories/text-extraction.repository.js';
+import { SandboxedExtractionService } from './extraction/sandboxed-extraction.service.js';
+import { MimeDetectionService } from './extraction/mime-detection.service.js';
 @Module({
   imports: [
     BullModule.registerQueue({ name: FILE_PROCESSING_QUEUE }, { name: FILE_CLEANUP_QUEUE }),
-    MongooseModule.forFeature([{ name: StoredFile.name, schema: StoredFileSchema }]),
+    MongooseModule.forFeature([{ name: StoredFile.name, schema: StoredFileSchema }, { name: FileTextExtraction.name, schema: FileTextExtractionSchema }]),
   ],
   controllers: [FilesController],
   providers: [
@@ -32,6 +36,9 @@ import { MockMalwareScanner } from './virus-scan/malware-scanner.js';
     S3StorageProvider,
     StorageProviderRegistry,
     MockMalwareScanner,
+    TextExtractionRepository,
+    SandboxedExtractionService,
+    MimeDetectionService,
     FilesService,
     FileProcessingProcessor,
     OrphanCleanupProcessor,

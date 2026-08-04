@@ -7,7 +7,7 @@ export class KnowledgeSource {
   updatedAt!: Date;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
   @Prop({ type: String, required: true }) name!: string;
-  @Prop({ type: String, enum: ['uploaded_document', 'website', 'faq', 'manual_text', 'crm_record', 'catalog', 'file', 'url', 'text'], required: true }) sourceType!: string;
+  @Prop({ type: String, enum: ['uploaded_document', 'website', 'faq', 'manual_text', 'crm_record', 'catalog', 'file', 'url', 'text', 'uploaded_files', 'website_urls', 'sitemap', 'crm_records', 'product_catalogs', 'help_center_articles', 'google_drive', 'notion', 'confluence', 'shopify_products', 'external_api'], required: true }) sourceType!: string;
   @Prop({ type: String, required: true }) sourceReference!: string;
   @Prop({ type: String, enum: ['pending', 'processing', 'ready', 'failed', 'deleted'], default: 'pending' })
   status!: string;

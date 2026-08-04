@@ -11,4 +11,7 @@ export const databaseConfig = registerAs('database', () => ({
   waitQueueTimeoutMs: Number(process.env.MONGODB_WAIT_QUEUE_TIMEOUT_MS ?? 2_000),
   serverSelectionTimeoutMs: Number(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS ?? 5_000),
   socketTimeoutMs: Number(process.env.MONGODB_SOCKET_TIMEOUT_MS ?? 45_000),
+  vectorIndexVersion: process.env.ATLAS_VECTOR_INDEX_VERSION ?? 'v1',
+  vectorCandidateVersion: process.env.ATLAS_VECTOR_CANDIDATE_VERSION,
+  vectorDualRead: process.env.ATLAS_VECTOR_DUAL_READ === 'true',
 }));

@@ -6,6 +6,7 @@ import { MigrationState, MigrationStateSchema } from './migrations/migration-sta
 import { MongoModule } from './mongo/mongo.module.js';
 import { SeedRunnerService } from './seeds/seed-runner.service.js';
 import { TransactionManagerService } from './transactions/transaction-manager.service.js';
+import { AtlasVectorIndexManagerService } from './indexes/atlas-vector-index-manager.service.js';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { TransactionManagerService } from './transactions/transaction-manager.se
     MigrationRunnerService,
     SeedRunnerService,
     TransactionManagerService,
+    AtlasVectorIndexManagerService,
   ],
   exports: [
     MongoModule,
@@ -25,6 +27,7 @@ import { TransactionManagerService } from './transactions/transaction-manager.se
     MigrationRunnerService,
     SeedRunnerService,
     TransactionManagerService,
+    AtlasVectorIndexManagerService,
   ],
 })
 export class DatabaseModule {}

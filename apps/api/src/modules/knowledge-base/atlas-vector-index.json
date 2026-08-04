@@ -10,7 +10,9 @@
       { "type": "filter", "path": "documentId" },
       { "type": "filter", "path": "language" },
       { "type": "filter", "path": "status" },
-      { "type": "filter", "path": "metadata" }
+      { "type": "filter", "path": "accessControl.groups" },
+      { "type": "filter", "path": "metadata.contentType" },
+      { "type": "filter", "path": "createdAt" }
     ]
   }
 }
