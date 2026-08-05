@@ -11,6 +11,10 @@
       { "type": "filter", "path": "language" },
       { "type": "filter", "path": "status" },
       { "type": "filter", "path": "accessControl.groups" },
+      { "type": "filter", "path": "accessControl.userIds" },
+      { "type": "filter", "path": "accessControl.visibility" },
+      { "type": "filter", "path": "metadata.trustLevel" },
+      { "type": "filter", "path": "metadata.sensitivity" },
       { "type": "filter", "path": "metadata.contentType" },
       { "type": "filter", "path": "createdAt" }
     ]

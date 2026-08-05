@@ -61,6 +61,7 @@ export class IngestionService {
         ...(input.mimeType ? { mimeType: input.mimeType } : {}),
         ...(input.allowedDomains ? { allowedDomains: input.allowedDomains } : {}),
         ...(input.allowedMimeTypes ? { allowedMimeTypes: input.allowedMimeTypes } : {}),
+        trustLevel: source.trustLevel,
       });
       const normalized = this.chunking.normalize(secured.sanitized),
         contentHash = hashContent(normalized);
@@ -88,6 +89,12 @@ export class IngestionService {
         metadata: { sourceReference: source.sourceReference },
         status: 'active',
       });
+      const accessControl = this.accessControl(
+        input.accessControl,
+        input.userId,
+        source.collectionIds,
+        secured.sensitivity.classification,
+      );
       const chunks = this.chunking.chunkDocument({
         content: normalized,
         workspaceId: input.workspaceId,
@@ -96,7 +103,7 @@ export class IngestionService {
         revisionId: contentHash,
         language,
         sourceType: source.sourceType,
-        accessControl: input.accessControl ?? { collectionIds: source.collectionIds },
+        accessControl,
         ...(input.chunking ? { policy: input.chunking } : {}),
       });
       const embedded = await this.embeddings.create({
@@ -147,7 +154,15 @@ export class IngestionService {
           status: 'active',
           untrusted: secured.untrusted,
           injectionDetected: secured.injection.detected,
-          metadata: { sourceName: source.name, contentHash: chunk.contentHash },
+          metadata: {
+            title: source.name,
+            sourceName: source.name,
+            contentHash: chunk.contentHash,
+            trustLevel: source.trustLevel,
+            instructionLike: secured.instructionLike,
+            sensitivity: secured.sensitivity.classification,
+            sensitiveCategories: secured.sensitivity.categories,
+          },
         })),
       );
       await this.finish(input.workspaceId, String(job._id), input.sourceId, contentHash);
@@ -184,5 +199,33 @@ export class IngestionService {
   }
   deleteSource(workspaceId: string, sourceId: string) {
     return this.repository.deleteSource(workspaceId, sourceId);
+  }
+  private accessControl(
+    configured: Record<string, unknown> | undefined,
+    userId: string,
+    collectionIds: string[],
+    sensitivity: string,
+  ) {
+    const visibility = configured?.visibility;
+    if (
+      visibility !== undefined &&
+      (typeof visibility !== 'string' ||
+        !['public', 'workspace', 'restricted'].includes(visibility))
+    )
+      throw new Error('Invalid document visibility');
+    const strings = (value: unknown) =>
+      Array.isArray(value)
+        ? value.filter((item): item is string => typeof item === 'string' && item.length > 0)
+        : [];
+    const restricted = visibility === 'restricted' || sensitivity !== 'internal';
+    const groups = strings(configured?.groups),
+      userIds = strings(configured?.userIds);
+    if (restricted && !groups.length && !userIds.length) userIds.push(userId);
+    return {
+      visibility: restricted ? 'restricted' : visibility === 'public' ? 'public' : 'workspace',
+      groups,
+      userIds,
+      collectionIds,
+    };
   }
 }

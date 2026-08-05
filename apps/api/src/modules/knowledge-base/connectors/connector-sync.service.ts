@@ -3,10 +3,8 @@ import { KnowledgeConnectorRegistry } from './connector-registry.js';
 import { ConnectorCredentialVaultService } from './connector-credential-vault.service.js';
 import { KnowledgeConnectorRepository } from './connector.repository.js';
 import { IngestionService } from '../document-processing/ingestion.service.js';
-import type {
-  ConnectorContext,
-  KnowledgeSourceType,
-} from './knowledge-connector.types.js';
+import type { ConnectorContext, KnowledgeSourceType } from './knowledge-connector.types.js';
+import { ConnectorUrlSecurityService } from './connector-url-security.service.js';
 @Injectable()
 export class ConnectorSyncService {
   constructor(
@@ -14,6 +12,7 @@ export class ConnectorSyncService {
     private readonly registry: KnowledgeConnectorRegistry,
     private readonly vault: ConnectorCredentialVaultService,
     private readonly ingestion: IngestionService,
+    private readonly urlSecurity: ConnectorUrlSecurityService,
   ) {}
   async create(input: {
     workspaceId: string;
@@ -25,6 +24,7 @@ export class ConnectorSyncService {
     allowedDomains?: string[];
   }) {
     const connector = this.registry.get(input.type);
+    await this.validateUrls(input.configuration, input.allowedDomains ?? []);
     await connector.validateConfiguration(input.configuration);
     const result = await this.repository.create({
       workspaceId: input.workspaceId,
@@ -85,6 +85,11 @@ export class ConnectorSyncService {
         for (const document of page.documents) {
           if (++discovered > (input.maxDocuments ?? 10_000))
             throw new BadRequestException('Connector document limit exceeded');
+          if (/^https?:\/\//iu.test(document.locator))
+            await this.urlSecurity.assertAllowed(
+              document.locator,
+              (connection.allowedDomains as string[]) ?? [],
+            );
           seen.add(document.externalId);
           const prior = known.get(document.externalId),
             currentRevision = await connector.getRevisionIdentifier(context, document);
@@ -195,6 +200,19 @@ export class ConnectorSyncService {
   private assertSize(content: string, limit: number) {
     if (!content.length || Buffer.byteLength(content) > limit)
       throw new BadRequestException('Connector content exceeds size limit');
+  }
+  private async validateUrls(value: unknown, allowedDomains: string[]): Promise<void> {
+    if (typeof value === 'string' && /^https?:\/\//iu.test(value)) {
+      await this.urlSecurity.assertAllowed(value, allowedDomains);
+      return;
+    }
+    if (Array.isArray(value)) {
+      for (const item of value) await this.validateUrls(item, allowedDomains);
+      return;
+    }
+    if (value && typeof value === 'object')
+      for (const item of Object.values(value as Record<string, unknown>))
+        await this.validateUrls(item, allowedDomains);
   }
   private async retry<T>(
     operation: () => Promise<T>,

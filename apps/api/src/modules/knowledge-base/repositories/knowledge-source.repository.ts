@@ -13,7 +13,14 @@ export class KnowledgeSourceRepository {
   async reserve(
     workspaceId: string,
     userId: string,
-    input: { name: string; sourceType: string; sourceReference: string; idempotencyKey: string; collectionIds?: string[] },
+    input: {
+      name: string;
+      sourceType: string;
+      sourceReference: string;
+      idempotencyKey: string;
+      collectionIds?: string[];
+      trustLevel?: 'trusted' | 'untrusted';
+    },
     session: ClientSession,
   ) {
     const existing = await this.sources
@@ -30,6 +37,7 @@ export class KnowledgeSourceRepository {
       workspaceId: new Types.ObjectId(workspaceId),
       createdBy: new Types.ObjectId(userId),
       status: 'pending',
+      trustLevel: input.trustLevel ?? 'untrusted',
     });
     await source.save({ session });
     return { source: source.toObject(), duplicate: false };

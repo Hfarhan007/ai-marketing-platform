@@ -8,6 +8,8 @@ import { KnowledgeSourceService } from './services/knowledge-source.service.js';
 import { AiModule } from '../ai/ai.module.js';
 import {
   KnowledgeChunk,
+  KnowledgeAnswerReview,
+  KnowledgeAnswerReviewSchema,
   KnowledgeChunkSchema,
   KnowledgeDocument,
   KnowledgeDocumentSchema,
@@ -21,11 +23,14 @@ import {
   KnowledgeRetrievalLogSchema,
   RagEvaluation,
   RagEvaluationSchema,
+  RagDriftSnapshot,
+  RagDriftSnapshotSchema,
 } from './schemas/rag.schemas.js';
 import { RagRepository } from './repositories/rag.repository.js';
 import { AtlasVectorSearchAdapter } from './repositories/atlas-vector-search.adapter.js';
 import { VECTOR_SEARCH_ADAPTER } from './vector-search/vector-search.types.js';
-import { RERANKER, ScoreOnlyReranker } from './reranking/reranker.js';
+import { DeterministicReranker, RERANKER } from './reranking/reranker.js';
+import { ContextAssemblyService } from './context-assembly/context-assembly.service.js';
 import { ChunkingService } from './chunking/chunking.service.js';
 import { ContentSecurityService } from './document-processing/content-security.service.js';
 import { LanguageService } from './document-processing/language.service.js';
@@ -43,11 +48,14 @@ import { KnowledgeConnectorRepository } from './connectors/connector.repository.
 import { ConnectorSyncService } from './connectors/connector-sync.service.js';
 import { ConnectorRegistrar } from './connectors/connector-registrar.service.js';
 import { KnowledgeConnectorController } from './controllers/knowledge-connector.controller.js';
+import { CacheModule } from '../../cache/cache.module.js';
+import { GroundedAnswerService } from './grounded-answer/grounded-answer.service.js';
 @Module({
   imports: [
     EventsModule,
     AiModule,
     AuthModule,
+    CacheModule,
     MongooseModule.forFeature([
       { name: KnowledgeSource.name, schema: KnowledgeSourceSchema },
       { name: KnowledgeDocument.name, schema: KnowledgeDocumentSchema },
@@ -56,7 +64,9 @@ import { KnowledgeConnectorController } from './controllers/knowledge-connector.
       { name: KnowledgeEmbeddingJob.name, schema: KnowledgeEmbeddingJobSchema },
       { name: KnowledgeIngestionJob.name, schema: KnowledgeIngestionJobSchema },
       { name: KnowledgeRetrievalLog.name, schema: KnowledgeRetrievalLogSchema },
+      { name: KnowledgeAnswerReview.name, schema: KnowledgeAnswerReviewSchema },
       { name: RagEvaluation.name, schema: RagEvaluationSchema },
+      { name: RagDriftSnapshot.name, schema: RagDriftSnapshotSchema },
     ]),
   ],
   controllers: [KnowledgeSourceController, KnowledgeConnectorController],
@@ -66,7 +76,8 @@ import { KnowledgeConnectorController } from './controllers/knowledge-connector.
     RagRepository,
     AtlasVectorSearchAdapter,
     { provide: VECTOR_SEARCH_ADAPTER, useExisting: AtlasVectorSearchAdapter },
-    { provide: RERANKER, useClass: ScoreOnlyReranker },
+    { provide: RERANKER, useClass: DeterministicReranker },
+    ContextAssemblyService,
     ChunkingService,
     ContentSecurityService,
     LanguageService,
@@ -75,6 +86,7 @@ import { KnowledgeConnectorController } from './controllers/knowledge-connector.
     IngestionService,
     CitationService,
     RagRetrievalService,
+    GroundedAnswerService,
     RagEvaluationService,
     KnowledgeConnectorRegistry,
     ConnectorUrlSecurityService,
@@ -87,6 +99,7 @@ import { KnowledgeConnectorController } from './controllers/knowledge-connector.
     KnowledgeSourceService,
     IngestionService,
     RagRetrievalService,
+    GroundedAnswerService,
     RagEvaluationService,
     KnowledgeConnectorRegistry,
     ConnectorSyncService,

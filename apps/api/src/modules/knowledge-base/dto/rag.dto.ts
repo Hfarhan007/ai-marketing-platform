@@ -44,6 +44,24 @@ export class RetrieveKnowledgeDto {
   @IsOptional() @IsArray() @IsString({ each: true }) sourceIds?: string[];
   @IsOptional() @IsString() @MaxLength(20) language?: string;
   @IsOptional() @IsObject() metadata?: Record<string, string | number | boolean>;
+  @IsOptional() @IsIn(['keyword', 'vector', 'hybrid']) retrievalMode?:
+    'keyword' | 'vector' | 'hybrid';
+  @IsOptional() @IsIn(['rrf', 'weighted']) fusion?: 'rrf' | 'weighted';
+  @IsOptional() @IsNumber() @Min(0) @Max(1) keywordWeight?: number;
+  @IsOptional() @IsNumber() @Min(0) @Max(1) vectorWeight?: number;
+  @IsOptional() @IsInt() @Min(1) @Max(20) perSourceLimit?: number;
+  @IsOptional() @IsInt() @Min(1) @Max(20) perDocumentLimit?: number;
+  @IsOptional() @IsInt() @Min(100) @Max(100_000) tokenBudget?: number;
+  @IsOptional() @IsInt() @Min(100) @Max(30_000) timeoutMs?: number;
+  @IsOptional() @IsBoolean() explain?: boolean;
+}
+
+export class AnswerKnowledgeDto extends RetrieveKnowledgeDto {
+  @IsOptional() @IsBoolean() requireCitationMarkers?: boolean;
+  @IsOptional() @IsNumber() @Min(0) minimumRetrievalScore?: number;
+  @IsOptional() @IsNumber() @Min(0) @Max(1) minimumGroundedness?: number;
+  @IsOptional() @IsNumber() @Min(0) @Max(1) humanReviewBelow?: number;
+  @IsOptional() @IsBoolean() routeHumanReview?: boolean;
 }
 
 export class EmbeddingMigrationDto {

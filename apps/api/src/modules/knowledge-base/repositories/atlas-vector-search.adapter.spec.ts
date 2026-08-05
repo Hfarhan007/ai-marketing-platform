@@ -25,17 +25,24 @@ describe('Atlas vector tenant enforcement', () => {
       'index',
       workspaceId,
       [1, 0],
-      { accessControlGroups: ['group-a'], contentType: 'article' },
+      { accessControlGroups: ['group-a'], accessControlUserId: 'user-a', contentType: 'article' },
       5,
     );
-    expect(
-      (pipeline[0] as { $vectorSearch: { filter: Record<string, unknown> } }).$vectorSearch.filter,
-    ).toMatchObject({
-      workspaceId: new Types.ObjectId(workspaceId),
-      'accessControl.groups': { $in: ['group-a'] },
-      'metadata.contentType': 'article',
-    });
-    expect(() => adapter.buildPipeline('index', '', [1, 0], {}, 5)).toThrow();
+    const filter = (pipeline[0] as { $vectorSearch: { filter: Record<string, unknown> } })
+      .$vectorSearch.filter;
+    expect(filter.workspaceId).toEqual(new Types.ObjectId(workspaceId));
+    expect(filter['metadata.contentType']).toBe('article');
+    expect(filter.$or).toEqual([
+      { 'accessControl.visibility': { $in: ['workspace', 'public'] } },
+      { 'accessControl.userIds': 'user-a' },
+      { 'accessControl.groups': { $in: ['group-a'] } },
+    ]);
+    expect(() =>
+      adapter.buildPipeline('index', '', [1, 0], { accessControlUserId: 'user' }, 5),
+    ).toThrow();
+    expect(() => adapter.buildPipeline('index', workspaceId, [1, 0], {}, 5)).toThrow(
+      'access principal',
+    );
   });
 
   it('dual-reads active and candidate indexes with tenant filters', async () => {
@@ -50,7 +57,12 @@ describe('Atlas vector tenant enforcement', () => {
       app: { environment: 'test' },
       database: { vectorIndexVersion: 'v1', vectorCandidateVersion: 'v2', vectorDualRead: true },
     });
-    await new AtlasVectorSearchAdapter(model as never, config).search(workspaceId, [1, 0], {}, 5);
+    await new AtlasVectorSearchAdapter(model as never, config).search(
+      workspaceId,
+      [1, 0],
+      { accessControlUserId: 'user' },
+      5,
+    );
     expect(pipelines).toHaveLength(2);
     for (const pipeline of pipelines) {
       const filter = (pipeline as Array<{ $vectorSearch: { filter: Record<string, unknown> } }>)[0]!

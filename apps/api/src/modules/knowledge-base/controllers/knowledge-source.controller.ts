@@ -10,10 +10,12 @@ import { IngestionService } from '../document-processing/ingestion.service.js';
 import { RagRetrievalService } from '../hybrid-search/rag-retrieval.service.js';
 import {
   EmbeddingMigrationDto,
+  AnswerKnowledgeDto,
   ProcessKnowledgeDto,
   RetrieveKnowledgeDto,
 } from '../dto/rag.dto.js';
 import { EmbeddingService } from '../embeddings/embedding.service.js';
+import { GroundedAnswerService } from '../grounded-answer/grounded-answer.service.js';
 @ApiTags('knowledge base')
 @Controller('knowledge-base/sources')
 @RequireWorkspace()
@@ -23,6 +25,7 @@ export class KnowledgeSourceController {
     private readonly ingestion: IngestionService,
     private readonly retrieval: RagRetrievalService,
     private readonly embeddings: EmbeddingService,
+    private readonly groundedAnswers: GroundedAnswerService,
   ) {}
   @Post('ingest') @RequirePermissions('files.manage') ingest(
     @WorkspaceContext() c: WorkspaceRequestContext,
@@ -71,6 +74,58 @@ export class KnowledgeSourceController {
         ...(d.sourceIds ? { sourceIds: d.sourceIds } : {}),
         ...(d.language ? { language: d.language } : {}),
         ...(d.metadata ? { metadata: d.metadata } : {}),
+        accessControlGroups: c.roleIds,
+        accessControlUserId: c.userId,
+      },
+      policy: {
+        ...(d.retrievalMode ? { mode: d.retrievalMode } : {}),
+        ...(d.fusion ? { fusion: d.fusion } : {}),
+        ...(d.keywordWeight === undefined ? {} : { keywordWeight: d.keywordWeight }),
+        ...(d.vectorWeight === undefined ? {} : { vectorWeight: d.vectorWeight }),
+        ...(d.perSourceLimit === undefined ? {} : { perSourceLimit: d.perSourceLimit }),
+        ...(d.perDocumentLimit === undefined ? {} : { perDocumentLimit: d.perDocumentLimit }),
+        ...(d.tokenBudget === undefined ? {} : { tokenBudget: d.tokenBudget }),
+        ...(d.timeoutMs === undefined ? {} : { timeoutMs: d.timeoutMs }),
+      },
+      explain: d.explain === true,
+      administrator: c.roleIds.some((role) => role === 'admin' || role === 'owner'),
+    });
+  }
+  @Post('answer') @RequirePermissions('files.read') answer(
+    @WorkspaceContext() c: WorkspaceRequestContext,
+    @Body() d: AnswerKnowledgeDto,
+  ) {
+    return this.groundedAnswers.answer({
+      workspaceId: c.workspaceId,
+      userId: c.userId,
+      correlationId: d.correlationId,
+      query: d.query,
+      filters: {
+        ...(d.collectionIds ? { collectionIds: d.collectionIds } : {}),
+        ...(d.sourceIds ? { sourceIds: d.sourceIds } : {}),
+        ...(d.language ? { language: d.language } : {}),
+        ...(d.metadata ? { metadata: d.metadata } : {}),
+        accessControlGroups: c.roleIds,
+        accessControlUserId: c.userId,
+      },
+      policy: {
+        ...(d.retrievalMode ? { mode: d.retrievalMode } : {}),
+        ...(d.fusion ? { fusion: d.fusion } : {}),
+        ...(d.tokenBudget === undefined ? {} : { tokenBudget: d.tokenBudget }),
+        ...(d.timeoutMs === undefined ? {} : { timeoutMs: d.timeoutMs }),
+      },
+      answerPolicy: {
+        ...(d.requireCitationMarkers === undefined
+          ? {}
+          : { requireCitationMarkers: d.requireCitationMarkers }),
+        ...(d.minimumRetrievalScore === undefined
+          ? {}
+          : { minimumRetrievalScore: d.minimumRetrievalScore }),
+        ...(d.minimumGroundedness === undefined
+          ? {}
+          : { minimumGroundedness: d.minimumGroundedness }),
+        ...(d.humanReviewBelow === undefined ? {} : { humanReviewBelow: d.humanReviewBelow }),
+        ...(d.routeHumanReview === undefined ? {} : { routeHumanReview: d.routeHumanReview }),
       },
     });
   }

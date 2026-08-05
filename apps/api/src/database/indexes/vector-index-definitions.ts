@@ -6,6 +6,10 @@ export const VECTOR_FILTER_PATHS = [
   'language',
   'status',
   'accessControl.groups',
+  'accessControl.userIds',
+  'accessControl.visibility',
+  'metadata.trustLevel',
+  'metadata.sensitivity',
   'metadata.contentType',
   'createdAt',
 ] as const;

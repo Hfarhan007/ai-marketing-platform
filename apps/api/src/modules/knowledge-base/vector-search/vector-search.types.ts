@@ -5,6 +5,7 @@ export interface VectorFilters {
   language?: string;
   status?: string;
   accessControlGroups?: string[];
+  accessControlUserId?: string;
   contentType?: string;
   createdAfter?: Date;
   createdBefore?: Date;
@@ -21,9 +22,21 @@ export interface VectorCandidate {
   text: string;
   embedding: number[];
   metadata: Record<string, unknown>;
+  accessControl?: {
+    visibility?: 'public' | 'workspace' | 'restricted';
+    groups?: string[];
+    userIds?: string[];
+  };
+  untrusted?: boolean;
+  injectionDetected?: boolean;
 }
 export interface VectorHit extends Omit<VectorCandidate, 'embedding'> {
   score: number;
+  rawVectorScore?: number;
+  rawKeywordScore?: number;
+  fusedScore?: number;
+  rerankerScore?: number;
+  retrievalRanks?: { vector?: number; keyword?: number };
 }
 export interface VectorSearchAdapter {
   search(

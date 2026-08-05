@@ -1,0 +1,23 @@
+{
+  "name": "knowledge-chunks-keyword",
+  "type": "search",
+  "definition": {
+    "mappings": {
+      "dynamic": false,
+      "fields": {
+        "text": { "type": "string" },
+        "heading": { "type": "string" },
+        "sectionHierarchy": { "type": "string" },
+        "workspaceId": { "type": "objectId" },
+        "collectionIds": { "type": "token" },
+        "sourceId": { "type": "objectId" },
+        "documentId": { "type": "objectId" },
+        "language": { "type": "token" },
+        "status": { "type": "token" },
+        "accessControl": { "type": "document", "fields": { "groups": { "type": "token" } } },
+        "metadata": { "type": "document", "dynamic": true },
+        "createdAt": { "type": "date" }
+      }
+    }
+  }
+}

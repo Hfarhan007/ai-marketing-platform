@@ -71,14 +71,21 @@ export class AtlasVectorSearchAdapter implements VectorSearchAdapter {
       workspaceId: new Types.ObjectId(workspaceId),
       status: filters.status ?? 'active',
     };
+    if (!filters.accessControlUserId)
+      throw new BadRequestException('Vector search requires an authenticated access principal');
     if (filters.collectionIds?.length) filter.collectionIds = { $in: filters.collectionIds };
     if (filters.sourceIds?.length)
       filter.sourceId = { $in: filters.sourceIds.map((id) => new Types.ObjectId(id)) };
     if (filters.documentIds?.length)
       filter.documentId = { $in: filters.documentIds.map((id) => new Types.ObjectId(id)) };
     if (filters.language) filter.language = filters.language;
-    if (filters.accessControlGroups?.length)
-      filter['accessControl.groups'] = { $in: filters.accessControlGroups };
+    filter.$or = [
+      { 'accessControl.visibility': { $in: ['workspace', 'public'] } },
+      { 'accessControl.userIds': filters.accessControlUserId },
+      ...(filters.accessControlGroups?.length
+        ? [{ 'accessControl.groups': { $in: filters.accessControlGroups } }]
+        : []),
+    ];
     if (filters.contentType) filter['metadata.contentType'] = filters.contentType;
     if (filters.createdAfter || filters.createdBefore)
       filter.createdAt = {
@@ -109,6 +116,9 @@ export class AtlasVectorSearchAdapter implements VectorSearchAdapter {
           status: 1,
           text: 1,
           metadata: 1,
+          accessControl: 1,
+          untrusted: 1,
+          injectionDetected: 1,
           score: { $meta: 'vectorSearchScore' },
         },
       },
