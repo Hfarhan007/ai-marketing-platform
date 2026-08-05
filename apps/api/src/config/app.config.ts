@@ -9,5 +9,6 @@ export const appConfig = registerAs('app', () => ({
     ttl: Number(process.env.RATE_LIMIT_TTL_MS ?? 60_000),
     limit: Number(process.env.RATE_LIMIT_MAX ?? 100),
   },
-  trustProxy: process.env.TRUST_PROXY === 'true',
+  trustProxy: process.env.TRUST_PROXY ?? 'false',
+  maxBodySizeBytes: Number(process.env.APP_MAX_BODY_SIZE_BYTES ?? 1_048_576),
 }));

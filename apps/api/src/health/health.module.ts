@@ -4,9 +4,10 @@ import { CacheModule } from '../cache/cache.module.js';
 import { DatabaseModule } from '../database/database.module.js';
 import { HealthController } from './health.controller.js';
 import { RedisHealthIndicator } from './redis-health.indicator.js';
+import { ObservabilityModule } from '../observability/observability.module.js';
 
 @Module({
-  imports: [TerminusModule, CacheModule, DatabaseModule],
+  imports: [TerminusModule, CacheModule, DatabaseModule, ObservabilityModule],
   controllers: [HealthController],
   providers: [RedisHealthIndicator],
 })

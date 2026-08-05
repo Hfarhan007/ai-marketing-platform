@@ -13,17 +13,19 @@ import { API_PREFIX, OPENAPI_PATH } from './common/constants/application.constan
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter.js';
 import { registerCorrelationIdHook } from './common/middleware/correlation-id.middleware.js';
 import { registerRequestProtection } from './resilience/request-protection.js';
+import { DEFAULT_BODY_LIMIT_BYTES, helmetConfiguration, strictCorsOrigin, trustedProxyConfiguration } from './security/http-security.config.js';
 
 export async function bootstrap(): Promise<NestFastifyApplication> {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({
-      trustProxy: process.env.TRUST_PROXY === 'true',
+      trustProxy: trustedProxyConfiguration(process.env.TRUST_PROXY),
       bodyLimit: Number(process.env.STORAGE_MAX_FILE_SIZE_BYTES ?? 52_428_800),
     }),
     { bufferLogs: true, rawBody: true },
   );
   const config = app.get(ConfigService);
+  registerBodyLimitHook(app, Number(process.env.APP_MAX_BODY_SIZE_BYTES ?? DEFAULT_BODY_LIMIT_BYTES));
   registerCorrelationIdHook(app);
   registerRequestProtection(app, {
     timeoutMs: Number(process.env.REQUEST_TIMEOUT_MS ?? 30_000),
@@ -43,10 +45,14 @@ export async function bootstrap(): Promise<NestFastifyApplication> {
   );
   app.setGlobalPrefix(API_PREFIX, { exclude: ['health/live', 'health/ready'] });
   app.enableShutdownHooks();
-  await app.register(helmet);
+  await app.register(helmet, helmetConfiguration(config.get<string>('app.environment') === 'production'));
   await app.register(cors, {
     credentials: true,
-    origin: config.getOrThrow<string[]>('app.corsOrigins'),
+    allowedHeaders: ['authorization', 'content-type', 'x-correlation-id', 'x-csrf-token', 'x-request-id'],
+    exposedHeaders: ['x-correlation-id', 'x-request-id', 'traceparent'],
+    maxAge: 600,
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    origin: strictCorsOrigin(config.getOrThrow<string[]>('app.corsOrigins')),
   });
   const document = SwaggerModule.createDocument(
     app,
@@ -63,6 +69,20 @@ export async function bootstrap(): Promise<NestFastifyApplication> {
     port: config.getOrThrow<number>('app.port'),
   });
   return app;
+}
+
+function registerBodyLimitHook(app: NestFastifyApplication, limit: number): void {
+  const server = app.getHttpAdapter().getInstance() as { addHook(name: 'onRequest', hook: (request: { headers: Record<string, string | string[] | undefined>; url: string }, reply: { code(status: number): { send(body: unknown): void } }, done: () => void) => void): void };
+  server.addHook('onRequest', (request, reply, done) => {
+    const localUpload = request.url.includes('/files/local-upload/');
+    const value = request.headers['content-length'];
+    const length = typeof value === 'string' ? Number(value) : 0;
+    if (!localUpload && Number.isFinite(length) && length > limit) {
+      reply.code(413).send({ statusCode: 413, error: { code: 'PAYLOAD_TOO_LARGE', message: 'Request body exceeds configured limit' } });
+      return;
+    }
+    done();
+  });
 }
 
 if (process.env.NODE_ENV !== 'test') void bootstrap();

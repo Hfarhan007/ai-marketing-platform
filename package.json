@@ -14,12 +14,14 @@
     "type-check": "turbo type-check",
     "test": "turbo test",
     "test:e2e": "pnpm --filter @repo/web test:e2e",
+    "test:backend:all": "pnpm --filter @repo/api test:all",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky",
     "audit:unused": "knip",
     "audit:boundaries": "depcruise apps/web/src apps/api/src apps/worker/src --config dependency-cruiser.config.js",
     "perf:k6": "k6 run performance/k6/backend-hot-paths.js"
+    ,"security:dependencies": "pnpm audit --prod --audit-level high"
   },
   "devDependencies": {
     "@changesets/cli": "latest",

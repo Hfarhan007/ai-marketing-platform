@@ -3,6 +3,8 @@ import { PinoLogger } from 'nestjs-pino';
 
 interface HttpRequestContext {
   correlationId?: string;
+  requestId?: string;
+  traceId?: string;
   method: string;
   url: string;
 }
@@ -34,11 +36,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       ? 'Request validation failed'
       : (body.message ?? body.error ?? 'Internal server error');
     if (status >= 500) {
-      this.logger.error({ err: exception, requestId: request.correlationId, method: request.method, url: request.url }, 'Request failed');
+      this.logger.error({ err: exception, requestId: request.requestId, correlationId: request.correlationId, traceId: request.traceId, method: request.method, url: request.url }, 'Request failed');
     }
     void reply.status(status).send({
       statusCode: status,
-      requestId: request.correlationId ?? 'unknown',
+      requestId: request.requestId ?? 'unknown',
+      correlationId: request.correlationId ?? 'unknown',
+      traceId: request.traceId ?? 'unknown',
       timestamp: new Date().toISOString(),
       path: request.url,
       error: {

@@ -9,9 +9,11 @@
     "build": "tsc -p tsconfig.json",
     "lint": "eslint .",
     "type-check": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --config vitest.unit.config.ts",
+    "test:all": "pnpm test && pnpm test:integration && pnpm test:e2e",
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:contracts": "vitest run --config vitest.contract.config.ts",
     "db:indexes": "tsx src/database/database.cli.ts indexes",
     "db:vector:deploy": "tsx src/database/database.cli.ts vector-deploy",
     "db:vector:health": "tsx src/database/database.cli.ts vector-health",
@@ -55,7 +57,13 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@nestjs/testing": "^11.1.28",
     "@repo/typescript-config": "workspace:*",
+    "@testcontainers/mongodb": "^12.1.0",
+    "@types/supertest": "^7.2.1",
+    "mongodb-memory-server": "^11.2.0",
+    "supertest": "^7.2.2",
+    "testcontainers": "^12.1.0",
     "tsx": "latest",
     "vitest": "catalog:"
   }

@@ -5,10 +5,13 @@ import { Redis } from 'ioredis';
 import { CacheModule } from '../cache/cache.module.js';
 import { REDIS_CLIENT } from '../cache/redis.constants.js';
 import { RedisThrottlerStorage } from './redis-throttler.storage.js';
+import { SecurityEventService } from './security-event.service.js';
+import { ObservabilityModule } from '../observability/observability.module.js';
 
 @Module({
   imports: [
     CacheModule,
+    ObservabilityModule,
     ThrottlerModule.forRootAsync({
       imports: [CacheModule],
       inject: [ConfigService, REDIS_CLIENT],
@@ -22,6 +25,7 @@ import { RedisThrottlerStorage } from './redis-throttler.storage.js';
       }),
     }),
   ],
-  exports: [ThrottlerModule],
+  providers: [SecurityEventService],
+  exports: [ThrottlerModule, SecurityEventService],
 })
 export class SecurityModule {}

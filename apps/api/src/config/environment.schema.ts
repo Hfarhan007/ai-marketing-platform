@@ -103,8 +103,14 @@ export class EnvironmentVariables {
   @IsInt()
   @Min(1)
   RATE_LIMIT_MAX = 100;
-  @IsBoolean()
-  TRUST_PROXY = false;
+  @IsString()
+  TRUST_PROXY = 'false';
+  @IsInt()
+  @Min(1_024)
+  APP_MAX_BODY_SIZE_BYTES = 1_048_576;
+  @IsOptional()
+  @IsString()
+  METRICS_BEARER_TOKEN?: string;
   @IsUrl({ require_tld: false })
   STORAGE_PUBLIC_URL = 'http://localhost:3001/api/v1/files';
   @IsEnum(['local', 's3', 'r2'])

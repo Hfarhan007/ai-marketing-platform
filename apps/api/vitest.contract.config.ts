@@ -2,14 +2,10 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['test/**/*.e2e-spec.ts'],
+    include: ['test/**/*.contract-spec.ts'],
     environment: 'node',
-    clearMocks: true,
-    restoreMocks: true,
     testTimeout: 30_000,
     hookTimeout: 30_000,
     sequence: { concurrent: false },
-    pool: 'forks',
-    maxWorkers: 1,
   },
 });

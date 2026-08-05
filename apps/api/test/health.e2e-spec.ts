@@ -1,14 +1,15 @@
 import 'reflect-metadata';
 import { Module } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
+import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { TerminusModule } from '@nestjs/terminus';
+import supertest from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { API_PREFIX } from '../src/common/constants/application.constants.js';
 import { registerCorrelationIdHook } from '../src/common/middleware/correlation-id.middleware.js';
 import { HealthController } from '../src/health/health.controller.js';
 import { RedisHealthIndicator } from '../src/health/redis-health.indicator.js';
 import { MongoHealthIndicator } from '../src/database/mongo/mongo.health.js';
+import { MetricsService } from '../src/observability/metrics.service.js';
+import { createTestApplication } from './support/nest-test-application.js';
 
 @Module({
   imports: [TerminusModule],
@@ -16,38 +17,32 @@ import { MongoHealthIndicator } from '../src/database/mongo/mongo.health.js';
   providers: [
     { provide: MongoHealthIndicator, useValue: { isHealthy: vi.fn() } },
     { provide: RedisHealthIndicator, useValue: { isHealthy: vi.fn() } },
+    { provide: MetricsService, useValue: { observeDependency: vi.fn() } },
   ],
 })
 class TestHealthModule {}
 
 describe('health endpoints (e2e)', () => {
   let app: NestFastifyApplication;
+  let http: ReturnType<typeof supertest>;
 
   beforeAll(async () => {
-    app = await NestFactory.create<NestFastifyApplication>(
-      TestHealthModule,
-      new FastifyAdapter(),
-      { logger: false },
-    );
-    registerCorrelationIdHook(app);
-    app.setGlobalPrefix(API_PREFIX, { exclude: ['health/live', 'health/ready'] });
-    await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    const testApplication = await createTestApplication(TestHealthModule, undefined, registerCorrelationIdHook);
+    app = testApplication.app;
+    http = testApplication.http;
   });
 
   afterAll(async () => {
     await app.close();
   });
 
-  it('serves liveness outside the versioned prefix and returns a correlation ID', async () => {
-    const response = await app.inject({ method: 'GET', url: '/health/live' });
-    expect(response.statusCode, response.body).toBe(200);
+  it('serves liveness through the configured test API and returns a correlation ID', async () => {
+    const response = await http.get('/api/v1/health/live').expect(200);
     expect(response.headers['x-request-id']).toBeTypeOf('string');
-    expect(response.json()).toMatchObject({ status: 'ok' });
+    expect(response.body).toMatchObject({ status: 'ok' });
   });
 
-  it('does not expose health under the business API prefix', async () => {
-    const response = await app.inject({ method: 'GET', url: '/api/v1/health/live' });
-    expect(response.statusCode).toBe(404);
+  it('does not expose an unprefixed duplicate health route', async () => {
+    await http.get('/health/live').expect(404);
   });
 });
