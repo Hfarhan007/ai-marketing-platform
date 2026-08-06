@@ -1,0 +1,6 @@
+aws_region = "us-east-1"
+atlas_org_id = "set-outside-source-control"
+atlas_database_username = "amp_production"
+eks_cluster_role_arn = "arn:aws:iam::000000000000:role/replace-me"
+eks_node_role_arn = "arn:aws:iam::000000000000:role/replace-me"
+# Supply atlas_database_password via TF_VAR_atlas_database_password or a secure CI variable.

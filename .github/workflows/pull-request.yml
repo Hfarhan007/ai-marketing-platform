@@ -1,0 +1,28 @@
+name: Pull request validation
+on:
+  pull_request:
+  push:
+    branches: [main]
+concurrency: { group: 'validate-${{ github.ref }}', cancel-in-progress: true }
+permissions: { contents: read }
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - uses: pnpm/action-setup@v4
+        with: { version: 10.13.1 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Lint affected workspaces
+        env: { BASE_SHA: '${{ github.event.pull_request.base.sha || github.event.before }}' }
+        run: git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null && pnpm turbo lint --filter="...[$BASE_SHA]" || pnpm lint
+      - name: Type-check affected workspaces
+        env: { BASE_SHA: '${{ github.event.pull_request.base.sha || github.event.before }}' }
+        run: git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null && pnpm turbo type-check --filter="...[$BASE_SHA]" || pnpm type-check
+      - name: Build affected workspaces
+        env: { BASE_SHA: '${{ github.event.pull_request.base.sha || github.event.before }}' }
+        run: git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null && pnpm turbo build --filter="...[$BASE_SHA]" || pnpm build
+      - run: pnpm audit:boundaries

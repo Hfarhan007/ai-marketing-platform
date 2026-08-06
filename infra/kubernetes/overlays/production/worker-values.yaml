@@ -1,0 +1,11 @@
+replicaCount: 3
+image: { tag: stable }
+autoscaling:
+  {
+    enabled: true,
+    minReplicas: 2,
+    maxReplicas: 50,
+    queueName: amp-production,
+    targetJobsPerPod: 15,
+  }
+podDisruptionBudget: { minAvailable: 2 }

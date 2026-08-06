@@ -1,0 +1,8 @@
+image: { repository: ghcr.io/example/amp-web, tag: latest, pullPolicy: IfNotPresent }
+replicaCount: 2
+service: { port: 80 }
+resources: { requests: { cpu: 100m, memory: 128Mi }, limits: { cpu: 500m, memory: 256Mi } }
+autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 8, cpuUtilization: 70 }
+podDisruptionBudget: { minAvailable: 1 }
+serviceAccountName: amp-web
+ingress: { className: nginx, host: app.example.com, tlsSecretName: amp-web-tls }

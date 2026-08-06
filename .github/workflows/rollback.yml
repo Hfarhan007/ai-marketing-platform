@@ -1,0 +1,46 @@
+name: Rollback deployment
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        {
+          description: 'Protected target environment',
+          required: true,
+          type: choice,
+          options: [staging, production],
+        }
+      api_revision: { description: 'Known-good API Helm revision', required: true, type: string }
+      worker_revision:
+        { description: 'Known-good worker Helm revision', required: true, type: string }
+      web_revision: { description: 'Known-good web Helm revision', required: true, type: string }
+permissions: { contents: read }
+concurrency: { group: 'rollback-${{ inputs.environment }}', cancel-in-progress: false }
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    environment: { name: '${{ inputs.environment }}', url: '${{ vars.WEB_URL }}' }
+    steps:
+      - uses: azure/setup-helm@v4
+      - uses: azure/setup-kubectl@v4
+      - name: Configure cluster credentials
+        env: { KUBE_CONFIG: '${{ secrets.KUBE_CONFIG }}' }
+        run: mkdir -p "$HOME/.kube" && printf '%s' "$KUBE_CONFIG" | base64 --decode > "$HOME/.kube/config" && chmod 600 "$HOME/.kube/config"
+      - name: Validate revisions and determine namespace
+        id: target
+        env:
+          {
+            API_REV: '${{ inputs.api_revision }}',
+            WORKER_REV: '${{ inputs.worker_revision }}',
+            WEB_REV: '${{ inputs.web_revision }}',
+          }
+        run: |
+          [[ "$API_REV" =~ ^[0-9]+$ && "$WORKER_REV" =~ ^[0-9]+$ && "$WEB_REV" =~ ^[0-9]+$ ]] || exit 1
+          echo "namespace=amp-${{ inputs.environment }}" >> "$GITHUB_OUTPUT"
+      - name: Roll back workloads
+        run: |
+          helm rollback amp-worker ${{ inputs.worker_revision }} --namespace ${{ steps.target.outputs.namespace }} --wait --timeout 10m
+          helm rollback amp-api ${{ inputs.api_revision }} --namespace ${{ steps.target.outputs.namespace }} --wait --timeout 15m
+          helm rollback amp-web ${{ inputs.web_revision }} --namespace ${{ steps.target.outputs.namespace }} --wait --timeout 10m
+      - name: Smoke tests
+        env: { API_URL: '${{ vars.API_URL }}', WEB_URL: '${{ vars.WEB_URL }}' }
+        run: curl --fail --retry 12 --retry-all-errors "$API_URL/health/ready" && curl --fail --retry 12 --retry-all-errors "$WEB_URL/"

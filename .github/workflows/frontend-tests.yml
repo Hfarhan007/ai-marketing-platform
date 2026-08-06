@@ -1,8 +1,8 @@
-name: Accessibility tests
+name: Frontend tests
 on: [pull_request, workflow_dispatch]
 permissions: { contents: read }
 jobs:
-  accessibility:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -11,8 +11,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @repo/web test -- src/accessibility
+      - run: pnpm --filter @repo/web lint
+      - run: pnpm --filter @repo/web type-check
+      - run: pnpm --filter @repo/web test
       - run: pnpm --filter @repo/web build
-      - run: pnpm --filter @repo/web exec playwright install --with-deps chromium
-      - name: Browser accessibility smoke
-        run: pnpm --filter @repo/web exec playwright test --grep @accessibility

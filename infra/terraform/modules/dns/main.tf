@@ -1,0 +1,14 @@
+variable "zone_id" { type = string }
+variable "name" { type = string }
+variable "target_name" { type = string }
+variable "target_zone_id" { type = string }
+resource "aws_route53_record" "this" {
+  zone_id = var.zone_id
+  name = var.name
+  type = "A"
+  alias {
+    name = var.target_name
+    zone_id = var.target_zone_id
+    evaluate_target_health = true
+  }
+}

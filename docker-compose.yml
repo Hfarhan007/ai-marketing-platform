@@ -1,0 +1,223 @@
+name: ai-marketing-platform-dev
+
+services:
+  mongodb:
+    image: mongo:8.0
+    command: ['mongod', '--replSet', 'rs0', '--bind_ip_all']
+    restart: unless-stopped
+    ports: ['127.0.0.1:27017:27017']
+    volumes:
+      - mongodb_data:/data/db
+    networks: [backend]
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    stop_grace_period: 30s
+
+  mongodb-init:
+    image: mongo:8.0
+    restart: 'no'
+    depends_on:
+      mongodb: { condition: service_healthy }
+    volumes:
+      - ./docker/mongodb/init-replica-set.js:/scripts/init-replica-set.js:ro
+    networks: [backend]
+    entrypoint:
+      ['mongosh', 'mongodb://mongodb:27017/admin', '--quiet', '/scripts/init-replica-set.js']
+
+  redis:
+    image: redis:7.4-alpine
+    command: ['redis-server', '/usr/local/etc/redis/redis.conf']
+    restart: unless-stopped
+    ports: ['127.0.0.1:6379:6379']
+    volumes:
+      - redis_data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks: [backend]
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    stop_grace_period: 20s
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data --console-address :9001
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin-dev-only}
+    ports:
+      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9001:9001'
+    volumes: [minio_data:/data]
+    networks: [backend]
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', 'http://localhost:9000/minio/health/live']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    restart: 'no'
+    depends_on:
+      minio: { condition: service_healthy }
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin-dev-only}
+      MINIO_BUCKET: ${MINIO_BUCKET:-amp-development}
+    volumes:
+      - ./docker/scripts/init-minio.sh:/scripts/init-minio.sh:ro
+    networks: [backend]
+    entrypoint: ['/bin/sh', '/scripts/init-minio.sh']
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:1025:1025'
+      - '127.0.0.1:8025:8025'
+    volumes: [mailpit_data:/data]
+    environment:
+      MP_DATABASE: /data/mailpit.db
+      MP_MAX_MESSAGES: 5000
+    networks: [backend]
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    init: true
+    restart: unless-stopped
+    env_file: [docker/api/.env.development]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin-dev-only}
+      STORAGE_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      STORAGE_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin-dev-only}
+    ports: ['3001:3001']
+    volumes:
+      - .:/workspace
+      - api_node_modules:/workspace/node_modules
+      - api_package_node_modules:/workspace/apps/api/node_modules
+      - api_uploads:/workspace/.data/uploads
+    networks: [frontend, backend]
+    depends_on:
+      mongodb-init: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+      minio-init: { condition: service_completed_successfully }
+      mailpit: { condition: service_healthy }
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3001/health/ready']
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    stop_grace_period: 30s
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/worker/Dockerfile
+    init: true
+    restart: unless-stopped
+    env_file: [docker/worker/.env.development]
+    ports: ['127.0.0.1:3002:3002']
+    volumes:
+      - .:/workspace
+      - worker_node_modules:/workspace/node_modules
+      - worker_package_node_modules:/workspace/apps/worker/node_modules
+    networks: [backend]
+    depends_on:
+      mongodb-init: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3002/health/ready']
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    stop_grace_period: 45s
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+    init: true
+    restart: unless-stopped
+    env_file: [docker/web/.env.development]
+    ports: ['5173:5173']
+    volumes:
+      - .:/workspace
+      - web_node_modules:/workspace/node_modules
+      - web_package_node_modules:/workspace/apps/web/node_modules
+      - config_package_node_modules:/workspace/packages/config/node_modules
+      - ui_package_node_modules:/workspace/packages/ui/node_modules
+    networks: [frontend]
+    depends_on:
+      api: { condition: service_healthy }
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:5173']
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    stop_grace_period: 20s
+
+  mongo-express:
+    image: mongo-express:1.0.2
+    profiles: [admin]
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/?replicaSet=rs0
+      ME_CONFIG_BASICAUTH_ENABLED: 'true'
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USER:-devadmin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:-devadmin-only}
+    ports: ['127.0.0.1:8081:8081']
+    networks: [backend]
+    depends_on:
+      mongodb-init: { condition: service_completed_successfully }
+
+  redis-ui:
+    image: rediscommander/redis-commander:latest
+    profiles: [admin]
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379
+      HTTP_USER: ${REDIS_UI_USER:-devadmin}
+      HTTP_PASSWORD: ${REDIS_UI_PASSWORD:-devadmin-only}
+    ports: ['127.0.0.1:8082:8081']
+    networks: [backend]
+    depends_on:
+      redis: { condition: service_healthy }
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  redis_data:
+  minio_data:
+  mailpit_data:
+  api_node_modules:
+  api_package_node_modules:
+  worker_node_modules:
+  worker_package_node_modules:
+  web_node_modules:
+  web_package_node_modules:
+  config_package_node_modules:
+  ui_package_node_modules:
+  api_uploads:

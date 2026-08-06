@@ -1,0 +1,41 @@
+name: Integration tests
+on: [pull_request, workflow_dispatch]
+permissions: { contents: read }
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7.4-alpine
+        ports: [6379:6379]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 3s --health-retries 20
+    env:
+      MONGODB_INTEGRATION_URI: mongodb://127.0.0.1:27017/ai_marketing_test?replicaSet=rs0
+      REDIS_TEST_URL: redis://127.0.0.1:6379/15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10.13.1 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Start MongoDB replica-set service container
+        run: |
+          docker run --detach --name mongodb-integration --publish 27017:27017 \
+            --health-cmd "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok'" \
+            --health-interval 5s --health-timeout 5s --health-retries 20 \
+            mongo:8.0 mongod --replSet rs0 --bind_ip_all
+          for attempt in {1..30}; do
+            docker exec mongodb-integration mongosh --quiet --eval 'db.adminCommand("ping").ok' && break
+            sleep 2
+          done
+          docker exec mongodb-integration mongosh --quiet --eval \
+            'rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27017"}]})'
+          for attempt in {1..30}; do
+            docker exec mongodb-integration mongosh --quiet --eval 'quit(rs.status().myState === 1 ? 0 : 1)' && exit 0
+            sleep 2
+          done
+          exit 1
+      - run: pnpm --filter @repo/api test:integration

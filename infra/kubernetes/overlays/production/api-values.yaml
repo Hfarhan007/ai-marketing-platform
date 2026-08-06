@@ -1,0 +1,6 @@
+replicaCount: 3
+image: { tag: stable }
+autoscaling: { enabled: true, minReplicas: 3, maxReplicas: 20, cpuUtilization: 65 }
+podDisruptionBudget: { minAvailable: 2 }
+ingress:
+  { enabled: true, className: nginx, host: api.example.com, tlsSecretName: amp-api-production-tls }

@@ -1,0 +1,14 @@
+.git
+.github
+.agents
+.turbo
+.pnpm-store
+**/node_modules
+**/dist
+**/coverage
+**/playwright-report
+**/test-results
+.data
+.env
+.env.local
+*.log

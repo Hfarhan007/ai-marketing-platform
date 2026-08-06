@@ -1,0 +1,17 @@
+image: { repository: ghcr.io/example/amp-api, tag: latest, pullPolicy: IfNotPresent }
+replicaCount: 2
+service: { port: 3001 }
+resources:
+  requests: { cpu: 250m, memory: 512Mi }
+  limits: { cpu: '1', memory: 1Gi }
+autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 10, cpuUtilization: 70 }
+podDisruptionBudget: { minAvailable: 1 }
+configMapName: amp-config
+secretName: amp-runtime-secrets
+serviceAccount: { create: true, name: amp-api }
+ingress:
+  enabled: true
+  className: nginx
+  host: api.example.com
+  tlsSecretName: amp-api-tls
+migrations: { enabled: true, command: ['pnpm', '--filter', '@repo/api', 'db:migrate'] }

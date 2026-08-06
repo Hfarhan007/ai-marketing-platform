@@ -1,0 +1,10 @@
+replicaCount: 2
+image: { tag: staging }
+autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 6, cpuUtilization: 75 }
+ingress:
+  {
+    enabled: true,
+    className: nginx,
+    host: api.staging.example.com,
+    tlsSecretName: amp-api-staging-tls,
+  }

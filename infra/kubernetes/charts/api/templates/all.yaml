@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.serviceAccount.name }}
+  labels: { app.kubernetes.io/name: amp-api }
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amp-api
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy: { type: RollingUpdate, rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }
+  selector: { matchLabels: { app.kubernetes.io/name: amp-api } }
+  template:
+    metadata: { labels: { app.kubernetes.io/name: amp-api } }
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      terminationGracePeriodSeconds: 30
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      volumes: [{ name: tmp, emptyDir: { sizeLimit: 256Mi } }]
+      containers:
+        - name: api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports: [{ name: http, containerPort: 3001 }]
+          volumeMounts: [{ name: tmp, mountPath: /tmp }]
+          envFrom:
+            - configMapRef: { name: {{ .Values.configMapName }} }
+            - secretRef: { name: {{ .Values.secretName }} }
+          readinessProbe: { httpGet: { path: /health/ready, port: http }, initialDelaySeconds: 10, periodSeconds: 10, timeoutSeconds: 5, failureThreshold: 6 }
+          livenessProbe: { httpGet: { path: /health/live, port: http }, initialDelaySeconds: 20, periodSeconds: 15, timeoutSeconds: 5, failureThreshold: 3 }
+          lifecycle: { preStop: { exec: { command: ["sh", "-c", "sleep 10"] } } }
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: ["ALL"] } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: amp-api }
+spec: { selector: { app.kubernetes.io/name: amp-api }, ports: [{ name: http, port: {{ .Values.service.port }}, targetPort: http }] }
+---
+{{- if .Values.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: amp-api }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: amp-api }
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  behavior: { scaleDown: { stabilizationWindowSeconds: 300 }, scaleUp: { stabilizationWindowSeconds: 30 } }
+  metrics: [{ type: Resource, resource: { name: cpu, target: { type: Utilization, averageUtilization: {{ .Values.autoscaling.cpuUtilization }} } } }]
+{{- end }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: amp-api }
+spec: { minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}, selector: { matchLabels: { app.kubernetes.io/name: amp-api } } }
+---
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: amp-api
+  annotations: { cert-manager.io/cluster-issuer: letsencrypt-prod }
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls: [{ hosts: [{{ .Values.ingress.host | quote }}], secretName: {{ .Values.ingress.tlsSecretName }} }]
+  rules: [{ host: {{ .Values.ingress.host | quote }}, http: { paths: [{ path: /, pathType: Prefix, backend: { service: { name: amp-api, port: { name: http } } } }] } }]
+{{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: amp-api }
+spec:
+  podSelector: { matchLabels: { app.kubernetes.io/name: amp-api } }
+  policyTypes: [Ingress, Egress]
+  ingress: [{ from: [{ namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: ingress-nginx } } }], ports: [{ port: 3001 }] }]
+  egress:
+    - to: [{ namespaceSelector: {} }]
+      ports: [{ port: 53, protocol: UDP }, { port: 53, protocol: TCP }, { port: 443 }, { port: 27017 }, { port: 6379 }]
+---
+{{- if .Values.migrations.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "amp-migrate-{{ .Release.Revision }}"
+  annotations: { helm.sh/hook: pre-install,pre-upgrade, helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded }
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 900
+  template:
+    metadata: { labels: { app.kubernetes.io/name: amp-migration } }
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+        - name: migrate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: {{ toJson .Values.migrations.command }}
+          envFrom: [{ configMapRef: { name: {{ .Values.configMapName }} } }, { secretRef: { name: {{ .Values.secretName }} } }]
+          resources: { requests: { cpu: 100m, memory: 256Mi }, limits: { cpu: 500m, memory: 512Mi } }
+{{- end }}

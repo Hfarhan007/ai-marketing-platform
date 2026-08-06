@@ -1,0 +1,37 @@
+name: Deploy staging
+on:
+  workflow_run:
+    workflows: [Container build]
+    types: [completed]
+    branches: [main]
+permissions: { contents: read, packages: read }
+concurrency: { group: deploy-staging, cancel-in-progress: false }
+jobs:
+  deploy:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: { name: staging, url: '${{ vars.WEB_URL }}' }
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: '${{ github.event.workflow_run.head_sha }}' }
+      - uses: azure/setup-helm@v4
+      - uses: azure/setup-kubectl@v4
+      - name: Configure cluster credentials
+        env: { KUBE_CONFIG: '${{ secrets.KUBE_CONFIG }}' }
+        run: mkdir -p "$HOME/.kube" && printf '%s' "$KUBE_CONFIG" | base64 --decode > "$HOME/.kube/config" && chmod 600 "$HOME/.kube/config"
+      - name: Apply environment foundation
+        run: kubectl apply -k infra/kubernetes/overlays/staging
+      - name: Run migrations and deploy API
+        run: >-
+          helm upgrade --install amp-api infra/kubernetes/charts/api
+          --namespace amp-staging --create-namespace --atomic --timeout 15m
+          -f infra/kubernetes/overlays/staging/api-values.yaml
+          --set-string image.repository=ghcr.io/${GITHUB_REPOSITORY,,}/api
+          --set-string image.tag=${{ github.event.workflow_run.head_sha }}
+      - name: Deploy worker and web
+        run: |
+          helm upgrade --install amp-worker infra/kubernetes/charts/worker --namespace amp-staging --atomic --timeout 10m -f infra/kubernetes/overlays/staging/worker-values.yaml --set-string image.repository=ghcr.io/${GITHUB_REPOSITORY,,}/worker --set-string image.tag=${{ github.event.workflow_run.head_sha }}
+          helm upgrade --install amp-web infra/kubernetes/charts/web --namespace amp-staging --atomic --timeout 10m -f infra/kubernetes/overlays/staging/web-values.yaml --set-string image.repository=ghcr.io/${GITHUB_REPOSITORY,,}/web --set-string image.tag=${{ github.event.workflow_run.head_sha }}
+      - name: Smoke tests
+        env: { API_URL: '${{ vars.API_URL }}', WEB_URL: '${{ vars.WEB_URL }}' }
+        run: curl --fail --retry 12 --retry-all-errors --retry-delay 5 "$API_URL/health/ready" && curl --fail --retry 12 --retry-all-errors --retry-delay 5 "$WEB_URL/"

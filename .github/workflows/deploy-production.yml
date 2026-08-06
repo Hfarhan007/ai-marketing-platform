@@ -1,0 +1,37 @@
+name: Deploy production
+on:
+  workflow_dispatch:
+    inputs:
+      image_sha:
+        {
+          description: 'Validated 40-character commit SHA deployed to staging',
+          required: true,
+          type: string,
+        }
+permissions: { contents: read, packages: read }
+concurrency: { group: deploy-production, cancel-in-progress: false }
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: { name: production, url: '${{ vars.WEB_URL }}' }
+    steps:
+      - name: Validate immutable tag
+        env: { IMAGE_SHA: '${{ inputs.image_sha }}' }
+        run: '[[ "$IMAGE_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "image_sha must be a full commit SHA"; exit 1; }'
+      - uses: actions/checkout@v4
+        with: { ref: '${{ inputs.image_sha }}' }
+      - uses: azure/setup-helm@v4
+      - uses: azure/setup-kubectl@v4
+      - name: Configure cluster credentials
+        env: { KUBE_CONFIG: '${{ secrets.KUBE_CONFIG }}' }
+        run: mkdir -p "$HOME/.kube" && printf '%s' "$KUBE_CONFIG" | base64 --decode > "$HOME/.kube/config" && chmod 600 "$HOME/.kube/config"
+      - run: kubectl apply -k infra/kubernetes/overlays/production
+      - name: Run approved migrations and deploy API
+        run: helm upgrade --install amp-api infra/kubernetes/charts/api --namespace amp-production --create-namespace --atomic --timeout 20m -f infra/kubernetes/overlays/production/api-values.yaml --set-string image.repository=ghcr.io/${GITHUB_REPOSITORY,,}/api --set-string image.tag=${{ inputs.image_sha }}
+      - name: Deploy worker and web
+        run: |
+          helm upgrade --install amp-worker infra/kubernetes/charts/worker --namespace amp-production --atomic --timeout 15m -f infra/kubernetes/overlays/production/worker-values.yaml --set-string image.repository=ghcr.io/${GITHUB_REPOSITORY,,}/worker --set-string image.tag=${{ inputs.image_sha }}
+          helm upgrade --install amp-web infra/kubernetes/charts/web --namespace amp-production --atomic --timeout 15m -f infra/kubernetes/overlays/production/web-values.yaml --set-string image.repository=ghcr.io/${GITHUB_REPOSITORY,,}/web --set-string image.tag=${{ inputs.image_sha }}
+      - name: Smoke tests
+        env: { API_URL: '${{ vars.API_URL }}', WEB_URL: '${{ vars.WEB_URL }}' }
+        run: curl --fail --retry 18 --retry-all-errors --retry-delay 5 "$API_URL/health/ready" && curl --fail --retry 18 --retry-all-errors --retry-delay 5 "$WEB_URL/"
