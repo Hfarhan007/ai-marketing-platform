@@ -3,11 +3,20 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, type ClientSession } from 'mongoose';
 import { CrmRepository } from '../../crm/crm.repository.js';
 import { Contact, type ContactDocument } from '../schemas/contact.schema.js';
+import type { CrmListQueryDto } from '../../crm/crm.dto.js';
 
 @Injectable()
 export class ContactsRepository extends CrmRepository<Contact> {
   constructor(@InjectModel(Contact.name) model: Model<ContactDocument>) {
     super(model, new Set(['createdAt', 'updatedAt', 'displayName', 'lifecycleStatus']));
+  }
+  override page(workspaceId: string, query: CrmListQueryDto) {
+    const { status, ...queryWithoutStatus } = query;
+    return super.page(
+      workspaceId,
+      queryWithoutStatus,
+      status ? { lifecycleStatus: status } : {},
+    );
   }
   findIdentity(workspaceId: string, email: string, phone: string, session: ClientSession) {
     const alternatives: Record<string, unknown>[] = [];

@@ -1,6 +1,6 @@
 import { Injectable, type OnApplicationShutdown } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
-import { ConnectionStates, type Connection } from 'mongoose';
+import { STATES, type Connection } from 'mongoose';
 
 @Injectable()
 export class MongoConnection implements OnApplicationShutdown {
@@ -11,7 +11,7 @@ export class MongoConnection implements OnApplicationShutdown {
   }
 
   async onApplicationShutdown(): Promise<void> {
-    if (this.connection.readyState !== ConnectionStates.disconnected) {
+    if (this.connection.readyState !== STATES.disconnected) {
       await this.connection.close(false);
     }
   }

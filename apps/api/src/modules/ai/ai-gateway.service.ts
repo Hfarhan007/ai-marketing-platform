@@ -360,13 +360,38 @@ export class AiGatewayService {
         costUsd: actualCost,
       });
     let response = result.response;
-    response = { ...response, provider: result.provider.name, model: result.model };
+    response = { ...response, provider: result.provider.name, model: result.model, costUsd: actualCost };
     if (command.jsonSchema) {
       try {
         const structured = parseStructuredJson(response.content);
         this.validateStructured(structured, command.jsonSchema);
         response = { ...response, structured };
       } catch {
+        await this.usage.record({
+          requestId,
+          correlationId: command.correlationId,
+          workspaceId: new Types.ObjectId(command.workspaceId),
+          userId: command.userId,
+          feature: command.feature,
+          provider: result.provider.name,
+          model: result.model,
+          inputTokens: response.usage.inputTokens,
+          outputTokens: response.usage.outputTokens,
+          costUsd: actualCost,
+          promptHash: this.cache.key(messages),
+          dataClassification: command.dataClassification ?? 'internal',
+          promptVersion: effectivePromptVersion,
+        });
+        await this.observability?.finish(requestId, {
+          provider: result.provider.name,
+          model: result.model,
+          latencyMs: Date.now() - startedAt,
+          inputTokens: response.usage.inputTokens,
+          outputTokens: response.usage.outputTokens,
+          costUsd: actualCost,
+          status: 'failed',
+          errorCode: 'invalid_structured_output',
+        });
         throw new BadRequestException('AI provider returned invalid structured output');
       }
     }

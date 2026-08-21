@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BaseHttpAiProvider } from './base-http.provider.js';
 import type { AiProvider, AiProviderName, AiRequest } from './ai-provider.interface.js';
@@ -7,6 +7,7 @@ export class OpenAiProvider extends BaseHttpAiProvider implements AiProvider {
   readonly name: AiProviderName;
   constructor(
     private readonly config: ConfigService,
+    @Optional()
     private readonly options: {
       name: AiProviderName;
       apiKeyConfig: string;

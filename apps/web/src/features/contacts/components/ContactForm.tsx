@@ -27,6 +27,7 @@ export function ContactForm({ contact, loading = false, onCancel, onSubmit }: { 
     tags: values.tagsText.split(',').map((tag) => tag.trim()).filter(Boolean), consentStatus: values.consentStatus,
     communicationPreferences: { email: values.emailPreference, phone: values.phonePreference, sms: values.smsPreference },
     customFields: { customerTier: values.customerTier, annualValue: values.annualValue },
+    ...(contact ? { version: contact.version } : {}),
   });
   return <form className="grid gap-5" onSubmit={(event) => void handleSubmit(submit)(event)}>
     <div className="grid gap-4 sm:grid-cols-2">

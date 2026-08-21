@@ -7,6 +7,7 @@ export class KnowledgeDocument {
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) workspaceId!: Types.ObjectId;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) sourceId!: Types.ObjectId;
   @Prop({ type: String, required: true }) contentHash!: string;
+  @Prop({ type: Number, required: true, min: 1, default: 1 }) revision!: number;
   @Prop({ type: String, required: true, select: false }) normalizedText!: string;
   @Prop({ type: String, required: true }) language!: string;
   @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) metadata!: Record<string, unknown>;
@@ -158,6 +159,11 @@ export class KnowledgeRetrievalLog {
     score: number;
   }>;
   @Prop({ type: Number, required: true }) durationMs!: number;
+  @Prop({ type: Number, default: 0 }) embeddingCostUsd!: number;
+  @Prop({ type: Number, default: 0 }) rerankingCostUsd!: number;
+  @Prop({ type: Number, default: 0 }) generationCostUsd!: number;
+  @Prop({ type: [String], default: [] }) validatedCitationChunkIds!: string[];
+  @Prop({ type: String, default: null }) answerClassification!: string | null;
   @Prop({ type: MongooseSchema.Types.Mixed, default: [] }) stages!: Array<{
     name: string;
     durationMs: number;

@@ -27,6 +27,8 @@ let contacts: Contact[] = people.map((person, index) => ({
   customFields: { customerTier: index % 2 === 0 ? 'Enterprise' : 'Growth', annualValue: `$${(24 + index * 7).toString()},000` },
   createdAt: new Date(2025, index % 12, 3 + index).toISOString(),
   lastActivityAt: new Date(2026, 6, 22 - index).toISOString(),
+  version: 0,
+  deletedAt: null,
 }));
 
 let notes: ContactNote[] = contacts.slice(0, 5).map((contact, index) => ({ id: `note-${index}`, contactId: contact.id, body: 'Discussed the team’s growth goals and their upcoming campaign launch.', author: index % 2 ? 'Alex Morgan' : 'Jordan Lee', createdAt: new Date(2026, 6, 18 - index).toISOString() }));
@@ -55,7 +57,7 @@ export async function listContacts(query: ContactsQuery): Promise<ContactsResult
 }
 
 export async function getContact(id: string) { await delay(350); return structuredClone(contacts.find((contact) => contact.id === id)); }
-export async function createContact(input: ContactInput) { await delay(); const now = new Date().toISOString(); const contact: Contact = { ...input, id: crypto.randomUUID(), createdAt: now, lastActivityAt: now }; contacts = [contact, ...contacts]; return structuredClone(contact); }
+export async function createContact(input: ContactInput) { await delay(); const now = new Date().toISOString(); const contact: Contact = { ...input, id: crypto.randomUUID(), createdAt: now, lastActivityAt: now, version: 0, deletedAt: null }; contacts = [contact, ...contacts]; return structuredClone(contact); }
 export async function updateContact(id: string, input: ContactInput) { await delay(); contacts = contacts.map((contact) => contact.id === id ? { ...contact, ...input, lastActivityAt: new Date().toISOString() } : contact); return getContact(id); }
 export async function deleteContacts(ids: readonly string[]) { await delay(450); contacts = contacts.filter((contact) => !ids.includes(contact.id)); notes = notes.filter((note) => !ids.includes(note.contactId)); tasks = tasks.filter((task) => !ids.includes(task.contactId)); }
 export async function getContactContext(id: string) { await delay(300); return { activities: activitiesFor(id), notes: structuredClone(notes.filter((note) => note.contactId === id)), tasks: structuredClone(tasks.filter((task) => task.contactId === id)) }; }

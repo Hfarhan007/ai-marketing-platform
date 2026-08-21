@@ -1,0 +1,3 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { PublicApiClient } from './api';
+describe('public widget API client', () => { afterEach(() => vi.unstubAllGlobals()); it('omits credentials and enforces its client request budget', async () => { const fetcher = vi.fn().mockResolvedValue(new Response('{}', { status: 200 })); vi.stubGlobal('fetch', fetcher); const api = new PublicApiClient('https://api.example', 'workspace', 'visitor', 1); await api.config(); await expect(api.config()).rejects.toThrow('Too many requests'); expect(fetcher).toHaveBeenCalledWith(expect.stringContaining('/public/widget/workspace/config'), expect.objectContaining({ credentials: 'omit' })); }); });

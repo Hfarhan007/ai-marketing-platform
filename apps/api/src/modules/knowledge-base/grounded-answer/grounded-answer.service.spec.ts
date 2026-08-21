@@ -38,7 +38,10 @@ const setup = (hits = [evidence()], structured = generated()) => {
     }),
   };
   const ai = { execute: vi.fn().mockResolvedValue({ structured }) };
-  const repository = { routeAnswerReview: vi.fn().mockResolvedValue({ _id: 'review-1' }) };
+  const repository = {
+    routeAnswerReview: vi.fn().mockResolvedValue({ _id: 'review-1' }),
+    annotateRetrieval: vi.fn().mockResolvedValue(undefined),
+  };
   const security = { redactOutput: vi.fn((value: string) => value) };
   return {
     service: new GroundedAnswerService(
@@ -61,7 +64,8 @@ const input = {
 
 describe('GroundedAnswerService', () => {
   it('returns verified citations, evidence types and references', async () => {
-    const result = await setup().service.answer(input);
+    const context = setup();
+    const result = await context.service.answer(input);
     expect(result).toMatchObject({
       answerClassification: 'grounded_answer',
       citedChunkIds: ['chunk-1'],
@@ -71,6 +75,11 @@ describe('GroundedAnswerService', () => {
       confidence: { groundedness: 1, level: 'high' },
     });
     expect(result.claims[0]).toMatchObject({ evidenceType: 'direct', evidenceMatch: 1 });
+    expect(context.repository.annotateRetrieval).toHaveBeenCalledWith(
+      'trace-1',
+      'workspace',
+      expect.objectContaining({ validatedCitationChunkIds: ['chunk-1'], answerClassification: 'grounded_answer' }),
+    );
   });
 
   it('rejects invented citations that were not retrieved', async () => {

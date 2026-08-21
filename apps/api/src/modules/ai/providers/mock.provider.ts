@@ -1,14 +1,13 @@
 import type { AiProvider, AiRequest, AiStreamChunk } from './ai-provider.interface.js';
 import { createHash } from 'node:crypto';
 export class MockAiProvider implements AiProvider {
-  readonly name = 'ollama' as const;
+  readonly name = 'mock' as const;
   failures = 0;
   constructor(private readonly output = 'mock response') {}
   chat(r: AiRequest) {
     if (this.failures-- > 0) return Promise.reject(new Error('mock failure'));
     return Promise.resolve({
-      content: r.jsonSchema ? JSON.stringify({ value: this.output }) : this.output,
-      structured: r.jsonSchema ? { value: this.output } : undefined,
+      content: this.output,
       usage: {
         inputTokens: r.messages.reduce((n, m) => n + m.content.split(/\\s+/u).length, 0),
         outputTokens: this.output.split(/\\s+/u).length,

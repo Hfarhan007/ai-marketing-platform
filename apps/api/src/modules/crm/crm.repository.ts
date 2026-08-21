@@ -29,18 +29,47 @@ export abstract class CrmRepository<T extends CrmEntity> extends TenantAwareRepo
     if (query.ownerId) Object.assign(where, { ownerId: new Types.ObjectId(query.ownerId) });
     if (query.tags?.length) Object.assign(where, { tags: { $all: query.tags } });
     const sortField = this.sortable.has(query.sort) ? query.sort : 'createdAt';
-    const sort = { [sortField]: query.order === 'asc' ? 1 : -1 } as Record<string, 1 | -1>;
-    const [items, total] = await Promise.all([
+    const direction = query.order === 'asc' ? 1 : -1;
+    const countWhere: mongo.Filter<T> = { ...where };
+    const cursor = query.cursor ? this.decodeCursor(query.cursor, sortField) : null;
+    if (cursor) {
+      Object.assign(where, {
+        $and: [
+          {
+            $or: [
+              { [sortField]: { [direction === 1 ? '$gt' : '$lt']: cursor.value } },
+              { [sortField]: cursor.value, _id: { [direction === 1 ? '$gt' : '$lt']: cursor.id } },
+            ],
+          },
+        ],
+      });
+    }
+    const sort = { [sortField]: direction, _id: direction } as Record<string, 1 | -1>;
+    const [values, total] = await Promise.all([
       this.model
         .find(where)
         .sort(sort)
-        .skip((query.page - 1) * query.limit)
-        .limit(query.limit)
+        .skip(cursor ? 0 : (query.page - 1) * query.limit)
+        .limit(query.limit + 1)
         .lean<T[]>()
         .exec(),
-      this.model.countDocuments(where).exec(),
+      this.model.countDocuments(countWhere).exec(),
     ]);
-    return { items, total, page: query.page, limit: query.limit };
+    const hasMore = values.length > query.limit;
+    const items = hasMore ? values.slice(0, query.limit) : values;
+    const last = items.at(-1) as (T & Record<string, unknown>) | undefined;
+    return {
+      items,
+      total,
+      page: query.page,
+      limit: query.limit,
+      nextCursor:
+        hasMore && last
+          ? Buffer.from(JSON.stringify({ value: last[sortField], id: String(last._id) })).toString(
+              'base64url',
+            )
+          : null,
+    };
   }
 
   async getActive(workspaceId: string, id: string, session?: ClientSession): Promise<T> {
@@ -103,11 +132,23 @@ export abstract class CrmRepository<T extends CrmEntity> extends TenantAwareRepo
     return value;
   }
 
-  async softDelete(workspaceId: string, id: string, actorId: string, version: number): Promise<T> {
-    return this.updateEntity(workspaceId, id, actorId, version, { deletedAt: new Date() });
+  async softDelete(
+    workspaceId: string,
+    id: string,
+    actorId: string,
+    version: number,
+    session?: ClientSession,
+  ): Promise<T> {
+    return this.updateEntity(workspaceId, id, actorId, version, { deletedAt: new Date() }, session);
   }
 
-  async restore(workspaceId: string, id: string, actorId: string, version: number): Promise<T> {
+  async restore(
+    workspaceId: string,
+    id: string,
+    actorId: string,
+    version: number,
+    session?: ClientSession,
+  ): Promise<T> {
     const value = await this.model
       .findOneAndUpdate(
         {
@@ -120,11 +161,29 @@ export abstract class CrmRepository<T extends CrmEntity> extends TenantAwareRepo
           $set: { deletedAt: null, updatedBy: new Types.ObjectId(actorId) },
           $inc: { version: 1 },
         },
-        { new: true, runValidators: true },
+        { new: true, runValidators: true, session: session ?? null },
       )
       .lean<T>()
       .exec();
     if (!value) throw new ConflictException('Resource changed or is not deleted');
     return value;
+  }
+
+  private decodeCursor(value: string, sortField: string): { value: unknown; id: Types.ObjectId } {
+    try {
+      const decoded = JSON.parse(Buffer.from(value, 'base64url').toString('utf8')) as {
+        value?: unknown;
+        id?: unknown;
+      };
+      if (typeof decoded.id !== 'string' || !Types.ObjectId.isValid(decoded.id)) throw new Error();
+      const cursorValue =
+        sortField.endsWith('At') && typeof decoded.value === 'string'
+          ? new Date(decoded.value)
+          : decoded.value;
+      if (cursorValue === undefined) throw new Error();
+      return { value: cursorValue, id: new Types.ObjectId(decoded.id) };
+    } catch {
+      throw new ConflictException('Invalid pagination cursor');
+    }
   }
 }

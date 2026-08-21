@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { WorkspaceContext } from '../../../common/decorators/workspace-context.decorator.js';
 import { RequireWorkspace } from '../../../common/decorators/require-workspace.decorator.js';
 import type { WorkspaceRequestContext } from '../../../common/types/workspace-context.js';
@@ -15,11 +15,14 @@ import { ContactsService } from '../services/contacts.service.js';
 export class ContactsController {
   constructor(private readonly service: ContactsService) {}
   @Get()
+  @ApiOperation({ summary: 'List workspace contacts with search, filters, sorting, and pagination' })
   @RequirePermissions('contacts.read')
   list(@WorkspaceContext() context: WorkspaceRequestContext, @Query() query: CrmListQueryDto) {
     return this.service.list(context, query);
   }
   @Get(':id')
+  @ApiOperation({ summary: 'Get a workspace contact' })
+  @ApiParam({ name: 'id', description: 'Contact MongoDB identifier' })
   @RequirePermissions('contacts.read')
   get(
     @WorkspaceContext() context: WorkspaceRequestContext,
@@ -28,11 +31,14 @@ export class ContactsController {
     return this.service.get(context, id);
   }
   @Post()
+  @ApiOperation({ summary: 'Create a contact' })
   @RequirePermissions('contacts.create')
   create(@WorkspaceContext() context: WorkspaceRequestContext, @Body() dto: CreateContactDto) {
     return this.service.create(context, dto);
   }
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a contact using optimistic concurrency' })
+  @ApiParam({ name: 'id', description: 'Contact MongoDB identifier' })
   @RequirePermissions('contacts.update')
   update(
     @WorkspaceContext() context: WorkspaceRequestContext,
@@ -42,6 +48,8 @@ export class ContactsController {
     return this.service.update(context, id, dto);
   }
   @Delete(':id')
+  @ApiOperation({ summary: 'Soft-delete a contact using optimistic concurrency' })
+  @ApiParam({ name: 'id', description: 'Contact MongoDB identifier' })
   @RequirePermissions('contacts.delete')
   remove(
     @WorkspaceContext() context: WorkspaceRequestContext,
@@ -51,6 +59,8 @@ export class ContactsController {
     return this.service.remove(context, id, dto.version);
   }
   @Post(':id/restore')
+  @ApiOperation({ summary: 'Restore a soft-deleted contact' })
+  @ApiParam({ name: 'id', description: 'Contact MongoDB identifier' })
   @RequirePermissions('contacts.update')
   restore(
     @WorkspaceContext() context: WorkspaceRequestContext,

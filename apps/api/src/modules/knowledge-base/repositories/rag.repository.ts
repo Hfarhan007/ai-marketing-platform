@@ -51,6 +51,15 @@ export class RagRepository {
   createDocument(input: Record<string, unknown>) {
     return new this.documents(input).save();
   }
+  async nextRevision(workspaceId: string, sourceId: string) {
+    const latest = await this.documents
+      .findOne({ workspaceId: new Types.ObjectId(workspaceId), sourceId: new Types.ObjectId(sourceId) })
+      .sort({ revision: -1 })
+      .select({ revision: 1 })
+      .lean<{ revision?: number }>()
+      .exec();
+    return (latest?.revision ?? 0) + 1;
+  }
   async replaceChunks(
     workspaceId: string,
     documentId: string,
@@ -218,6 +227,12 @@ export class RagRepository {
   }
   logRetrieval(value: Record<string, unknown>) {
     return new this.logs(value).save();
+  }
+  annotateRetrieval(retrievalTraceId: string, workspaceId: string, value: Record<string, unknown>) {
+    return this.logs.updateOne(
+      { retrievalTraceId, workspaceId: new Types.ObjectId(workspaceId) },
+      { $set: value },
+    );
   }
   routeAnswerReview(value: Record<string, unknown>) {
     return new this.answerReviews(value).save();

@@ -50,6 +50,8 @@ import { ConnectorRegistrar } from './connectors/connector-registrar.service.js'
 import { KnowledgeConnectorController } from './controllers/knowledge-connector.controller.js';
 import { CacheModule } from '../../cache/cache.module.js';
 import { GroundedAnswerService } from './grounded-answer/grounded-answer.service.js';
+import { TextSourceExtractorService } from './document-processing/text-source-extractor.service.js';
+import { CompleteRagSliceService } from './services/complete-rag-slice.service.js';
 @Module({
   imports: [
     EventsModule,
@@ -87,6 +89,8 @@ import { GroundedAnswerService } from './grounded-answer/grounded-answer.service
     CitationService,
     RagRetrievalService,
     GroundedAnswerService,
+    TextSourceExtractorService,
+    CompleteRagSliceService,
     RagEvaluationService,
     KnowledgeConnectorRegistry,
     ConnectorUrlSecurityService,

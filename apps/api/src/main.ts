@@ -22,7 +22,7 @@ export async function bootstrap(): Promise<NestFastifyApplication> {
       trustProxy: trustedProxyConfiguration(process.env.TRUST_PROXY),
       bodyLimit: Number(process.env.STORAGE_MAX_FILE_SIZE_BYTES ?? 52_428_800),
     }),
-    { bufferLogs: true, rawBody: true },
+    { rawBody: true },
   );
   const config = app.get(ConfigService);
   registerBodyLimitHook(app, Number(process.env.APP_MAX_BODY_SIZE_BYTES ?? DEFAULT_BODY_LIMIT_BYTES));
@@ -34,7 +34,7 @@ export async function bootstrap(): Promise<NestFastifyApplication> {
   });
   await app.register(cookie);
   app.useLogger(app.get(Logger));
-  app.useGlobalFilters(new GlobalExceptionFilter(app.get(PinoLogger)));
+  app.useGlobalFilters(new GlobalExceptionFilter(await app.resolve(PinoLogger)));
   app.useGlobalPipes(
     new ValidationPipe({
       forbidNonWhitelisted: true,
@@ -43,7 +43,7 @@ export async function bootstrap(): Promise<NestFastifyApplication> {
       whitelist: true,
     }),
   );
-  app.setGlobalPrefix(API_PREFIX, { exclude: ['health/live', 'health/ready'] });
+  app.setGlobalPrefix(API_PREFIX);
   app.enableShutdownHooks();
   await app.register(helmet, helmetConfiguration(config.get<string>('app.environment') === 'production'));
   await app.register(cors, {

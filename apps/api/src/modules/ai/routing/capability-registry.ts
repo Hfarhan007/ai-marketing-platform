@@ -70,6 +70,16 @@ export class CapabilityRegistry {
         latencyClass: 'standard', qualityClass: 'economy', regions: ['local'], privacy: 'local', languages: ['*'],
       },
       {
+        provider: 'mock',
+        model: 'deterministic-mock',
+        capabilities: ['chat', 'json', 'streaming'],
+        contextTokens: 128_000,
+        maxOutputTokens: 8_192,
+        inputCostPerMillion: 0,
+        outputCostPerMillion: 0,
+        latencyClass: 'realtime', qualityClass: 'economy', regions: ['local'], privacy: 'local', languages: ['*'],
+      },
+      {
         provider: 'openai',
         model: 'text-embedding-3-small',
         capabilities: ['embeddings'],

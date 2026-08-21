@@ -11,11 +11,13 @@ import { RagRetrievalService } from '../hybrid-search/rag-retrieval.service.js';
 import {
   EmbeddingMigrationDto,
   AnswerKnowledgeDto,
+  CompleteRagSliceDto,
   ProcessKnowledgeDto,
   RetrieveKnowledgeDto,
 } from '../dto/rag.dto.js';
 import { EmbeddingService } from '../embeddings/embedding.service.js';
 import { GroundedAnswerService } from '../grounded-answer/grounded-answer.service.js';
+import { CompleteRagSliceService } from '../services/complete-rag-slice.service.js';
 @ApiTags('knowledge base')
 @Controller('knowledge-base/sources')
 @RequireWorkspace()
@@ -26,7 +28,14 @@ export class KnowledgeSourceController {
     private readonly retrieval: RagRetrievalService,
     private readonly embeddings: EmbeddingService,
     private readonly groundedAnswers: GroundedAnswerService,
+    private readonly completeSlice: CompleteRagSliceService,
   ) {}
+  @Post('complete-rag') @RequirePermissions('files.manage', 'files.read') completeRag(
+    @WorkspaceContext() c: WorkspaceRequestContext,
+    @Body() d: CompleteRagSliceDto,
+  ) {
+    return this.completeSlice.execute(c, d);
+  }
   @Post('ingest') @RequirePermissions('files.manage') ingest(
     @WorkspaceContext() c: WorkspaceRequestContext,
     @Body() d: IngestKnowledgeSourceDto,

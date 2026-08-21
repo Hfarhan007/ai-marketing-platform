@@ -2,7 +2,7 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { ConflictException } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import type { Job } from 'bullmq';
-import { Connection, Types } from 'mongoose';
+import { Types, type Connection } from 'mongoose';
 import { CUSTOM_FIELD_MIGRATION_QUEUE } from '../custom-field.service.js';
 import type { CustomFieldEntity, CustomFieldType } from '../custom-field.types.js';
 

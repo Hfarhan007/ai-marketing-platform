@@ -24,8 +24,8 @@ Start the complete environment with `pnpm docker:up`. Compose waits for the Mong
 | Service           | Address                                       | Notes                                                      |
 | ----------------- | --------------------------------------------- | ---------------------------------------------------------- |
 | Web               | http://localhost:5173                         | Vite development server                                    |
-| API               | http://localhost:3001                         | Swagger `/api/docs`; readiness `/health/ready`             |
-| Worker            | http://localhost:3002                         | Readiness `/ready`                                         |
+| API               | http://localhost:3001                         | Swagger `/api/docs`; readiness `/api/v1/health/ready`      |
+| Worker            | http://localhost:3002                         | Readiness `/health/ready`                                  |
 | MongoDB           | `mongodb://localhost:27017/?replicaSet=rs0`   | Loopback-only transaction-capable replica set              |
 | Redis             | `redis://localhost:6379`                      | Loopback-only AOF and snapshot persistence                 |
 | MinIO / console   | http://localhost:9000 / http://localhost:9001 | Private `amp-development` bucket initialized automatically |

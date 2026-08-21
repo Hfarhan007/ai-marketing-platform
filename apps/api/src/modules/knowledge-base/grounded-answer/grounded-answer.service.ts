@@ -95,7 +95,7 @@ export class GroundedAnswerService {
       jsonSchema: this.schema(),
     });
     const generated = response.structured as GeneratedAnswer;
-    return this.verify(generated, evidence, retrieved.retrievalTraceId, input, policy);
+    return this.verify(generated, evidence, retrieved.retrievalTraceId, input, policy, response.costUsd ?? 0);
   }
 
   private async verify(
@@ -104,6 +104,7 @@ export class GroundedAnswerService {
     traceId: string,
     input: GroundedAnswerInput,
     policy: GroundedAnswerPolicy,
+    generationCostUsd: number,
   ) {
     if (!generated || !Array.isArray(generated.claims))
       throw new Error('Grounded answer response is malformed');
@@ -185,6 +186,11 @@ export class GroundedAnswerService {
       retrievalTraceId: traceId,
       humanReview: { required: classification === 'requires_human_review', routed: false },
     };
+    await this.repository.annotateRetrieval(traceId, input.workspaceId, {
+      generationCostUsd,
+      validatedCitationChunkIds: citedIds,
+      answerClassification: classification,
+    });
     if (classification === 'requires_human_review') {
       const review = await this.repository.routeAnswerReview({
         workspaceId: input.workspaceId,

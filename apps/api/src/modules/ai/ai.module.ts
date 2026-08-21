@@ -8,6 +8,8 @@ import { GeminiProvider } from './providers/gemini.provider.js';
 import { GroqProvider } from './providers/groq.provider.js';
 import { OpenRouterProvider } from './providers/openrouter.provider.js';
 import { OllamaProvider } from './providers/ollama.provider.js';
+import { MockAiProvider } from './providers/mock.provider.js';
+import { ConfigService } from '@nestjs/config';
 import { CapabilityRegistry } from './routing/capability-registry.js';
 import { ModelRouterService } from './routing/model-router.service.js';
 import { FallbackPolicyService } from './routing/fallback-policy.service.js';
@@ -109,8 +111,11 @@ export class AiModule implements OnModuleInit {
     groq: GroqProvider,
     openrouter: OpenRouterProvider,
     ollama: OllamaProvider,
+    config: ConfigService,
   ) {
     for (const provider of [openai, gemini, groq, openrouter, ollama]) gateway.register(provider);
+    if (config.get<boolean>('ai.developmentMockFallback'))
+      gateway.register(new MockAiProvider(JSON.stringify({ score: 0, qualification: 'unqualified', intent: 'unknown', summary: 'Development fallback: provider unavailable.', recommendedAction: 'Review manually', suggestedReply: 'Thanks for reaching out. A teammate will follow up shortly.', confidence: 0 })));
   }
   onModuleInit() {}
 }

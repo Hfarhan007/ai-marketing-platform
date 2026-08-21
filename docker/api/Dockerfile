@@ -7,6 +7,7 @@ COPY apps/worker/package.json apps/worker/package.json
 COPY apps/web/package.json apps/web/package.json
 COPY packages/config/package.json packages/config/package.json
 COPY packages/eslint-config/package.json packages/eslint-config/package.json
+COPY packages/job-contracts/package.json packages/job-contracts/package.json
 COPY packages/sdk/package.json packages/sdk/package.json
 COPY packages/types/package.json packages/types/package.json
 COPY packages/typescript-config/package.json packages/typescript-config/package.json
@@ -16,4 +17,6 @@ COPY tooling/scripts/package.json tooling/scripts/package.json
 RUN pnpm install --frozen-lockfile
 COPY . .
 EXPOSE 3001
-CMD ["pnpm", "--filter", "@repo/api", "dev"]
+# Compile with TypeScript before starting Nest so decorator metadata used for
+# dependency injection is present. The tsx transform does not emit it.
+CMD ["sh", "-c", "pnpm --filter @repo/api build && pnpm --filter @repo/api start"]

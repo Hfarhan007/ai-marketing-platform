@@ -19,7 +19,10 @@ import { DataTransferRepository } from '../repositories/data-transfer.repository
 import { StreamParserService } from './stream-parser.service.js';
 import { PolicyService } from '../../permissions/services/policy.service.js';
 import type { Permission } from '../../permissions/constants/permission.catalog.js';
+import { randomUUID } from 'node:crypto';
+import { DEFAULT_RETRY_POLICY, JOB_CONTRACT_VERSION, JOB_NAMES, type ContactImportJob } from '@repo/job-contracts';
 export const DATA_IMPORT_QUEUE = 'data-imports',
+  CONTACT_IMPORT_QUEUE = 'contact-imports',
   DATA_EXPORT_QUEUE = 'data-exports';
 @Injectable()
 export class DataTransferService {
@@ -30,6 +33,7 @@ export class DataTransferService {
     private readonly parser: StreamParserService,
     private readonly policy: PolicyService,
     @InjectQueue(DATA_IMPORT_QUEUE) private readonly imports: Queue,
+    @InjectQueue(CONTACT_IMPORT_QUEUE) private readonly contactImports: Queue<ContactImportJob>,
     @InjectQueue(DATA_EXPORT_QUEUE) private readonly exports: Queue,
   ) {}
   async createImport(c: WorkspaceRequestContext, dto: CreateImportDto) {
@@ -89,6 +93,36 @@ export class DataTransferService {
       { $set: { status: 'queued' } },
     );
     if (!job) throw new ConflictException('Data transfer job is not startable');
+    if (job.kind === 'import' && job.entity === 'contacts') {
+      const now = new Date(), correlationId = randomUUID();
+      const envelope: ContactImportJob = {
+        jobVersion: JOB_CONTRACT_VERSION,
+        jobId: id,
+        workspaceId: c.workspaceId,
+        correlationId,
+        causationId: job.idempotencyKey,
+        actorId: c.userId,
+        idempotencyKey: job.idempotencyKey,
+        createdAt: now.toISOString(),
+        deadline: new Date(now.valueOf() + 2 * 60 * 60 * 1000).toISOString(),
+        payload: {
+          transferJobId: id,
+          entity: 'contacts',
+          fileId: String(job.sourceFileId),
+          storageKey: String(job.sourceStorageKey),
+          format: job.format as ContactImportJob['payload']['format'],
+          mapping: job.mapping,
+          duplicatePolicy: job.duplicatePolicy as ContactImportJob['payload']['duplicatePolicy'],
+          dryRun: job.dryRun,
+        },
+      };
+      await this.contactImports.add(JOB_NAMES.contactImportRequested, envelope, {
+        jobId: id,
+        ...DEFAULT_RETRY_POLICY,
+        removeOnComplete: 1_000,
+      });
+      return { accepted: true, jobId: id, correlationId };
+    }
     const queue = job.kind === 'import' ? this.imports : this.exports;
     await queue.add(
       job.kind,

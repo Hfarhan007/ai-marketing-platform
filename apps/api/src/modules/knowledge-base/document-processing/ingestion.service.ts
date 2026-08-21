@@ -80,10 +80,12 @@ export class IngestionService {
         };
       }
       const language = this.language.detect(normalized);
+      const revision = await this.repository.nextRevision(input.workspaceId, input.sourceId);
       const document = await this.repository.createDocument({
         workspaceId: new Types.ObjectId(input.workspaceId),
         sourceId: new Types.ObjectId(input.sourceId),
         contentHash,
+        revision,
         normalizedText: normalized,
         language,
         metadata: { sourceReference: source.sourceReference },
@@ -100,7 +102,7 @@ export class IngestionService {
         workspaceId: input.workspaceId,
         sourceId: input.sourceId,
         documentId: String(document._id),
-        revisionId: contentHash,
+        revisionId: `${revision}:${contentHash}`,
         language,
         sourceType: source.sourceType,
         accessControl,
@@ -172,6 +174,8 @@ export class IngestionService {
         duplicate: false,
         status: 'completed',
         chunks: chunks.length,
+        contentHash,
+        sourceRevision: revision,
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Ingestion failed';

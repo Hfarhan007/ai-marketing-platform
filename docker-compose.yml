@@ -105,11 +105,12 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin-dev-only}
       STORAGE_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
       STORAGE_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin-dev-only}
-    ports: ['3001:3001']
+    ports: ['127.0.0.1:3001:3001']
     volumes:
       - .:/workspace
       - api_node_modules:/workspace/node_modules
       - api_package_node_modules:/workspace/apps/api/node_modules
+      - api_job_contracts_node_modules:/workspace/packages/job-contracts/node_modules
       - api_uploads:/workspace/.data/uploads
     networks: [frontend, backend]
     depends_on:
@@ -118,7 +119,7 @@ services:
       minio-init: { condition: service_completed_successfully }
       mailpit: { condition: service_healthy }
     healthcheck:
-      test: ['CMD', 'wget', '-qO-', 'http://localhost:3001/health/ready']
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3001/api/v1/health/ready']
       interval: 10s
       timeout: 5s
       retries: 20
@@ -137,6 +138,7 @@ services:
       - .:/workspace
       - worker_node_modules:/workspace/node_modules
       - worker_package_node_modules:/workspace/apps/worker/node_modules
+      - worker_job_contracts_node_modules:/workspace/packages/job-contracts/node_modules
     networks: [backend]
     depends_on:
       mongodb-init: { condition: service_completed_successfully }
@@ -156,7 +158,7 @@ services:
     init: true
     restart: unless-stopped
     env_file: [docker/web/.env.development]
-    ports: ['5173:5173']
+    ports: ['127.0.0.1:5173:5173']
     volumes:
       - .:/workspace
       - web_node_modules:/workspace/node_modules
@@ -214,8 +216,10 @@ volumes:
   mailpit_data:
   api_node_modules:
   api_package_node_modules:
+  api_job_contracts_node_modules:
   worker_node_modules:
   worker_package_node_modules:
+  worker_job_contracts_node_modules:
   web_node_modules:
   web_package_node_modules:
   config_package_node_modules:

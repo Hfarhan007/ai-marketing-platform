@@ -50,6 +50,11 @@ export class HealthServer {
       response.end(JSON.stringify({ queues, timestamp: new Date().toISOString() }));
       return;
     }
+    if (path === '/failed-jobs') {
+      const jobs = await this.queues.deadLetter.getJobs(['waiting', 'delayed', 'completed', 'failed'], 0, 99, false);
+      response.end(JSON.stringify({ jobs: jobs.map((job) => ({ id: job.id, name: job.name, data: job.data, failedReason: job.failedReason, timestamp: job.timestamp })) }));
+      return;
+    }
     response.statusCode = 404;
     response.end(JSON.stringify({ error: 'not_found' }));
   }

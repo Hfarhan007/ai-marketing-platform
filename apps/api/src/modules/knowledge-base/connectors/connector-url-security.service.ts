@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Optional } from '@nestjs/common';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 @Injectable()
 export class ConnectorUrlSecurityService {
   constructor(
+    @Optional()
     private readonly resolve: (hostname: string) => Promise<Array<{ address: string }>> = async (
       hostname,
     ) => lookup(hostname, { all: true }),

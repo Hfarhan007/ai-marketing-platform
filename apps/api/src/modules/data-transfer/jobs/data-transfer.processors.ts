@@ -9,7 +9,7 @@ import { appendFile, mkdtemp, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import { Connection, Types } from 'mongoose';
+import { Types, type Connection } from 'mongoose';
 import { CrmEventService } from '../../crm/crm-event.service.js';
 import { CustomFieldService } from '../../custom-fields/custom-field.service.js';
 import { StorageProviderRegistry } from '../../files/storage/storage.providers.js';

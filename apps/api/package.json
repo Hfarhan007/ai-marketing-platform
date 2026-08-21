@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/main.ts",
+    "dev": "tsx watch --tsconfig tsconfig.json src/main.ts",
     "start": "node dist/main.js",
     "build": "tsc -p tsconfig.json",
     "lint": "eslint .",
@@ -14,6 +14,7 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:contracts": "vitest run --config vitest.contract.config.ts",
+    "ai:smoke:lead": "tsx scripts/smoke-lead-qualification.ts",
     "db:indexes": "tsx src/database/database.cli.ts indexes",
     "db:vector:deploy": "tsx src/database/database.cli.ts vector-deploy",
     "db:vector:health": "tsx src/database/database.cli.ts vector-health",
@@ -27,6 +28,7 @@
     "@fastify/cookie": "^11.1.2",
     "@fastify/cors": "^11.3.0",
     "@fastify/helmet": "^13.1.0",
+    "@fastify/static": "^9.0.0",
     "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.1.28",
     "@nestjs/config": "^4.0.4",
@@ -38,6 +40,7 @@
     "@nestjs/terminus": "^11.1.1",
     "@nestjs/throttler": "^6.5.0",
     "@nestjs/websockets": "^11.1.28",
+    "@repo/job-contracts": "workspace:*",
     "bullmq": "^5.81.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
@@ -64,7 +67,7 @@
     "mongodb-memory-server": "^11.2.0",
     "supertest": "^7.2.2",
     "testcontainers": "^12.1.0",
-    "tsx": "latest",
+    "tsx": "4.20.6",
     "vitest": "catalog:"
   }
 }

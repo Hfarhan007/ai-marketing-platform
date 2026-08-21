@@ -112,6 +112,7 @@ export class RagRetrievalService {
     const started = Date.now(),
       stages: RetrievalStage[] = [],
       retrievalTraceId = randomUUID();
+    let embeddingCostUsd = 0;
     const queryPolicy = this.security.checkQuery(input.query);
     if (queryPolicy.risk === 'high')
       throw new Error('Suspicious query rejected by retrieval policy');
@@ -201,6 +202,7 @@ export class RagRetrievalService {
           maxCostUsd: 0.1,
           signal,
         });
+        embeddingCostUsd = embedded.costUsd;
         return this.vectors.search(
           input.workspaceId,
           embedded.vectors[0] ?? [],
@@ -356,6 +358,8 @@ export class RagRetrievalService {
         })),
         stages,
         durationMs: Date.now() - started,
+        embeddingCostUsd,
+        rerankingCostUsd: reranked.costUsd,
       }),
       this.cacheSet(cacheKey, result),
     ]);

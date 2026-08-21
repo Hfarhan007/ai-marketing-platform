@@ -18,6 +18,7 @@ import {
 import {
   DATA_EXPORT_QUEUE,
   DATA_IMPORT_QUEUE,
+  CONTACT_IMPORT_QUEUE,
   DataTransferService,
 } from './services/data-transfer.service.js';
 import { StreamParserService } from './services/stream-parser.service.js';
@@ -31,7 +32,7 @@ import { ConsentModule } from '../consent/consent.module.js';
     PermissionsModule,
     SearchModule,
     ConsentModule,
-    BullModule.registerQueue({ name: DATA_IMPORT_QUEUE }, { name: DATA_EXPORT_QUEUE }),
+    BullModule.registerQueue({ name: DATA_IMPORT_QUEUE }, { name: CONTACT_IMPORT_QUEUE }, { name: DATA_EXPORT_QUEUE }),
     MongooseModule.forFeature([
       { name: DataTransferJob.name, schema: DataTransferJobSchema },
       { name: DataTransferRowReceipt.name, schema: DataTransferRowReceiptSchema },

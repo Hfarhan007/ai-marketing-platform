@@ -16,4 +16,4 @@ COPY tooling/scripts/package.json tooling/scripts/package.json
 RUN pnpm install --frozen-lockfile
 COPY . .
 EXPOSE 5173
-CMD ["pnpm", "--filter", "@repo/web", "dev", "--", "--host", "0.0.0.0"]
+CMD ["pnpm", "--filter", "@repo/web", "dev", "--host", "0.0.0.0"]

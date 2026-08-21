@@ -16,6 +16,7 @@ import {
 export class CrmListQueryDto {
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) page = 1;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit = 25;
+  @IsOptional() @IsString() @MaxLength(500) cursor?: string;
   @IsOptional() @IsString() @MaxLength(100) search?: string;
   @IsOptional() @IsString() @MaxLength(50) sort = 'createdAt';
   @IsOptional() @IsIn(['asc', 'desc']) order: 'asc' | 'desc' = 'desc';

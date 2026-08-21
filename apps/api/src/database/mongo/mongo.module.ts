@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { TerminusModule } from '@nestjs/terminus';
 import { MongoConnection } from './mongo.connection.js';
 import { MongoHealthIndicator } from './mongo.health.js';
 import { createMongoOptions } from './mongo.options.js';
 
 @Module({
   imports: [
+    TerminusModule,
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {

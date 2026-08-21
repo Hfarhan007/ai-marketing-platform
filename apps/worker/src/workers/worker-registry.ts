@@ -1,6 +1,7 @@
 import { context, propagation, trace, SpanStatusCode } from '@opentelemetry/api';
 import { UnrecoverableError, Worker, type Job } from 'bullmq';
 import type Redis from 'ioredis';
+import mongoose from 'mongoose';
 import type { WorkerConfig } from '../config.js';
 import { ExecutionGuard } from '../jobs/execution-guard.js';
 import {
@@ -50,6 +51,19 @@ export class WorkerRegistry {
     } catch (error) {
       throw new UnrecoverableError(`INVALID_JOB_PAYLOAD: ${String(error)}`);
     }
+    if (payload.deadline && new Date(payload.deadline).valueOf() <= Date.now())
+      throw new UnrecoverableError('JOB_DEADLINE_EXCEEDED');
+    const executions = mongoose.connection.db?.collection('job_executions');
+    const executionId = `${payload.workspaceId}:${payload.jobId}`;
+    if (executions) {
+      const completed = await executions.findOne({ _id: executionId, status: 'completed' });
+      if (completed) return { duplicate: true };
+      await executions.updateOne(
+        { _id: executionId },
+        { $set: { status: 'running', queue: name, correlationId: payload.correlationId, updatedAt: new Date() }, $setOnInsert: { workspaceId: payload.workspaceId, jobId: payload.jobId, idempotencyKey: payload.idempotencyKey, createdAt: new Date() } },
+        { upsert: true },
+      );
+    }
     const carrier: Record<string, string> = {};
     if (payload.traceparent) carrier.traceparent = payload.traceparent;
     const parent = propagation.extract(context.active(), carrier),
@@ -79,9 +93,11 @@ export class WorkerRegistry {
                 progress: (value) => job.updateProgress(value),
               }),
           );
+          if (executions) await executions.updateOne({ _id: executionId }, { $set: { status: 'completed', completedAt: new Date(), updatedAt: new Date() } });
           span.setStatus({ code: SpanStatusCode.OK });
           return result;
         } catch (error) {
+          if (executions) await executions.updateOne({ _id: executionId }, { $set: { status: 'failed', error: error instanceof Error ? error.message.slice(0, 500) : 'Job failed', updatedAt: new Date() } });
           span.recordException(error instanceof Error ? error : new Error(String(error)));
           span.setStatus({ code: SpanStatusCode.ERROR });
           throw error;

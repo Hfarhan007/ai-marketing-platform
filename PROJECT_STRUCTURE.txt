@@ -1,0 +1,1961 @@
+ai-marketing-platform/
+|-- .agents/
+|-- .changeset/
+|   |-- config.json
+|   +-- README.md
+|-- .github/
+|   |-- ISSUE_TEMPLATE/
+|   |   +-- bug_report.yml
+|   |-- workflows/
+|   |   |-- accessibility.yml
+|   |   |-- api-tests.yml
+|   |   |-- container-build.yml
+|   |   |-- container-scan.yml
+|   |   |-- dependency-review.yml
+|   |   |-- deploy-production.yml
+|   |   |-- deploy-staging.yml
+|   |   |-- e2e-tests.yml
+|   |   |-- frontend-tests.yml
+|   |   |-- integration-tests.yml
+|   |   |-- pull-request.yml
+|   |   |-- release.yml
+|   |   |-- rollback.yml
+|   |   |-- security.yml
+|   |   +-- worker-tests.yml
+|   +-- CODEOWNERS
+|-- .husky/
+|   +-- _/
+|       |-- .gitignore
+|       |-- applypatch-msg
+|       |-- commit-msg
+|       |-- h
+|       |-- husky.sh
+|       |-- post-applypatch
+|       |-- post-checkout
+|       |-- post-commit
+|       |-- post-merge
+|       |-- post-rewrite
+|       |-- pre-applypatch
+|       |-- pre-auto-gc
+|       |-- pre-commit
+|       |-- pre-merge-commit
+|       |-- prepare-commit-msg
+|       |-- pre-push
+|       +-- pre-rebase
+|-- apps/
+|   |-- api/
+|   |   |-- scripts/
+|   |   |   +-- smoke-lead-qualification.ts
+|   |   |-- src/
+|   |   |   |-- architecture/
+|   |   |   |   |-- ai-provider-boundary.spec.ts
+|   |   |   |   +-- domain-boundaries.spec.ts
+|   |   |   |-- cache/
+|   |   |   |   |-- cache.module.ts
+|   |   |   |   |-- redis.constants.ts
+|   |   |   |   +-- redis-lifecycle.service.ts
+|   |   |   |-- common/
+|   |   |   |   |-- constants/
+|   |   |   |   |   |-- application.constants.ts
+|   |   |   |   |   |-- auth.constants.ts
+|   |   |   |   |   +-- tenant.constants.ts
+|   |   |   |   |-- decorators/
+|   |   |   |   |   |-- .gitkeep
+|   |   |   |   |   |-- current-principal.decorator.ts
+|   |   |   |   |   |-- platform-admin-operation.decorator.ts
+|   |   |   |   |   |-- public.decorator.ts
+|   |   |   |   |   |-- require-csrf.decorator.ts
+|   |   |   |   |   |-- require-workspace.decorator.ts
+|   |   |   |   |   +-- workspace-context.decorator.ts
+|   |   |   |   |-- dto/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   |-- errors/
+|   |   |   |   |   +-- api-error-response.ts
+|   |   |   |   |-- filters/
+|   |   |   |   |   +-- global-exception.filter.ts
+|   |   |   |   |-- guards/
+|   |   |   |   |   |-- .gitkeep
+|   |   |   |   |   |-- platform-admin.guard.spec.ts
+|   |   |   |   |   |-- platform-admin.guard.ts
+|   |   |   |   |   |-- workspace.guard.spec.ts
+|   |   |   |   |   +-- workspace.guard.ts
+|   |   |   |   |-- interceptors/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   |-- middleware/
+|   |   |   |   |   +-- correlation-id.middleware.ts
+|   |   |   |   |-- pipes/
+|   |   |   |   |   |-- .gitkeep
+|   |   |   |   |   +-- parse-mongo-id.pipe.ts
+|   |   |   |   |-- policies/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   |-- repositories/
+|   |   |   |   |   |-- tenant-aware.repository.spec.ts
+|   |   |   |   |   +-- tenant-aware.repository.ts
+|   |   |   |   |-- serializers/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   |-- types/
+|   |   |   |   |   |-- authenticated-principal.ts
+|   |   |   |   |   |-- tenant-audit-event.ts
+|   |   |   |   |   |-- tenant-job-payload.ts
+|   |   |   |   |   +-- workspace-context.ts
+|   |   |   |   +-- utils/
+|   |   |   |       |-- .gitkeep
+|   |   |   |       |-- tenant-aggregate.helper.ts
+|   |   |   |       |-- tenant-cache-key.helper.ts
+|   |   |   |       |-- tenant-helpers.spec.ts
+|   |   |   |       +-- tenant-query.helper.ts
+|   |   |   |-- config/
+|   |   |   |   |-- ai.config.ts
+|   |   |   |   |-- app.config.ts
+|   |   |   |   |-- auth.config.ts
+|   |   |   |   |-- billing.config.ts
+|   |   |   |   |-- configuration.module.ts
+|   |   |   |   |-- database.config.ts
+|   |   |   |   |-- environment.schema.spec.ts
+|   |   |   |   |-- environment.schema.ts
+|   |   |   |   |-- integrations.config.ts
+|   |   |   |   |-- redis.config.ts
+|   |   |   |   +-- storage.config.ts
+|   |   |   |-- database/
+|   |   |   |   |-- indexes/
+|   |   |   |   |   |-- .gitkeep
+|   |   |   |   |   |-- atlas-vector-index-manager.service.spec.ts
+|   |   |   |   |   |-- atlas-vector-index-manager.service.ts
+|   |   |   |   |   |-- index-definitions.spec.ts
+|   |   |   |   |   |-- index-definitions.ts
+|   |   |   |   |   |-- index-manager.service.ts
+|   |   |   |   |   +-- vector-index-definitions.ts
+|   |   |   |   |-- migrations/
+|   |   |   |   |   |-- scripts/
+|   |   |   |   |   |   |-- index.ts
+|   |   |   |   |   |   +-- README.md
+|   |   |   |   |   |-- .gitkeep
+|   |   |   |   |   |-- migration.interface.ts
+|   |   |   |   |   |-- migration-runner.service.spec.ts
+|   |   |   |   |   |-- migration-runner.service.ts
+|   |   |   |   |   +-- migration-state.schema.ts
+|   |   |   |   |-- mongo/
+|   |   |   |   |   |-- .gitkeep
+|   |   |   |   |   |-- base-schema.fields.ts
+|   |   |   |   |   |-- mongo.connection.ts
+|   |   |   |   |   |-- mongo.constants.ts
+|   |   |   |   |   |-- mongo.health.spec.ts
+|   |   |   |   |   |-- mongo.health.ts
+|   |   |   |   |   |-- mongo.module.ts
+|   |   |   |   |   |-- mongo.options.spec.ts
+|   |   |   |   |   +-- mongo.options.ts
+|   |   |   |   |-- seeds/
+|   |   |   |   |   |-- .gitkeep
+|   |   |   |   |   |-- development.seed.ts
+|   |   |   |   |   |-- seed.interface.ts
+|   |   |   |   |   |-- seed-runner.service.spec.ts
+|   |   |   |   |   |-- seed-runner.service.ts
+|   |   |   |   |   +-- test.seed.ts
+|   |   |   |   |-- transactions/
+|   |   |   |   |   |-- .gitkeep
+|   |   |   |   |   |-- transaction-manager.service.spec.ts
+|   |   |   |   |   +-- transaction-manager.service.ts
+|   |   |   |   |-- database.cli.ts
+|   |   |   |   +-- database.module.ts
+|   |   |   |-- domains/
+|   |   |   |   |-- shared/
+|   |   |   |   |   +-- domain-contracts.ts
+|   |   |   |   +-- domain-map.ts
+|   |   |   |-- events/
+|   |   |   |   |-- schemas/
+|   |   |   |   |   +-- event-store.schemas.ts
+|   |   |   |   |-- event-admin.controller.ts
+|   |   |   |   |-- event-redactor.service.spec.ts
+|   |   |   |   |-- event-redactor.service.ts
+|   |   |   |   |-- events.module.ts
+|   |   |   |   |-- inbox.service.ts
+|   |   |   |   |-- outbox.processor.ts
+|   |   |   |   +-- outbox.service.ts
+|   |   |   |-- health/
+|   |   |   |   |-- health.controller.spec.ts
+|   |   |   |   |-- health.controller.ts
+|   |   |   |   |-- health.module.ts
+|   |   |   |   +-- redis-health.indicator.ts
+|   |   |   |-- modules/
+|   |   |   |   |-- activities/
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- activity-query.dto.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- activity.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- activity.schema.ts
+|   |   |   |   |   |-- activity.controller.ts
+|   |   |   |   |   |-- activity.service.spec.ts
+|   |   |   |   |   |-- activity.service.ts
+|   |   |   |   |   |-- activity-projection.service.spec.ts
+|   |   |   |   |   +-- activity-projection.service.ts
+|   |   |   |   |-- admin/
+|   |   |   |   |   +-- admin.module.ts
+|   |   |   |   |-- agents/
+|   |   |   |   |   |-- memory/
+|   |   |   |   |   |   |-- ai-memory.spec.ts
+|   |   |   |   |   |   |-- memory-extraction.policy.ts
+|   |   |   |   |   |   +-- memory-resolution.ts
+|   |   |   |   |   |-- orchestration/
+|   |   |   |   |   |   |-- multi-agent-orchestrator.service.ts
+|   |   |   |   |   |   |-- multi-agent-orchestrator.spec.ts
+|   |   |   |   |   |   |-- orchestration.policy.ts
+|   |   |   |   |   |   |-- orchestration.types.ts
+|   |   |   |   |   |   +-- orchestration.workflows.ts
+|   |   |   |   |   |-- policies/
+|   |   |   |   |   |   +-- agent-execution.policy.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   |-- agent-memory.repository.ts
+|   |   |   |   |   |   |-- agent-runs.repository.ts
+|   |   |   |   |   |   |-- agent-runtime-records.service.ts
+|   |   |   |   |   |   |-- ai-memory.repository.ts
+|   |   |   |   |   |   |-- mongoose-runtime.store.ts
+|   |   |   |   |   |   +-- orchestration-audit.repository.ts
+|   |   |   |   |   |-- runtime/
+|   |   |   |   |   |   |-- agent-runtime.queue.ts
+|   |   |   |   |   |   |-- agent-runtime.service.ts
+|   |   |   |   |   |   |-- agent-runtime.spec.ts
+|   |   |   |   |   |   |-- agent-runtime.types.ts
+|   |   |   |   |   |   |-- agent-runtime-events.service.ts
+|   |   |   |   |   |   +-- recorded-model-replay.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- agent.schemas.ts
+|   |   |   |   |   |-- tools/
+|   |   |   |   |   |   |-- agent-tool.registry.ts
+|   |   |   |   |   |   |-- agent-tool.types.ts
+|   |   |   |   |   |   |-- agent-tool-executor.service.ts
+|   |   |   |   |   |   |-- agent-tool-security.spec.ts
+|   |   |   |   |   |   |-- starter-tool.provider.ts
+|   |   |   |   |   |   |-- starter-tool.registrar.ts
+|   |   |   |   |   |   |-- starter-tools.ts
+|   |   |   |   |   |   +-- tool-security.ts
+|   |   |   |   |   |-- agent-execution.spec.ts
+|   |   |   |   |   |-- agent-memory.service.ts
+|   |   |   |   |   |-- agent-memory-policy.service.ts
+|   |   |   |   |   |-- agent-runner.service.ts
+|   |   |   |   |   |-- agents.module.ts
+|   |   |   |   |   |-- ai-memory.schema.ts
+|   |   |   |   |   +-- ai-memory.service.ts
+|   |   |   |   |-- ai/
+|   |   |   |   |   |-- cache/
+|   |   |   |   |   |   +-- ai-cache.service.ts
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- ai-governance.controller.ts
+|   |   |   |   |   |-- control-plane/
+|   |   |   |   |   |   |-- ai-async-execution.service.ts
+|   |   |   |   |   |   |-- ai-control-plane.service.ts
+|   |   |   |   |   |   |-- ai-control-plane.spec.ts
+|   |   |   |   |   |   |-- ai-execution.types.ts
+|   |   |   |   |   |   |-- ai-tool-execution.port.ts
+|   |   |   |   |   |   |-- response-controls.service.ts
+|   |   |   |   |   |   |-- response-controls.spec.ts
+|   |   |   |   |   |   |-- structured-json.ts
+|   |   |   |   |   |   +-- workspace-ai-policy-resolver.service.ts
+|   |   |   |   |   |-- evaluations/
+|   |   |   |   |   |   +-- ai-evaluation.service.ts
+|   |   |   |   |   |-- feedback/
+|   |   |   |   |   |   |-- ai-feedback.service.ts
+|   |   |   |   |   |   +-- ai-feedback.spec.ts
+|   |   |   |   |   |-- observability/
+|   |   |   |   |   |   |-- ai-admin-report.service.ts
+|   |   |   |   |   |   +-- ai-observability.service.ts
+|   |   |   |   |   |-- prompts/
+|   |   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   |   +-- prompt.repository.ts
+|   |   |   |   |   |   |-- prompt-lifecycle.schemas.ts
+|   |   |   |   |   |   |-- prompt-lifecycle.service.ts
+|   |   |   |   |   |   |-- prompt-lifecycle.spec.ts
+|   |   |   |   |   |   |-- prompt-registry.service.ts
+|   |   |   |   |   |   |-- prompt-template.schema.ts
+|   |   |   |   |   |   +-- prompt-version.schema.ts
+|   |   |   |   |   |-- providers/
+|   |   |   |   |   |   |-- ai-provider.interface.ts
+|   |   |   |   |   |   |-- base-http.provider.ts
+|   |   |   |   |   |   |-- gemini.provider.ts
+|   |   |   |   |   |   |-- groq.provider.ts
+|   |   |   |   |   |   |-- mock.provider.ts
+|   |   |   |   |   |   |-- ollama.provider.ts
+|   |   |   |   |   |   |-- openai.provider.ts
+|   |   |   |   |   |   +-- openrouter.provider.ts
+|   |   |   |   |   |-- reliability/
+|   |   |   |   |   |   |-- ai-reliability.service.ts
+|   |   |   |   |   |   |-- ai-reliability.spec.ts
+|   |   |   |   |   |   +-- ai-reliability-metrics.service.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- ai-governance.repository.ts
+|   |   |   |   |   |-- routing/
+|   |   |   |   |   |   |-- capability-registry.ts
+|   |   |   |   |   |   |-- fallback-policy.service.ts
+|   |   |   |   |   |   |-- model-router.service.ts
+|   |   |   |   |   |   |-- policy-routing.spec.ts
+|   |   |   |   |   |   +-- provider-health.service.ts
+|   |   |   |   |   |-- safety/
+|   |   |   |   |   |   |-- ai-safety.service.ts
+|   |   |   |   |   |   |-- moderation.service.ts
+|   |   |   |   |   |   |-- pii-redaction.service.ts
+|   |   |   |   |   |   +-- prompt-injection-detector.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- ai-governance.schemas.ts
+|   |   |   |   |   |-- streaming/
+|   |   |   |   |   |   +-- ai-streaming.service.ts
+|   |   |   |   |   |-- usage/
+|   |   |   |   |   |   |-- ai-usage.repository.ts
+|   |   |   |   |   |   |-- cost-calculator.service.ts
+|   |   |   |   |   |   +-- token-counter.service.ts
+|   |   |   |   |   |-- ai.module.ts
+|   |   |   |   |   |-- ai-gateway.service.ts
+|   |   |   |   |   |-- ai-gateway.spec.ts
+|   |   |   |   |   +-- ai-governance.spec.ts
+|   |   |   |   |-- appointments/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- appointments.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- appointment.dto.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- appointments.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- appointment.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   |-- appointments.service.spec.ts
+|   |   |   |   |   |   +-- appointments.service.ts
+|   |   |   |   |   +-- appointments.module.ts
+|   |   |   |   |-- audit/
+|   |   |   |   |   +-- audit.module.ts
+|   |   |   |   |-- auth/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- auth.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- auth.dto.ts
+|   |   |   |   |   |-- guards/
+|   |   |   |   |   |   |-- authentication.guard.ts
+|   |   |   |   |   |   +-- csrf.guard.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- auth.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   |-- auth-audit-event.schema.ts
+|   |   |   |   |   |   |-- auth-session.schema.ts
+|   |   |   |   |   |   |-- auth-token.schema.ts
+|   |   |   |   |   |   |-- login-attempt.schema.ts
+|   |   |   |   |   |   |-- refresh-token.schema.ts
+|   |   |   |   |   |   +-- two-factor-recovery-code.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   |-- access-token.service.ts
+|   |   |   |   |   |   |-- auth.service.spec.ts
+|   |   |   |   |   |   |-- auth.service.ts
+|   |   |   |   |   |   |-- auth-crypto.service.spec.ts
+|   |   |   |   |   |   |-- auth-crypto.service.ts
+|   |   |   |   |   |   |-- auth-notification.service.ts
+|   |   |   |   |   |   |-- password.service.spec.ts
+|   |   |   |   |   |   +-- password.service.ts
+|   |   |   |   |   +-- auth.module.ts
+|   |   |   |   |-- availability/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- availability.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- availability.dto.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- availability.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- availability.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   +-- availability.service.ts
+|   |   |   |   |   +-- availability.module.ts
+|   |   |   |   |-- billing/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- billing.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- billing.dto.ts
+|   |   |   |   |   |-- providers/
+|   |   |   |   |   |   |-- billing.providers.spec.ts
+|   |   |   |   |   |   +-- billing.providers.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- billing.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- billing.schemas.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   |-- billing.service.spec.ts
+|   |   |   |   |   |   |-- billing.service.ts
+|   |   |   |   |   |   |-- billing-webhook.service.spec.ts
+|   |   |   |   |   |   |-- billing-webhook.service.ts
+|   |   |   |   |   |   |-- subscription-state-machine.spec.ts
+|   |   |   |   |   |   +-- subscription-state-machine.ts
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- billing-provider.ts
+|   |   |   |   |   +-- billing.module.ts
+|   |   |   |   |-- booking-links/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- booking-links.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- booking-link.dto.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- booking-links.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- booking-link.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   +-- booking-links.service.ts
+|   |   |   |   |   +-- booking-links.module.ts
+|   |   |   |   |-- calendar/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- calendar.controller.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   +-- calendar.service.ts
+|   |   |   |   |   +-- calendar.module.ts
+|   |   |   |   |-- campaigns/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- campaign.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- campaign.dto.ts
+|   |   |   |   |   |-- jobs/
+|   |   |   |   |   |   +-- campaign-delivery.processor.ts
+|   |   |   |   |   |-- providers/
+|   |   |   |   |   |   +-- provider-adapter.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- campaign.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- campaign.schemas.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   |-- campaign.service.ts
+|   |   |   |   |   |   |-- campaign-policy.service.ts
+|   |   |   |   |   |   |-- campaign-policy.spec.ts
+|   |   |   |   |   |   +-- campaign-service.spec.ts
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- campaign.types.ts
+|   |   |   |   |   +-- campaigns.module.ts
+|   |   |   |   |-- companies/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- companies.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- company.dto.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- companies.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- company.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   +-- companies.service.ts
+|   |   |   |   |   +-- companies.module.ts
+|   |   |   |   |-- compliance/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- data-lifecycle.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- data-lifecycle.dto.ts
+|   |   |   |   |   |-- jobs/
+|   |   |   |   |   |   +-- data-lifecycle.processor.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- data-lifecycle.service.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- data-lifecycle.schemas.ts
+|   |   |   |   |   |-- compliance.module.ts
+|   |   |   |   |   |-- data-lifecycle.service.ts
+|   |   |   |   |   |-- data-lifecycle.spec.ts
+|   |   |   |   |   +-- data-lifecycle.types.ts
+|   |   |   |   |-- consent/
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- consent.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- consent.schemas.ts
+|   |   |   |   |   |-- consent.module.ts
+|   |   |   |   |   |-- consent.service.ts
+|   |   |   |   |   |-- consent.types.ts
+|   |   |   |   |   |-- consent-evaluation.service.spec.ts
+|   |   |   |   |   +-- consent-evaluation.service.ts
+|   |   |   |   |-- contacts/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- contacts.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- contact.dto.ts
+|   |   |   |   |   |-- mappers/
+|   |   |   |   |   |   +-- contact.mapper.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- contacts.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- contact.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   +-- contacts.service.ts
+|   |   |   |   |   +-- contacts.module.ts
+|   |   |   |   |-- crm/
+|   |   |   |   |   |-- domain/
+|   |   |   |   |   |   |-- company-policy.ts
+|   |   |   |   |   |   |-- contact-policy.ts
+|   |   |   |   |   |   |-- crm-policies.spec.ts
+|   |   |   |   |   |   |-- crm-state-machines.spec.ts
+|   |   |   |   |   |   |-- crm-state-machines.ts
+|   |   |   |   |   |   |-- deal-policy.ts
+|   |   |   |   |   |   +-- pipeline-policy.ts
+|   |   |   |   |   |-- crm.dto.ts
+|   |   |   |   |   |-- crm.mappers.ts
+|   |   |   |   |   |-- crm.module.ts
+|   |   |   |   |   |-- crm.modules.spec.ts
+|   |   |   |   |   |-- crm.repository.ts
+|   |   |   |   |   |-- crm.schema.ts
+|   |   |   |   |   |-- crm.transactions.spec.ts
+|   |   |   |   |   |-- crm.types.ts
+|   |   |   |   |   |-- crm-event.service.ts
+|   |   |   |   |   |-- crm-jobs.service.ts
+|   |   |   |   |   +-- crud.service.ts
+|   |   |   |   |-- custom-fields/
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- custom-field.dto.ts
+|   |   |   |   |   |-- jobs/
+|   |   |   |   |   |   +-- custom-field-migration.processor.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- custom-field.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- custom-field.schema.ts
+|   |   |   |   |   |-- custom-field.controller.ts
+|   |   |   |   |   |-- custom-field.service.spec.ts
+|   |   |   |   |   |-- custom-field.service.ts
+|   |   |   |   |   |-- custom-field.types.ts
+|   |   |   |   |   +-- custom-fields.module.ts
+|   |   |   |   |-- data-transfer/
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- data-transfer.dto.ts
+|   |   |   |   |   |-- jobs/
+|   |   |   |   |   |   |-- data-transfer.processors.spec.ts
+|   |   |   |   |   |   +-- data-transfer.processors.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   |-- data-transfer.repository.ts
+|   |   |   |   |   |   +-- data-transfer-rows.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- data-transfer.schemas.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   |-- data-transfer.service.ts
+|   |   |   |   |   |   |-- stream-parser.service.spec.ts
+|   |   |   |   |   |   +-- stream-parser.service.ts
+|   |   |   |   |   |-- data-transfer.controller.ts
+|   |   |   |   |   |-- data-transfer.module.ts
+|   |   |   |   |   +-- job-contract.spec.ts
+|   |   |   |   |-- deals/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- deals.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- deal.dto.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- deals.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- deal.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   +-- deals.service.ts
+|   |   |   |   |   +-- deals.module.ts
+|   |   |   |   |-- files/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- files.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- file.dto.ts
+|   |   |   |   |   |-- extraction/
+|   |   |   |   |   |   |-- extraction.worker.ts
+|   |   |   |   |   |   |-- mime-detection.service.ts
+|   |   |   |   |   |   |-- sandboxed-extraction.service.ts
+|   |   |   |   |   |   |-- secure-text-extractor.spec.ts
+|   |   |   |   |   |   |-- secure-text-extractor.ts
+|   |   |   |   |   |   +-- text-extraction.types.ts
+|   |   |   |   |   |-- jobs/
+|   |   |   |   |   |   |-- file-processing.processor.ts
+|   |   |   |   |   |   |-- orphan-cleanup.processor.ts
+|   |   |   |   |   |   +-- orphan-cleanup.scheduler.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   |-- files.repository.ts
+|   |   |   |   |   |   +-- text-extraction.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   |-- file.schema.ts
+|   |   |   |   |   |   +-- text-extraction.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   |-- file-policy.service.spec.ts
+|   |   |   |   |   |   |-- file-policy.service.ts
+|   |   |   |   |   |   +-- files.service.ts
+|   |   |   |   |   |-- storage/
+|   |   |   |   |   |   +-- storage.providers.ts
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- storage-provider.ts
+|   |   |   |   |   |-- virus-scan/
+|   |   |   |   |   |   |-- malware-scanner.spec.ts
+|   |   |   |   |   |   +-- malware-scanner.ts
+|   |   |   |   |   +-- files.module.ts
+|   |   |   |   |-- inbox/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- inbox.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- inbox.dto.ts
+|   |   |   |   |   |-- jobs/
+|   |   |   |   |   |   +-- outbound-message.processor.ts
+|   |   |   |   |   |-- realtime/
+|   |   |   |   |   |   |-- inbox.gateway.ts
+|   |   |   |   |   |   |-- inbox-realtime.service.spec.ts
+|   |   |   |   |   |   +-- inbox-realtime.service.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- inbox.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- inbox.schemas.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   |-- content-sanitizer.service.ts
+|   |   |   |   |   |   |-- inbox.service.spec.ts
+|   |   |   |   |   |   +-- inbox.service.ts
+|   |   |   |   |   +-- inbox.module.ts
+|   |   |   |   |-- integrations/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- integration.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- integration.dto.ts
+|   |   |   |   |   |-- jobs/
+|   |   |   |   |   |   +-- integration.processor.ts
+|   |   |   |   |   |-- providers/
+|   |   |   |   |   |   |-- provider.registry.spec.ts
+|   |   |   |   |   |   +-- provider.registry.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- integration.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- integration.schemas.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   |-- credential-vault.service.spec.ts
+|   |   |   |   |   |   |-- credential-vault.service.ts
+|   |   |   |   |   |   |-- integration.service.spec.ts
+|   |   |   |   |   |   |-- integration.service.ts
+|   |   |   |   |   |   |-- oauth.service.spec.ts
+|   |   |   |   |   |   +-- oauth.service.ts
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- provider-adapter.ts
+|   |   |   |   |   +-- integrations.module.ts
+|   |   |   |   |-- knowledge-base/
+|   |   |   |   |   |-- chunking/
+|   |   |   |   |   |   |-- fixtures/
+|   |   |   |   |   |   |   +-- strategy-benchmark.fixture.ts
+|   |   |   |   |   |   |-- chunking.service.spec.ts
+|   |   |   |   |   |   +-- chunking.service.ts
+|   |   |   |   |   |-- citations/
+|   |   |   |   |   |   +-- citation.service.ts
+|   |   |   |   |   |-- connectors/
+|   |   |   |   |   |   |-- builtin-connectors.ts
+|   |   |   |   |   |   |-- connector.repository.ts
+|   |   |   |   |   |   |-- connector-credential-vault.service.ts
+|   |   |   |   |   |   |-- connector-framework.spec.ts
+|   |   |   |   |   |   |-- connector-registrar.service.ts
+|   |   |   |   |   |   |-- connector-registry.ts
+|   |   |   |   |   |   |-- connector-sync.service.ts
+|   |   |   |   |   |   |-- connector-url-security.service.ts
+|   |   |   |   |   |   |-- fake-knowledge.connector.ts
+|   |   |   |   |   |   +-- knowledge-connector.types.ts
+|   |   |   |   |   |-- context-assembly/
+|   |   |   |   |   |   |-- context-assembly.service.spec.ts
+|   |   |   |   |   |   +-- context-assembly.service.ts
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   |-- knowledge-connector.controller.ts
+|   |   |   |   |   |   +-- knowledge-source.controller.ts
+|   |   |   |   |   |-- document-processing/
+|   |   |   |   |   |   |-- content-security.service.ts
+|   |   |   |   |   |   |-- ingestion.service.ts
+|   |   |   |   |   |   |-- language.service.ts
+|   |   |   |   |   |   |-- text-source-extractor.service.spec.ts
+|   |   |   |   |   |   +-- text-source-extractor.service.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   |-- ingest-knowledge-source.dto.ts
+|   |   |   |   |   |   +-- rag.dto.ts
+|   |   |   |   |   |-- embeddings/
+|   |   |   |   |   |   |-- embedding.service.spec.ts
+|   |   |   |   |   |   +-- embedding.service.ts
+|   |   |   |   |   |-- grounded-answer/
+|   |   |   |   |   |   |-- grounded-answer.service.spec.ts
+|   |   |   |   |   |   +-- grounded-answer.service.ts
+|   |   |   |   |   |-- hybrid-search/
+|   |   |   |   |   |   |-- fixtures/
+|   |   |   |   |   |   |   +-- retrieval-benchmark.fixture.ts
+|   |   |   |   |   |   |-- rag-retrieval.service.spec.ts
+|   |   |   |   |   |   +-- rag-retrieval.service.ts
+|   |   |   |   |   |-- rag-evaluation/
+|   |   |   |   |   |   |-- fixtures/
+|   |   |   |   |   |   |   +-- evaluation-dataset.fixture.ts
+|   |   |   |   |   |   |-- rag-evaluation.service.spec.ts
+|   |   |   |   |   |   +-- rag-evaluation.service.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   |-- atlas-vector-search.adapter.spec.ts
+|   |   |   |   |   |   |-- atlas-vector-search.adapter.ts
+|   |   |   |   |   |   |-- embedding.repository.ts
+|   |   |   |   |   |   |-- knowledge-source.repository.ts
+|   |   |   |   |   |   +-- rag.repository.ts
+|   |   |   |   |   |-- reranking/
+|   |   |   |   |   |   +-- reranker.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   |-- knowledge-source.schema.ts
+|   |   |   |   |   |   +-- rag.schemas.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   |-- complete-rag-slice.service.ts
+|   |   |   |   |   |   +-- knowledge-source.service.ts
+|   |   |   |   |   |-- vector-search/
+|   |   |   |   |   |   |-- in-memory-vector-search.adapter.ts
+|   |   |   |   |   |   +-- vector-search.types.ts
+|   |   |   |   |   |-- atlas-search-keyword-index.json
+|   |   |   |   |   |-- atlas-vector-index.json
+|   |   |   |   |   |-- knowledge-base.module.ts
+|   |   |   |   |   |-- rag-pipeline.spec.ts
+|   |   |   |   |   |-- rag-security.spec.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- leads/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- leads.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- lead.dto.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   |-- lead-qualification.repository.ts
+|   |   |   |   |   |   +-- leads.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   |-- lead.schema.ts
+|   |   |   |   |   |   +-- lead-qualification-result.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   |-- lead-qualification.service.spec.ts
+|   |   |   |   |   |   |-- lead-qualification.service.ts
+|   |   |   |   |   |   +-- leads.service.ts
+|   |   |   |   |   |-- lead-qualification.contract.ts
+|   |   |   |   |   +-- leads.module.ts
+|   |   |   |   |-- memberships/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- memberships.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- membership-response.dto.ts
+|   |   |   |   |   |-- mappers/
+|   |   |   |   |   |   +-- membership.mapper.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- memberships.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- membership.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   +-- memberships.service.ts
+|   |   |   |   |   +-- memberships.module.ts
+|   |   |   |   |-- notifications/
+|   |   |   |   |   |-- jobs/
+|   |   |   |   |   |   +-- notification-delivery.processor.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- notification.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- notification.schemas.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   |-- notification-orchestrator.service.spec.ts
+|   |   |   |   |   |   |-- notification-orchestrator.service.ts
+|   |   |   |   |   |   |-- quiet-hours.service.spec.ts
+|   |   |   |   |   |   +-- quiet-hours.service.ts
+|   |   |   |   |   +-- notifications.module.ts
+|   |   |   |   |-- permissions/
+|   |   |   |   |   |-- constants/
+|   |   |   |   |   |   +-- permission.catalog.ts
+|   |   |   |   |   |-- decorators/
+|   |   |   |   |   |   +-- require-permissions.decorator.ts
+|   |   |   |   |   |-- events/
+|   |   |   |   |   |   +-- permission-invalidated.event.ts
+|   |   |   |   |   |-- guards/
+|   |   |   |   |   |   |-- permission.guard.spec.ts
+|   |   |   |   |   |   +-- permission.guard.ts
+|   |   |   |   |   |-- listeners/
+|   |   |   |   |   |   |-- permission-invalidation.listener.spec.ts
+|   |   |   |   |   |   +-- permission-invalidation.listener.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- privileged-audit.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   |-- permission-cache.service.ts
+|   |   |   |   |   |   |-- permission-events.service.ts
+|   |   |   |   |   |   |-- policy.service.spec.ts
+|   |   |   |   |   |   |-- policy.service.ts
+|   |   |   |   |   |   +-- privileged-audit.service.ts
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- ability-context.ts
+|   |   |   |   |   +-- permissions.module.ts
+|   |   |   |   |-- pipelines/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- pipelines.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- pipeline.dto.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- pipelines.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- pipeline.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   +-- pipelines.service.ts
+|   |   |   |   |   +-- pipelines.module.ts
+|   |   |   |   |-- roles/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- roles.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- role.dto.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   |-- roles.repository.spec.ts
+|   |   |   |   |   |   +-- roles.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- role.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   +-- roles.service.ts
+|   |   |   |   |   |-- role-persistence.module.ts
+|   |   |   |   |   +-- roles.module.ts
+|   |   |   |   |-- sagas/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- saga.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- saga.dto.ts
+|   |   |   |   |   |-- jobs/
+|   |   |   |   |   |   +-- saga.processor.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- saga.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- saga.schema.ts
+|   |   |   |   |   |-- saga.service.ts
+|   |   |   |   |   |-- saga.types.ts
+|   |   |   |   |   |-- saga-definitions.ts
+|   |   |   |   |   |-- sagas.module.ts
+|   |   |   |   |   +-- saga-step-executor.service.ts
+|   |   |   |   |-- scheduling/
+|   |   |   |   |   |-- availability-policy.ts
+|   |   |   |   |   |-- scheduling.module.ts
+|   |   |   |   |   |-- scheduling-jobs.service.ts
+|   |   |   |   |   |-- scheduling-lock.service.ts
+|   |   |   |   |   |-- time.spec.ts
+|   |   |   |   |   +-- time.ts
+|   |   |   |   |-- search/
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- search.dto.ts
+|   |   |   |   |   |-- filter-compiler.property.spec.ts
+|   |   |   |   |   |-- filter-compiler.service.ts
+|   |   |   |   |   |-- index-recommendations.ts
+|   |   |   |   |   |-- search.controller.ts
+|   |   |   |   |   |-- search.module.ts
+|   |   |   |   |   |-- search.schemas.ts
+|   |   |   |   |   |-- search.service.ts
+|   |   |   |   |   |-- search.types.ts
+|   |   |   |   |   +-- search-metrics.service.ts
+|   |   |   |   |-- services/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- services.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- service.dto.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- services.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- service.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   +-- services.service.ts
+|   |   |   |   |   +-- services.module.ts
+|   |   |   |   |-- tasks/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- tasks.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- task.dto.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- tasks.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- task.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   +-- tasks.service.ts
+|   |   |   |   |   +-- tasks.module.ts
+|   |   |   |   |-- users/
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- users.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- user.schema.ts
+|   |   |   |   |   +-- users.module.ts
+|   |   |   |   |-- workflows/
+|   |   |   |   |   |-- actions/
+|   |   |   |   |   |   +-- node-handler.registry.ts
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- workflow.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- workflow.dto.ts
+|   |   |   |   |   |-- jobs/
+|   |   |   |   |   |   |-- workflow.processor.ts
+|   |   |   |   |   |   +-- workflow-scheduler.processor.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- workflow.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- workflow.schemas.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   |-- workflow.service.ts
+|   |   |   |   |   |   |-- workflow-engine.spec.ts
+|   |   |   |   |   |   |-- workflow-graph-validator.service.ts
+|   |   |   |   |   |   +-- workflow-scheduler.service.ts
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- workflow.types.ts
+|   |   |   |   |   +-- workflows.module.ts
+|   |   |   |   |-- workspaces/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- workspaces.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   +-- workspace-response.dto.ts
+|   |   |   |   |   |-- mappers/
+|   |   |   |   |   |   +-- workspace.mapper.ts
+|   |   |   |   |   |-- policies/
+|   |   |   |   |   |   +-- workspace-management.policy.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- workspaces.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- workspace.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   +-- workspaces.service.ts
+|   |   |   |   |   +-- workspaces.module.ts
+|   |   |   |   |-- workspace-settings/
+|   |   |   |   |   |-- controllers/
+|   |   |   |   |   |   +-- workspace-settings.controller.ts
+|   |   |   |   |   |-- dto/
+|   |   |   |   |   |   |-- update-workspace-settings.dto.spec.ts
+|   |   |   |   |   |   |-- update-workspace-settings.dto.ts
+|   |   |   |   |   |   +-- workspace-settings-response.dto.ts
+|   |   |   |   |   |-- mappers/
+|   |   |   |   |   |   +-- workspace-settings.mapper.ts
+|   |   |   |   |   |-- repositories/
+|   |   |   |   |   |   +-- workspace-settings.repository.ts
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- workspace-settings.schema.ts
+|   |   |   |   |   |-- services/
+|   |   |   |   |   |   +-- workspace-settings.service.ts
+|   |   |   |   |   +-- workspace-settings.module.ts
+|   |   |   |   +-- README.md
+|   |   |   |-- observability/
+|   |   |   |   |-- http-observability.interceptor.ts
+|   |   |   |   |-- metrics.controller.ts
+|   |   |   |   |-- metrics.service.spec.ts
+|   |   |   |   |-- metrics.service.ts
+|   |   |   |   |-- observability.module.ts
+|   |   |   |   +-- telemetry-adapters.ts
+|   |   |   |-- queues/
+|   |   |   |   +-- queues.module.ts
+|   |   |   |-- resilience/
+|   |   |   |   |-- request-protection.ts
+|   |   |   |   |-- resilience.spec.ts
+|   |   |   |   +-- resilience.ts
+|   |   |   |-- security/
+|   |   |   |   |-- http-security.config.ts
+|   |   |   |   |-- redis-throttler.storage.ts
+|   |   |   |   |-- security.module.ts
+|   |   |   |   |-- security-controls.spec.ts
+|   |   |   |   |-- security-event.service.ts
+|   |   |   |   +-- sensitive-field-redactor.ts
+|   |   |   |-- app.module.ts
+|   |   |   +-- main.ts
+|   |   |-- test/
+|   |   |   |-- support/
+|   |   |   |   |-- data-factories.ts
+|   |   |   |   |-- mongo-test-environment.ts
+|   |   |   |   |-- nest-test-application.ts
+|   |   |   |   |-- provider-contract.ts
+|   |   |   |   +-- redis-test-environment.ts
+|   |   |   |-- auth.e2e-spec.ts
+|   |   |   |-- database.integration-spec.ts
+|   |   |   |-- deterministic-ai-provider.contract-spec.ts
+|   |   |   |-- event-reliability.integration-spec.ts
+|   |   |   |-- health.e2e-spec.ts
+|   |   |   |-- lead-qualification.integration-spec.ts
+|   |   |   |-- lead-qualification-provider.contract-spec.ts
+|   |   |   |-- memory-replica-set.integration-spec.ts
+|   |   |   |-- saga-orchestration.integration-spec.ts
+|   |   |   +-- test-support.unit-spec.ts
+|   |   |-- .env.example
+|   |   |-- eslint.config.js
+|   |   |-- package.json
+|   |   |-- README.md
+|   |   |-- tsconfig.json
+|   |   |-- tsconfig.spec.json
+|   |   |-- vitest.contract.config.ts
+|   |   |-- vitest.e2e.config.ts
+|   |   |-- vitest.integration.config.ts
+|   |   +-- vitest.unit.config.ts
+|   |-- web/
+|   |   |-- e2e/
+|   |   |   +-- home.spec.ts
+|   |   |-- src/
+|   |   |   |-- accessibility/
+|   |   |   |   |-- AccessibilityShell.tsx
+|   |   |   |   |-- FocusManager.tsx
+|   |   |   |   |-- index.ts
+|   |   |   |   |-- keyboard-shortcut-context.ts
+|   |   |   |   |-- KeyboardShortcutProvider.test.tsx
+|   |   |   |   |-- KeyboardShortcutProvider.tsx
+|   |   |   |   |-- KeyboardShortcuts.tsx
+|   |   |   |   |-- LiveRegion.tsx
+|   |   |   |   |-- live-region-context.ts
+|   |   |   |   +-- SkipToContent.tsx
+|   |   |   |-- app/
+|   |   |   |   |-- config/
+|   |   |   |   |   |-- app.config.ts
+|   |   |   |   |   |-- environment.ts
+|   |   |   |   |   |-- feature-flags.config.ts
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   |-- navigation.config.ts
+|   |   |   |   |   |-- permissions.config.ts
+|   |   |   |   |   +-- plans.config.ts
+|   |   |   |   |-- design-system/
+|   |   |   |   |   +-- DesignSystemPage.tsx
+|   |   |   |   |-- providers/
+|   |   |   |   |   |-- AppProviders.tsx
+|   |   |   |   |   |-- auth-context.ts
+|   |   |   |   |   |-- AuthProvider.test.tsx
+|   |   |   |   |   |-- AuthProvider.tsx
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   |-- query-client.ts
+|   |   |   |   |   |-- query-error.test.ts
+|   |   |   |   |   |-- query-error.ts
+|   |   |   |   |   |-- QueryProvider.tsx
+|   |   |   |   |   |-- realtime-context.ts
+|   |   |   |   |   |-- RealtimeProvider.tsx
+|   |   |   |   |   |-- theme-context.ts
+|   |   |   |   |   |-- ThemeProvider.test.tsx
+|   |   |   |   |   |-- ThemeProvider.tsx
+|   |   |   |   |   |-- toast-context.ts
+|   |   |   |   |   |-- ToastProvider.tsx
+|   |   |   |   |   |-- workspace-context.ts
+|   |   |   |   |   |-- workspace-data.ts
+|   |   |   |   |   +-- WorkspaceProvider.tsx
+|   |   |   |   |-- router/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   |-- auth-page.tsx
+|   |   |   |   |   |   |-- landing-page.tsx
+|   |   |   |   |   |   |-- not-found-page.tsx
+|   |   |   |   |   |   |-- onboarding-page.tsx
+|   |   |   |   |   |   |-- unauthorized-page.tsx
+|   |   |   |   |   |   +-- upgrade-required-page.tsx
+|   |   |   |   |   |-- feature-flag-route.tsx
+|   |   |   |   |   |-- guest-route.tsx
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   |-- lazy-route.tsx
+|   |   |   |   |   |-- permission-route.tsx
+|   |   |   |   |   |-- protected-route.tsx
+|   |   |   |   |   |-- route-config.ts
+|   |   |   |   |   |-- route-loading-fallback.tsx
+|   |   |   |   |   |-- route-metadata.tsx
+|   |   |   |   |   |-- router.test.tsx
+|   |   |   |   |   |-- router.tsx
+|   |   |   |   |   |-- route-types.ts
+|   |   |   |   |   |-- subscription-route.tsx
+|   |   |   |   |   |-- use-route-metadata.ts
+|   |   |   |   |   +-- workspace-route.tsx
+|   |   |   |   |-- store/
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- styles/
+|   |   |   |   |   |-- animations.css
+|   |   |   |   |   |-- globals.css
+|   |   |   |   |   |-- print.css
+|   |   |   |   |   |-- tokens.css
+|   |   |   |   |   +-- utilities.css
+|   |   |   |   +-- App.tsx
+|   |   |   |-- assets/
+|   |   |   |   |-- fonts/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   |-- icons/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   |-- illustrations/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   |-- images/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   +-- logos/
+|   |   |   |       +-- .gitkeep
+|   |   |   |-- errors/
+|   |   |   |   |-- AppErrorBoundary.test.tsx
+|   |   |   |   |-- AppErrorBoundary.tsx
+|   |   |   |   |-- ErrorFallback.tsx
+|   |   |   |   |-- error-messages.ts
+|   |   |   |   |-- index.ts
+|   |   |   |   +-- RouteErrorBoundary.tsx
+|   |   |   |-- events/
+|   |   |   |   |-- event-bus.test.ts
+|   |   |   |   |-- event-bus.ts
+|   |   |   |   |-- event-listeners.ts
+|   |   |   |   |-- event-types.ts
+|   |   |   |   +-- index.ts
+|   |   |   |-- features/
+|   |   |   |   |-- admin/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- AdminPage.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- ai-agents/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   |-- AgentBuilder.tsx
+|   |   |   |   |   |   |-- AgentCard.tsx
+|   |   |   |   |   |   |-- AgentInstructions.tsx
+|   |   |   |   |   |   |-- AgentTestConsole.tsx
+|   |   |   |   |   |   |-- EscalationRules.tsx
+|   |   |   |   |   |   |-- KnowledgeSources.tsx
+|   |   |   |   |   |   |-- ModelSelector.tsx
+|   |   |   |   |   |   +-- ToolPermissions.tsx
+|   |   |   |   |   |-- hooks/
+|   |   |   |   |   |   +-- use-agent-data.ts
+|   |   |   |   |   |-- mocks/
+|   |   |   |   |   |   +-- agent.data.ts
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   |-- AgentDetailsPage.tsx
+|   |   |   |   |   |   |-- AgentsPage.tsx
+|   |   |   |   |   |   +-- KnowledgeBasePage.tsx
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- agent.types.ts
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- analytics/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- AnalyticsPage.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- announcements/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- appointments/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   |-- AppointmentDrawer.tsx
+|   |   |   |   |   |   |-- AppointmentForm.tsx
+|   |   |   |   |   |   |-- AppointmentList.tsx
+|   |   |   |   |   |   +-- ServiceSelector.tsx
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- AppointmentsPage.tsx
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- appointment.types.ts
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- auth/
+|   |   |   |   |   |-- api/
+|   |   |   |   |   |   +-- mock-auth-api.ts
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   |-- PasswordInput.tsx
+|   |   |   |   |   |   |-- PasswordStrength.tsx
+|   |   |   |   |   |   +-- SocialLogin.tsx
+|   |   |   |   |   |-- forms/
+|   |   |   |   |   |   |-- ForgotPasswordForm.tsx
+|   |   |   |   |   |   |-- LoginForm.tsx
+|   |   |   |   |   |   |-- RegisterForm.tsx
+|   |   |   |   |   |   +-- TwoFactorForm.tsx
+|   |   |   |   |   |-- hooks/
+|   |   |   |   |   |   +-- use-auth-mutations.ts
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   |-- AuthAuxiliaryPages.tsx
+|   |   |   |   |   |   |-- ForgotPasswordPage.tsx
+|   |   |   |   |   |   |-- LoginPage.tsx
+|   |   |   |   |   |   |-- RegisterPage.tsx
+|   |   |   |   |   |   |-- TwoFactorPage.tsx
+|   |   |   |   |   |   +-- VerifyEmailPage.tsx
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- auth.schemas.ts
+|   |   |   |   |   |-- store/
+|   |   |   |   |   |   +-- auth-store.ts
+|   |   |   |   |   |-- utils/
+|   |   |   |   |   |   +-- password-strength.ts
+|   |   |   |   |   |-- auth.integration.test.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- automation-templates/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- billing/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- BillingPage.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- calendar/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- CalendarPage.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- campaigns/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- CampaignsPage.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- companies/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- CompaniesPage.tsx
+|   |   |   |   |   |-- .gitkeep
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- compliance/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   +-- PrivacyRequestList.tsx
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- CompliancePage.tsx
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- compliance.types.ts
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- consent-management/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   |-- AuditHistory.tsx
+|   |   |   |   |   |   |-- CommunicationPreferences.tsx
+|   |   |   |   |   |   |-- ConsentNotice.tsx
+|   |   |   |   |   |   |-- PrivacyRequests.tsx
+|   |   |   |   |   |   +-- RetentionSettings.tsx
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- ConsentPage.tsx
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- consent.types.ts
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- contacts/
+|   |   |   |   |   |-- api/
+|   |   |   |   |   |   |-- contacts.api.ts
+|   |   |   |   |   |   +-- contacts.mock.ts
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   |-- ContactDrawer.tsx
+|   |   |   |   |   |   |-- ContactFilters.tsx
+|   |   |   |   |   |   |-- ContactForm.tsx
+|   |   |   |   |   |   |-- ContactNotes.tsx
+|   |   |   |   |   |   |-- ContactProfile.tsx
+|   |   |   |   |   |   |-- contacts-columns.ts
+|   |   |   |   |   |   |-- ContactsTable.tsx
+|   |   |   |   |   |   |-- ContactTasks.tsx
+|   |   |   |   |   |   +-- ContactTimeline.tsx
+|   |   |   |   |   |-- hooks/
+|   |   |   |   |   |   +-- use-contacts.ts
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   |-- ContactDetailsPage.tsx
+|   |   |   |   |   |   +-- ContactsPage.tsx
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- contact.schema.ts
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- contacts.types.ts
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- dashboard/
+|   |   |   |   |   |-- api/
+|   |   |   |   |   |   +-- dashboard.mock.ts
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   |-- AIInsightsPanel.tsx
+|   |   |   |   |   |   |-- CampaignPerformance.tsx
+|   |   |   |   |   |   |-- ChannelPerformance.tsx
+|   |   |   |   |   |   |-- FunnelChart.tsx
+|   |   |   |   |   |   |-- LeadGrowthChart.tsx
+|   |   |   |   |   |   |-- OverviewMetrics.tsx
+|   |   |   |   |   |   |-- RecentActivity.tsx
+|   |   |   |   |   |   |-- RevenueChart.tsx
+|   |   |   |   |   |   |-- TasksOverview.tsx
+|   |   |   |   |   |   |-- TeamPerformance.tsx
+|   |   |   |   |   |   +-- UpcomingAppointments.tsx
+|   |   |   |   |   |-- hooks/
+|   |   |   |   |   |   +-- use-dashboard.ts
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- DashboardPage.tsx
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- dashboard.types.ts
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- data-export/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- data-import/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- deals/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- DealsPage.tsx
+|   |   |   |   |   |-- .gitkeep
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- developer-portal/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   |-- ApiDocumentation.tsx
+|   |   |   |   |   |   |-- ApiKeys.tsx
+|   |   |   |   |   |   |-- MaskedApiKey.tsx
+|   |   |   |   |   |   |-- OneTimeViewWarning.tsx
+|   |   |   |   |   |   |-- RateLimits.tsx
+|   |   |   |   |   |   |-- RequestLogs.tsx
+|   |   |   |   |   |   +-- Webhooks.tsx
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- DeveloperPortalPage.tsx
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- developer.types.ts
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- feedback/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- file-manager/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- forms/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- FormsPage.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- funnels/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- FunnelsPage.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- inbox/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   |-- AISuggestionPanel.tsx
+|   |   |   |   |   |   |-- ChannelBadge.tsx
+|   |   |   |   |   |   |-- ContactSidebar.tsx
+|   |   |   |   |   |   |-- ConversationList.tsx
+|   |   |   |   |   |   |-- ConversationThread.tsx
+|   |   |   |   |   |   |-- InternalNoteComposer.tsx
+|   |   |   |   |   |   +-- MessageComposer.tsx
+|   |   |   |   |   |-- mocks/
+|   |   |   |   |   |   +-- inbox.data.ts
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- InboxPage.tsx
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- inbox.types.ts
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- integrations/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- IntegrationsPage.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- knowledge-base/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   |-- landing-pages/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- LandingPagesPage.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- leads/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- LeadsPage.tsx
+|   |   |   |   |   |-- .gitkeep
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- media-library/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   |-- MediaGrid.tsx
+|   |   |   |   |   |   |-- MediaList.tsx
+|   |   |   |   |   |   |-- MediaPreview.tsx
+|   |   |   |   |   |   +-- UploadDropzone.tsx
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- MediaLibraryPage.tsx
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- media.types.ts
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- notifications/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   |-- NotificationCenter.tsx
+|   |   |   |   |   |   |-- NotificationItem.tsx
+|   |   |   |   |   |   +-- NotificationPreferences.tsx
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- NotificationsPage.tsx
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- notification.types.ts
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- onboarding/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   +-- OnboardingStepLayout.tsx
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- OnboardingWizard.tsx
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- onboarding.schemas.ts
+|   |   |   |   |   |-- steps/
+|   |   |   |   |   |   |-- ChannelsStep.tsx
+|   |   |   |   |   |   |-- GoalsStep.tsx
+|   |   |   |   |   |   |-- IndustryStep.tsx
+|   |   |   |   |   |   |-- TeamStep.tsx
+|   |   |   |   |   |   +-- WorkspaceStep.tsx
+|   |   |   |   |   |-- store/
+|   |   |   |   |   |   +-- onboarding-store.ts
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- onboarding.integration.test.tsx
+|   |   |   |   |-- pipeline/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   |-- DealCard.tsx
+|   |   |   |   |   |   |-- DealForm.tsx
+|   |   |   |   |   |   |-- PipelineBoard.tsx
+|   |   |   |   |   |   |-- PipelineColumn.tsx
+|   |   |   |   |   |   |-- PipelineToolbar.tsx
+|   |   |   |   |   |   +-- StageSettings.tsx
+|   |   |   |   |   |-- hooks/
+|   |   |   |   |   |   +-- use-pipeline.ts
+|   |   |   |   |   |-- mocks/
+|   |   |   |   |   |   +-- pipeline.data.ts
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- PipelinePage.tsx
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- deal.schema.ts
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- pipeline.types.ts
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- settings/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- SettingsPage.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- support/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- .gitkeep
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- tasks/
+|   |   |   |   |   |-- api/
+|   |   |   |   |   |   +-- tasks.mock.ts
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   |-- TaskBoard.tsx
+|   |   |   |   |   |   |-- TaskDrawer.tsx
+|   |   |   |   |   |   |-- TaskFilters.tsx
+|   |   |   |   |   |   |-- TaskForm.tsx
+|   |   |   |   |   |   +-- TaskTable.tsx
+|   |   |   |   |   |-- hooks/
+|   |   |   |   |   |   +-- use-tasks.ts
+|   |   |   |   |   |-- mocks/
+|   |   |   |   |   |   +-- task.data.ts
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- TasksPage.tsx
+|   |   |   |   |   |-- schemas/
+|   |   |   |   |   |   +-- task.schema.ts
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- task.types.ts
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- README.md
+|   |   |   |   |-- team/
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   +-- TeamPage.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- templates/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   |-- workflows/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |   |-- MinimapControls.tsx
+|   |   |   |   |   |   |-- NodeInspector.tsx
+|   |   |   |   |   |   |-- NodeLibrary.tsx
+|   |   |   |   |   |   |-- ValidationPanel.tsx
+|   |   |   |   |   |   |-- WorkflowCanvas.tsx
+|   |   |   |   |   |   |-- WorkflowNodeCard.tsx
+|   |   |   |   |   |   |-- workflow-node-types.ts
+|   |   |   |   |   |   +-- WorkflowToolbar.tsx
+|   |   |   |   |   |-- constants/
+|   |   |   |   |   |   +-- node-catalog.ts
+|   |   |   |   |   |-- lib/
+|   |   |   |   |   |   |-- validate-workflow.ts
+|   |   |   |   |   |   +-- workflow-storage.ts
+|   |   |   |   |   |-- pages/
+|   |   |   |   |   |   |-- WorkflowBuilderPage.tsx
+|   |   |   |   |   |   +-- WorkflowListPage.tsx
+|   |   |   |   |   |-- types/
+|   |   |   |   |   |   +-- workflow.types.ts
+|   |   |   |   |   +-- index.ts
+|   |   |   |   +-- README.md
+|   |   |   |-- i18n/
+|   |   |   |   |-- locales/
+|   |   |   |   |   |-- ar.json
+|   |   |   |   |   |-- en.json
+|   |   |   |   |   +-- ur.json
+|   |   |   |   |-- config.ts
+|   |   |   |   |-- formatters.ts
+|   |   |   |   |-- index.ts
+|   |   |   |   |-- LanguageProvider.test.tsx
+|   |   |   |   |-- LanguageProvider.tsx
+|   |   |   |   |-- languages.ts
+|   |   |   |   +-- LanguageSelector.tsx
+|   |   |   |-- layouts/
+|   |   |   |   |-- AppLayout/
+|   |   |   |   |   |-- AppHeader.tsx
+|   |   |   |   |   |-- AppLayout.test.tsx
+|   |   |   |   |   |-- AppLayout.tsx
+|   |   |   |   |   |-- AppSidebar.tsx
+|   |   |   |   |   |-- CommandPalette.tsx
+|   |   |   |   |   |-- GlobalSearch.tsx
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   |-- MobileNavigation.tsx
+|   |   |   |   |   |-- navigation.ts
+|   |   |   |   |   |-- NotificationCenter.tsx
+|   |   |   |   |   +-- WorkspaceSwitcher.tsx
+|   |   |   |   |-- AuthLayout/
+|   |   |   |   |   |-- AuthLayout.tsx
+|   |   |   |   |   |-- AuthSidebar.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- BuilderLayout/
+|   |   |   |   |   |-- BuilderCanvas.tsx
+|   |   |   |   |   |-- BuilderInspector.tsx
+|   |   |   |   |   |-- BuilderLayout.tsx
+|   |   |   |   |   |-- BuilderSidebar.tsx
+|   |   |   |   |   |-- BuilderToolbar.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   |-- FullscreenLayout/
+|   |   |   |   |   |-- FullscreenLayout.tsx
+|   |   |   |   |   +-- index.ts
+|   |   |   |   +-- PublicLayout/
+|   |   |   |       |-- index.ts
+|   |   |   |       |-- PublicFooter.tsx
+|   |   |   |       |-- PublicHeader.tsx
+|   |   |   |       +-- PublicLayout.tsx
+|   |   |   |-- mocks/
+|   |   |   |   |-- data/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   +-- handlers/
+|   |   |   |       +-- .gitkeep
+|   |   |   |-- observability/
+|   |   |   |   |-- analytics-events.ts
+|   |   |   |   |-- error-reporting.ts
+|   |   |   |   |-- index.ts
+|   |   |   |   |-- logger.ts
+|   |   |   |   |-- performance-monitoring.ts
+|   |   |   |   +-- user-context.ts
+|   |   |   |-- pwa/
+|   |   |   |   |-- index.ts
+|   |   |   |   |-- offline-status.test.tsx
+|   |   |   |   |-- offline-status.ts
+|   |   |   |   |-- register-service-worker.ts
+|   |   |   |   +-- UpdateNotification.tsx
+|   |   |   |-- security/
+|   |   |   |   |-- content-security.ts
+|   |   |   |   |-- index.ts
+|   |   |   |   |-- permissions.ts
+|   |   |   |   |-- sanitize-html.ts
+|   |   |   |   |-- secure-storage.ts
+|   |   |   |   +-- session-timeout.ts
+|   |   |   |-- shared/
+|   |   |   |   |-- components/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   |-- constants/
+|   |   |   |   |   +-- routes.ts
+|   |   |   |   |-- hooks/
+|   |   |   |   |   |-- hooks.test.tsx
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   |-- useAsync.ts
+|   |   |   |   |   |-- useClipboard.ts
+|   |   |   |   |   |-- useDebounce.ts
+|   |   |   |   |   |-- useDisclosure.ts
+|   |   |   |   |   |-- use-document-title.ts
+|   |   |   |   |   |-- useEventListener.ts
+|   |   |   |   |   |-- useIntersectionObserver.ts
+|   |   |   |   |   |-- useInterval.ts
+|   |   |   |   |   |-- useIsMounted.ts
+|   |   |   |   |   |-- useKeyboardShortcut.ts
+|   |   |   |   |   |-- useMediaQuery.ts
+|   |   |   |   |   |-- useNetworkStatus.ts
+|   |   |   |   |   |-- useOutsideClick.ts
+|   |   |   |   |   |-- usePagination.ts
+|   |   |   |   |   |-- usePrevious.ts
+|   |   |   |   |   |-- useQueryParams.ts
+|   |   |   |   |   |-- useStorage.ts
+|   |   |   |   |   |-- useThrottle.ts
+|   |   |   |   |   |-- useTimeout.ts
+|   |   |   |   |   |-- useUnsavedChanges.ts
+|   |   |   |   |   +-- useWindowSize.ts
+|   |   |   |   |-- lib/
+|   |   |   |   |   |-- api-client.ts
+|   |   |   |   |   |-- api-error.ts
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   |-- lib.test.ts
+|   |   |   |   |   |-- logger.ts
+|   |   |   |   |   |-- query-client.ts
+|   |   |   |   |   |-- retry.ts
+|   |   |   |   |   +-- storage.ts
+|   |   |   |   |-- types/
+|   |   |   |   |   |-- api.ts
+|   |   |   |   |   |-- files.ts
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   +-- navigation.ts
+|   |   |   |   |-- ui/
+|   |   |   |   |   |-- Accordion.tsx
+|   |   |   |   |   |-- Alert.tsx
+|   |   |   |   |   |-- AlertDialog.tsx
+|   |   |   |   |   |-- Avatar.tsx
+|   |   |   |   |   |-- Badge.tsx
+|   |   |   |   |   |-- Breadcrumb.tsx
+|   |   |   |   |   |-- Button.tsx
+|   |   |   |   |   |-- Calendar.tsx
+|   |   |   |   |   |-- ChartCard.tsx
+|   |   |   |   |   |-- Checkbox.tsx
+|   |   |   |   |   |-- CodeEditor.tsx
+|   |   |   |   |   |-- ColorPicker.tsx
+|   |   |   |   |   |-- Combobox.tsx
+|   |   |   |   |   |-- CommandMenu.tsx
+|   |   |   |   |   |-- components.test.tsx
+|   |   |   |   |   |-- CopyButton.tsx
+|   |   |   |   |   |-- CurrencyInput.tsx
+|   |   |   |   |   |-- DataGrid.tsx
+|   |   |   |   |   |-- DatePicker.tsx
+|   |   |   |   |   |-- Drawer.tsx
+|   |   |   |   |   |-- Dropdown.tsx
+|   |   |   |   |   |-- Dropzone.tsx
+|   |   |   |   |   |-- EmptyState.tsx
+|   |   |   |   |   |-- EnterprisePrimitives.tsx
+|   |   |   |   |   |-- ErrorState.tsx
+|   |   |   |   |   |-- FileUpload.tsx
+|   |   |   |   |   |-- HelpTooltip.tsx
+|   |   |   |   |   |-- IconPicker.tsx
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   |-- InfiniteScroll.tsx
+|   |   |   |   |   |-- Input.tsx
+|   |   |   |   |   |-- JsonEditor.tsx
+|   |   |   |   |   |-- KeyboardKey.tsx
+|   |   |   |   |   |-- LoadingOverlay.tsx
+|   |   |   |   |   |-- MarkdownEditor.tsx
+|   |   |   |   |   |-- MetricCard.tsx
+|   |   |   |   |   |-- Modal.tsx
+|   |   |   |   |   |-- MultiSelect.tsx
+|   |   |   |   |   |-- NetworkStatus.tsx
+|   |   |   |   |   |-- Pagination.tsx
+|   |   |   |   |   |-- PhoneInput.tsx
+|   |   |   |   |   |-- Popover.tsx
+|   |   |   |   |   |-- Progress.tsx
+|   |   |   |   |   |-- Radio.tsx
+|   |   |   |   |   |-- ResizablePanels.tsx
+|   |   |   |   |   |-- ScrollArea.tsx
+|   |   |   |   |   |-- SearchableSelect.tsx
+|   |   |   |   |   |-- Select.tsx
+|   |   |   |   |   |-- Separator.tsx
+|   |   |   |   |   |-- ShareDialog.tsx
+|   |   |   |   |   |-- Sheet.tsx
+|   |   |   |   |   |-- Skeleton.tsx
+|   |   |   |   |   |-- Spinner.tsx
+|   |   |   |   |   |-- StatusDot.tsx
+|   |   |   |   |   |-- Stepper.tsx
+|   |   |   |   |   |-- Switch.tsx
+|   |   |   |   |   |-- Table.tsx
+|   |   |   |   |   |-- Tabs.tsx
+|   |   |   |   |   |-- Textarea.tsx
+|   |   |   |   |   |-- Timeline.tsx
+|   |   |   |   |   |-- Toast.tsx
+|   |   |   |   |   |-- Tooltip.tsx
+|   |   |   |   |   +-- VirtualizedList.tsx
+|   |   |   |   +-- utils/
+|   |   |   |       |-- cn.ts
+|   |   |   |       |-- collections.ts
+|   |   |   |       |-- files.ts
+|   |   |   |       |-- format.ts
+|   |   |   |       |-- index.ts
+|   |   |   |       |-- pagination.ts
+|   |   |   |       |-- query-params.ts
+|   |   |   |       |-- strings.ts
+|   |   |   |       +-- utils.test.ts
+|   |   |   |-- test/
+|   |   |   |   |-- factories/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   |-- fixtures/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   |-- helpers/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   |-- mocks/
+|   |   |   |   |   +-- .gitkeep
+|   |   |   |   +-- setup.ts
+|   |   |   |-- App.test.tsx
+|   |   |   |-- main.tsx
+|   |   |   +-- vite-env.d.ts
+|   |   |-- index.html
+|   |   |-- package.json
+|   |   |-- playwright.config.ts
+|   |   |-- tsconfig.app.json
+|   |   |-- tsconfig.json
+|   |   |-- tsconfig.node.json
+|   |   |-- vite.aliases.ts
+|   |   |-- vite.config.ts
+|   |   +-- vitest.config.ts
+|   |-- widget/
+|   |   |-- src/
+|   |   |   |-- features/
+|   |   |   |   |-- BookingPanel.tsx
+|   |   |   |   |-- ChatPanel.tsx
+|   |   |   |   +-- LeadPanel.tsx
+|   |   |   |-- lib/
+|   |   |   |   |-- api.test.ts
+|   |   |   |   |-- api.ts
+|   |   |   |   |-- consent.ts
+|   |   |   |   |-- visitor.test.ts
+|   |   |   |   +-- visitor.ts
+|   |   |   |-- App.tsx
+|   |   |   |-- ConsentBanner.tsx
+|   |   |   |-- embed.css
+|   |   |   |-- embed.ts
+|   |   |   |-- i18n.ts
+|   |   |   |-- main.tsx
+|   |   |   |-- styles.css
+|   |   |   +-- types.ts
+|   |   |-- index.html
+|   |   |-- package.json
+|   |   |-- README.md
+|   |   |-- tsconfig.json
+|   |   +-- vite.config.ts
+|   +-- worker/
+|       |-- src/
+|       |   |-- health/
+|       |   |   +-- health-server.ts
+|       |   |-- jobs/
+|       |   |   |-- execution-guard.spec.ts
+|       |   |   |-- execution-guard.ts
+|       |   |   |-- job.types.spec.ts
+|       |   |   +-- job.types.ts
+|       |   |-- processors/
+|       |   |   |-- contact-import.processor.ts
+|       |   |   +-- processors.ts
+|       |   |-- queues/
+|       |   |   |-- queue-registry.spec.ts
+|       |   |   +-- queue-registry.ts
+|       |   |-- redis/
+|       |   |   |-- distributed-lock.spec.ts
+|       |   |   +-- distributed-lock.ts
+|       |   |-- workers/
+|       |   |   |-- worker-registry.spec.ts
+|       |   |   +-- worker-registry.ts
+|       |   |-- application.spec.ts
+|       |   |-- application.ts
+|       |   |-- config.ts
+|       |   |-- index.ts
+|       |   +-- logging.ts
+|       |-- package.json
+|       |-- README.md
+|       +-- tsconfig.json
+|-- docker/
+|   |-- api/
+|   |   |-- .env.development
+|   |   |-- Dockerfile
+|   |   +-- Dockerfile.production
+|   |-- mongodb/
+|   |   +-- init-replica-set.js
+|   |-- redis/
+|   |   +-- redis.conf
+|   |-- scripts/
+|   |   +-- init-minio.sh
+|   |-- web/
+|   |   |-- .env.development
+|   |   |-- Dockerfile
+|   |   +-- Dockerfile.production
+|   |-- worker/
+|   |   |-- .env.development
+|   |   |-- Dockerfile
+|   |   +-- Dockerfile.production
+|   |-- .env.example
+|   |-- docker-compose.infrastructure.yml
+|   |-- Dockerfile.web
+|   |-- README.md
+|   +-- test-infrastructure.compose.yml
+|-- docs/
+|   |-- accessibility/
+|   |   +-- guidelines.md
+|   |-- api/
+|   |   +-- README.md
+|   |-- architecture/
+|   |   |-- atlas-vector-search.md
+|   |   |-- authorization.md
+|   |   |-- backend-domain-boundaries.md
+|   |   |-- error-handling.md
+|   |   |-- event-reliability.md
+|   |   |-- frontend-boundaries.md
+|   |   |-- observability.md
+|   |   |-- overview.md
+|   |   |-- README.md
+|   |   |-- routing.md
+|   |   |-- security.md
+|   |   |-- state-management.md
+|   |   +-- tenant-isolation.md
+|   |-- decisions/
+|   |   |-- ADR-001-monorepo.md
+|   |   |-- ADR-002-feature-architecture.md
+|   |   |-- ADR-003-state-management.md
+|   |   |-- ADR-004-i18n-and-rtl.md
+|   |   |-- ADR-005-backend-domain-boundaries.md
+|   |   |-- ADR-006-consistency-and-domain-events.md
+|   |   +-- README.md
+|   |-- deployment/
+|   |   +-- frontend-deployment.md
+|   |-- design-system/
+|   |   +-- README.md
+|   |-- operations/
+|   |   |-- disaster-recovery/
+|   |   |   |-- evidence/
+|   |   |   |   +-- README.md
+|   |   |   |-- runbooks/
+|   |   |   |   |-- accidental-deletion.md
+|   |   |   |   |-- ai-provider-outage.md
+|   |   |   |   |-- corrupted-deployment.md
+|   |   |   |   |-- integration-outage.md
+|   |   |   |   |-- lost-credentials.md
+|   |   |   |   |-- mongodb-outage.md
+|   |   |   |   |-- provider-outages.md
+|   |   |   |   |-- queue-backlog.md
+|   |   |   |   |-- redis-and-queues.md
+|   |   |   |   |-- redis-outage.md
+|   |   |   |   |-- regional-outage.md
+|   |   |   |   +-- vector-index-corruption.md
+|   |   |   |-- post-incident-review.md
+|   |   |   |-- README.md
+|   |   |   +-- restore-drill-record.md
+|   |   |-- backend-observability-security.md
+|   |   +-- cicd.md
+|   |-- product/
+|   |   +-- README.md
+|   |-- reports/
+|   |   |-- final-production-readiness.md
+|   |   |-- local-infrastructure-validation.md
+|   |   |-- rag-evaluation-report.md
+|   |   +-- repository-implementation-audit.md
+|   |-- runbooks/
+|   |   |-- broken-integration.md
+|   |   |-- failed-build.md
+|   |   +-- failed-deployment.md
+|   |-- security/
+|   |   +-- frontend-security.md
+|   +-- testing/
+|       +-- strategy.md
+|-- infra/
+|   |-- kubernetes/
+|   |   |-- base/
+|   |   |   |-- default-deny.yaml
+|   |   |   |-- external-secret.yaml
+|   |   |   |-- kustomization.yaml
+|   |   |   |-- namespace.yaml
+|   |   |   +-- platform-config.yaml
+|   |   |-- charts/
+|   |   |   |-- api/
+|   |   |   |   |-- templates/
+|   |   |   |   |   +-- all.yaml
+|   |   |   |   |-- Chart.yaml
+|   |   |   |   +-- values.yaml
+|   |   |   |-- web/
+|   |   |   |   |-- templates/
+|   |   |   |   |   +-- all.yaml
+|   |   |   |   |-- Chart.yaml
+|   |   |   |   +-- values.yaml
+|   |   |   +-- worker/
+|   |   |       |-- templates/
+|   |   |       |   +-- all.yaml
+|   |   |       |-- Chart.yaml
+|   |   |       +-- values.yaml
+|   |   +-- overlays/
+|   |       |-- production/
+|   |       |   |-- api-values.yaml
+|   |       |   |-- kustomization.yaml
+|   |       |   |-- web-values.yaml
+|   |       |   +-- worker-values.yaml
+|   |       +-- staging/
+|   |           |-- api-values.yaml
+|   |           |-- kustomization.yaml
+|   |           |-- web-values.yaml
+|   |           +-- worker-values.yaml
+|   |-- terraform/
+|   |   |-- environments/
+|   |   |   |-- production/
+|   |   |   |   |-- main.tf
+|   |   |   |   |-- terraform.tfvars.example
+|   |   |   |   |-- variables.tf
+|   |   |   |   +-- versions.tf
+|   |   |   +-- staging/
+|   |   |       |-- main.tf
+|   |   |       |-- terraform.tfvars.example
+|   |   |       |-- variables.tf
+|   |   |       +-- versions.tf
+|   |   +-- modules/
+|   |       |-- cdn/
+|   |       |   +-- main.tf
+|   |       |-- dns/
+|   |       |   +-- main.tf
+|   |       |-- kubernetes/
+|   |       |   +-- main.tf
+|   |       |-- mongodb/
+|   |       |   |-- main.tf
+|   |       |   +-- PRIVATE_LINK.md
+|   |       |-- network/
+|   |       |   +-- main.tf
+|   |       |-- observability/
+|   |       |   +-- main.tf
+|   |       |-- redis/
+|   |       |   +-- main.tf
+|   |       |-- secrets/
+|   |       |   +-- main.tf
+|   |       +-- storage/
+|   |           +-- main.tf
+|   +-- README.md
+|-- packages/
+|   |-- config/
+|   |   |-- src/
+|   |   |   +-- index.ts
+|   |   |-- package.json
+|   |   +-- tsconfig.json
+|   |-- eslint-config/
+|   |   |-- index.js
+|   |   +-- package.json
+|   |-- job-contracts/
+|   |   |-- src/
+|   |   |   |-- index.test.ts
+|   |   |   +-- index.ts
+|   |   |-- package.json
+|   |   +-- tsconfig.json
+|   |-- sdk/
+|   |   |-- src/
+|   |   |   +-- index.ts
+|   |   |-- package.json
+|   |   +-- tsconfig.json
+|   |-- types/
+|   |   |-- src/
+|   |   |   +-- index.ts
+|   |   |-- package.json
+|   |   +-- tsconfig.json
+|   |-- typescript-config/
+|   |   |-- base.json
+|   |   |-- package.json
+|   |   +-- react.json
+|   |-- ui/
+|   |   |-- src/
+|   |   |   |-- button.tsx
+|   |   |   |-- index.ts
+|   |   |   +-- styles.css
+|   |   |-- package.json
+|   |   +-- tsconfig.json
+|   +-- validation/
+|       |-- src/
+|       |   |-- index.test.ts
+|       |   +-- index.ts
+|       |-- package.json
+|       +-- tsconfig.json
+|-- performance/
+|   |-- k6/
+|   |   +-- backend-hot-paths.js
+|   +-- PERFORMANCE_REPORT.md
+|-- tooling/
+|   |-- codemods/
+|   |   |-- .gitkeep
+|   |   +-- README.md
+|   |-- generators/
+|   |   |-- src/
+|   |   |   |-- cli.ts
+|   |   |   |-- generator.spec.ts
+|   |   |   |-- generator.ts
+|   |   |   |-- index.ts
+|   |   |   |-- naming.ts
+|   |   |   +-- templates.ts
+|   |   |-- .gitkeep
+|   |   |-- package.json
+|   |   |-- README.md
+|   |   +-- tsconfig.json
+|   +-- scripts/
+|       |-- src/
+|       |   +-- index.ts
+|       |-- package.json
+|       +-- tsconfig.json
+|-- .dockerignore
+|-- .editorconfig
+|-- .env
+|-- .env.example
+|-- .gitignore
+|-- .node-version
+|-- .npmrc
+|-- .nvmrc
+|-- CHANGELOG.md
+|-- CODE_OF_CONDUCT.md
+|-- commitlint.config.js
+|-- CONTRIBUTING.md
+|-- dependency-cruiser.config.js
+|-- docker-compose.yml
+|-- eslint.config.js
+|-- knip.json
+|-- LICENSE
+|-- lint-staged.config.js
+|-- package.json
+|-- pnpm-lock.yaml
+|-- pnpm-workspace.yaml
+|-- prettier.config.js
+|-- PROJECT_STRUCTURE.txt
+|-- README.md
+|-- renovate.json
+|-- SECURITY.md
+|-- tsconfig.base.json
++-- turbo.json

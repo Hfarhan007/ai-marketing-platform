@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { plainToInstance, Type } from 'class-transformer';
+import { plainToInstance, Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsEnum,
@@ -22,6 +22,13 @@ export enum Environment {
   Test = 'test',
 }
 
+function environmentBoolean({ value }: { value: unknown }): unknown {
+  if (typeof value === 'boolean') return value;
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return value;
+}
+
 export class EnvironmentVariables {
   @IsIn(['fake', 'stripe'])
   BILLING_PROVIDER = 'fake';
@@ -40,6 +47,7 @@ export class EnvironmentVariables {
   BILLING_GRACE_PERIOD_DAYS = 7;
   @IsEnum(Environment)
   NODE_ENV: Environment = Environment.Development;
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(65_535)
@@ -80,6 +88,7 @@ export class EnvironmentVariables {
   @IsInt()
   @Min(1_000)
   MONGODB_SOCKET_TIMEOUT_MS = 45_000;
+  @Transform(environmentBoolean)
   @IsBoolean()
   MONGODB_ATLAS_SEARCH_ENABLED = false;
   @IsString()
@@ -143,8 +152,10 @@ export class EnvironmentVariables {
   @IsInt()
   @Min(60)
   AUTH_LOCKOUT_SECONDS = 900;
+  @Transform(environmentBoolean)
   @IsBoolean()
   AUTH_COOKIE_SECURE = false;
+  @Transform(environmentBoolean)
   @IsBoolean()
   AUTH_RESET_REVOKES_ALL_SESSIONS = true;
   @IsString()

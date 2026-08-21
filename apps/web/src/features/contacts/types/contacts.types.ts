@@ -19,6 +19,8 @@ export interface Contact {
   createdAt: string;
   lastActivityAt: string;
   location: string;
+  version: number;
+  deletedAt: string | null;
 }
 
 export interface ContactActivity {
@@ -62,4 +64,4 @@ export interface ContactsResult {
   totalPages: number;
 }
 
-export type ContactInput = Omit<Contact, 'createdAt' | 'id' | 'lastActivityAt'>;
+export type ContactInput = Omit<Contact, 'createdAt' | 'deletedAt' | 'id' | 'lastActivityAt' | 'version'> & { version?: number };

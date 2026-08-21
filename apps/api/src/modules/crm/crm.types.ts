@@ -16,6 +16,7 @@ export interface CrmPage<T> {
   page: number;
   limit: number;
   total: number;
+  nextCursor: string | null;
 }
 
 export interface CrmEvent {

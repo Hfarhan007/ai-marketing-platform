@@ -39,3 +39,7 @@ export class ConvertLeadDto {
   @IsOptional() @IsNumber() @Min(0) dealValue = 0;
   @IsOptional() @IsString() @MaxLength(3) currency = 'USD';
 }
+export class QualifyLeadDto {
+  @IsString() @MaxLength(20_000) text!: string;
+  @IsOptional() @IsMongoId() leadId?: string;
+}

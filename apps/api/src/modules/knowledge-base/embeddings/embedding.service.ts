@@ -29,6 +29,7 @@ const PROVIDER_LIMITS: Record<AiProviderName, EmbeddingLimits> = {
   ollama: { maxBatchSize: 32, maxInputTokens: 32_000, maxRetries: 2 },
   groq: { maxBatchSize: 32, maxInputTokens: 16_000, maxRetries: 2 },
   openrouter: { maxBatchSize: 64, maxInputTokens: 64_000, maxRetries: 3 },
+  mock: { maxBatchSize: 128, maxInputTokens: 250_000, maxRetries: 0 },
 };
 
 @Injectable()

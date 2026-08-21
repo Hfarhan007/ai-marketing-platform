@@ -51,8 +51,8 @@ migrations rerun only when their checksum changes.
 
 Endpoints:
 
-- `GET /health/live`
-- `GET /health/ready`
+- `GET /api/v1/health/live`
+- `GET /api/v1/health/ready`
 - Swagger UI at `/api/docs`
 - Business routes use the `/api/v1` prefix
 

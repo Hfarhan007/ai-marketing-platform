@@ -1,4 +1,4 @@
-export type AiProviderName = 'openai' | 'gemini' | 'groq' | 'openrouter' | 'ollama';
+export type AiProviderName = 'openai' | 'gemini' | 'groq' | 'openrouter' | 'ollama' | 'mock';
 export type AiCapability = 'chat' | 'json' | 'vision' | 'embeddings' | 'streaming' | 'tools';
 export interface AiMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
@@ -33,6 +33,7 @@ export interface AiResponse {
   structured?: unknown;
   usage: AiUsage;
   providerRequestId?: string;
+  costUsd?: number;
   toolCalls?: Array<{ name: string; arguments: Record<string, unknown> }>;
 }
 export interface AiStreamChunk {

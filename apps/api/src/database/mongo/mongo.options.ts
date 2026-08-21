@@ -39,7 +39,7 @@ export function createMongoOptions(config: MongoConfiguration): MongooseModuleOp
     socketTimeoutMS: config.socketTimeoutMs,
     connectTimeoutMS: 10_000,
     heartbeatFrequencyMS: 10_000,
-    compressors: ['zstd', 'snappy', 'zlib'],
+    compressors: ['zlib'],
     retryAttempts: 3,
     retryDelay: 1_000,
     autoIndex: false,

@@ -45,8 +45,16 @@ export class ContactsService {
         dto.customFields,
       ),
     };
-    const value = await this.repository.createEntity(context.workspaceId, context.userId, input);
-    await this.record(context, value, 'created');
+    const value = await this.transactions.run(async (session) => {
+      const created = await this.repository.createEntity(
+        context.workspaceId,
+        context.userId,
+        input,
+        session,
+      );
+      await this.record(context, created, 'created', session);
+      return created;
+    });
     return mapContact(value);
   }
   async update(context: WorkspaceRequestContext, id: string, dto: UpdateContactDto) {
@@ -68,29 +76,46 @@ export class ContactsService {
       'contacts',
       dto.customFields,
     );
-    const value = await this.repository.updateEntity(
-      context.workspaceId,
-      id,
-      context.userId,
-      version,
-      { ...this.prepare(input), customFields },
-    );
-    await this.record(context, value, 'updated');
+    const value = await this.transactions.run(async (session) => {
+      const updated = await this.repository.updateEntity(
+        context.workspaceId,
+        id,
+        context.userId,
+        version,
+        { ...this.prepare(input), customFields },
+        session,
+      );
+      await this.record(context, updated, 'updated', session);
+      return updated;
+    });
     return mapContact(value);
   }
   async remove(context: WorkspaceRequestContext, id: string, version: number) {
-    const value = await this.repository.softDelete(
-      context.workspaceId,
-      id,
-      context.userId,
-      version,
-    );
-    await this.record(context, value, 'deleted');
+    const value = await this.transactions.run(async (session) => {
+      const deleted = await this.repository.softDelete(
+        context.workspaceId,
+        id,
+        context.userId,
+        version,
+        session,
+      );
+      await this.record(context, deleted, 'deleted', session);
+      return deleted;
+    });
     return mapContact(value);
   }
   async restore(context: WorkspaceRequestContext, id: string, version: number) {
-    const value = await this.repository.restore(context.workspaceId, id, context.userId, version);
-    await this.record(context, value, 'restored');
+    const value = await this.transactions.run(async (session) => {
+      const restored = await this.repository.restore(
+        context.workspaceId,
+        id,
+        context.userId,
+        version,
+        session,
+      );
+      await this.record(context, restored, 'restored', session);
+      return restored;
+    });
     return mapContact(value);
   }
   async merge(context: WorkspaceRequestContext, dto: MergeContactsDto) {

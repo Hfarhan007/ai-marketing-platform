@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { IndexManagerService } from './indexes/index-manager.service.js';
 import { MigrationRunnerService } from './migrations/migration-runner.service.js';
@@ -8,6 +8,7 @@ import { SeedRunnerService } from './seeds/seed-runner.service.js';
 import { TransactionManagerService } from './transactions/transaction-manager.service.js';
 import { AtlasVectorIndexManagerService } from './indexes/atlas-vector-index-manager.service.js';
 
+@Global()
 @Module({
   imports: [
     MongoModule,

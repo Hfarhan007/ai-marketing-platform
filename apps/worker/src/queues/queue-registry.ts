@@ -1,9 +1,9 @@
 import { Queue, type JobsOptions } from 'bullmq';
 import type Redis from 'ioredis';
+import { DEFAULT_RETRY_POLICY } from '@repo/job-contracts';
 import { QUEUE_NAMES, type JobPayload, type QueueName } from '../jobs/job.types.js';
 export const DEFAULT_JOB_OPTIONS: JobsOptions = {
-  attempts: 5,
-  backoff: { type: 'exponential', delay: 1000 },
+  ...DEFAULT_RETRY_POLICY,
   removeOnComplete: { age: 86_400, count: 10_000 },
   removeOnFail: { age: 604_800, count: 50_000 },
 };

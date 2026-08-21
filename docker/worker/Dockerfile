@@ -7,6 +7,7 @@ COPY apps/worker/package.json apps/worker/package.json
 COPY apps/web/package.json apps/web/package.json
 COPY packages/config/package.json packages/config/package.json
 COPY packages/eslint-config/package.json packages/eslint-config/package.json
+COPY packages/job-contracts/package.json packages/job-contracts/package.json
 COPY packages/sdk/package.json packages/sdk/package.json
 COPY packages/types/package.json packages/types/package.json
 COPY packages/typescript-config/package.json packages/typescript-config/package.json

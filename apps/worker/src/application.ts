@@ -38,8 +38,15 @@ export async function startApplication(config = loadConfig()): Promise<WorkerRes
     maxIdleTimeMS: 60_000,
     autoIndex: config.NODE_ENV !== 'production',
   });
+  const database = mongoose.connection.db;
+  if (!database) throw new Error('MongoDB database unavailable');
+  await Promise.all([
+    database.collection('job_executions').createIndex({ workspaceId: 1, idempotencyKey: 1 }, { unique: true, name: 'job_execution_workspace_idempotency' }),
+    database.collection('job_executions').createIndex({ status: 1, updatedAt: -1 }, { name: 'job_execution_status' }),
+    database.collection('job_progress_events').createIndex({ workspaceId: 1, jobId: 1, createdAt: 1 }, { name: 'job_progress_workspace_job' }),
+  ]);
   const queues = new QueueRegistry(redis, config.WORKER_PREFIX),
-    workers = new WorkerRegistry(redis, config, queues, createProcessorRegistry(), logger),
+    workers = new WorkerRegistry(redis, config, queues, createProcessorRegistry(config), logger),
     health = new HealthServer(config.WORKER_PORT, redis, mongoose, queues, logger);
   workers.start();
   health.start();

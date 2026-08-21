@@ -64,6 +64,20 @@ export class AnswerKnowledgeDto extends RetrieveKnowledgeDto {
   @IsOptional() @IsBoolean() routeHumanReview?: boolean;
 }
 
+export class CompleteRagSliceDto {
+  @IsString() @MaxLength(200) name!: string;
+  @IsString() @MaxLength(200) idempotencyKey!: string;
+  @IsIn(['manual_text', 'uploaded_file']) sourceType!: 'manual_text' | 'uploaded_file';
+  @IsOptional() @IsString() @MaxLength(10_000_000) text?: string;
+  @IsOptional() @IsString() @MaxLength(500) filename?: string;
+  @IsOptional() @IsString() @MaxLength(100) mimeType?: string;
+  @IsOptional() @IsString() @MaxLength(14_000_000) contentBase64?: string;
+  @IsString() @MaxLength(2_000) question!: string;
+  @IsOptional() @IsArray() @IsString({ each: true }) collectionIds?: string[];
+  @IsOptional() @IsObject() accessControl?: Record<string, unknown>;
+  @IsOptional() @IsInt() @Min(100) @Max(20_000) tokenBudget?: number;
+}
+
 export class EmbeddingMigrationDto {
   @IsIn(['openai', 'gemini', 'groq', 'openrouter', 'ollama']) provider!: AiProviderName;
   @IsString() @MaxLength(200) model!: string;

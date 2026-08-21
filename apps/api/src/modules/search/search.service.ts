@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectConnection } from '@nestjs/mongoose';
-import { Connection, Types } from 'mongoose';
+import { Types, type Connection } from 'mongoose';
 import { PinoLogger } from 'nestjs-pino';
 import type { WorkspaceRequestContext } from '../../common/types/workspace-context.js';
 import { PolicyService } from '../permissions/services/policy.service.js';

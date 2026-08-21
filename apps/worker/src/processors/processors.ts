@@ -1,4 +1,6 @@
 import type { JobPayload, QueueName } from '../jobs/job.types.js';
+import type { WorkerConfig } from '../config.js';
+import { createContactImportProcessor } from './contact-import.processor.js';
 export interface ProcessorContext {
   progress(value: number): Promise<void>;
   signal: AbortSignal;
@@ -19,7 +21,7 @@ const generic: JobProcessor = async (payload, context) => {
   await context.progress(100);
   return { processed: true, workspaceId: payload.workspaceId };
 };
-export function createProcessorRegistry(): Record<QueueName, JobProcessor> {
+export function createProcessorRegistry(config: WorkerConfig): Record<QueueName, JobProcessor> {
   return {
     email: mockExternal,
     sms: mockExternal,
@@ -37,8 +39,8 @@ export function createProcessorRegistry(): Record<QueueName, JobProcessor> {
     'file-processing': generic,
     notifications: mockExternal,
     analytics: generic,
-    imports: generic,
-    exports: generic,
+    'contact-imports': createContactImportProcessor(config) as JobProcessor,
+    'data-exports': generic,
     cleanup: generic,
   };
 }
