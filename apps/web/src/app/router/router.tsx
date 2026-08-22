@@ -39,12 +39,14 @@ const AgentsPage = lazyRoute(() => import('@/features/ai-agents').then(({ Agents
 const AgentDetailsPage = lazyRoute(() => import('@/features/ai-agents').then(({ AgentDetailsPage: defaultPage }) => ({ default: defaultPage })));
 const KnowledgeBasePage = lazyRoute(() => import('@/features/ai-agents').then(({ KnowledgeBasePage: defaultPage }) => ({ default: defaultPage })));
 const CampaignsPage = lazyRoute(() => import('@/features/campaigns'));
+const MetaAdsPage = lazyRoute(() => import('@/features/meta-ads'));
 const CalendarPage = lazyRoute(() => import('@/features/calendar'));
 const AppointmentsPage = lazyRoute(() => import('@/features/appointments'));
 const FormsPage = lazyRoute(() => import('@/features/forms'));
 const LandingPagesPage = lazyRoute(() => import('@/features/landing-pages'));
 const FunnelsPage = lazyRoute(() => import('@/features/funnels'));
 const AnalyticsPage = lazyRoute(() => import('@/features/analytics'));
+const LeadSourceReportPage = lazyRoute(() => import('@/features/source-reporting'));
 const MediaLibraryPage = lazyRoute(() => import('@/features/media-library'));
 const IntegrationsPage = lazyRoute(() => import('@/features/integrations'));
 const DeveloperPortalPage = lazyRoute(() => import('@/features/developer-portal'));
@@ -62,9 +64,9 @@ const workspacePages: Record<WorkspaceRouteId, ReactElement> = {
   companies: <CompaniesPage />, leads: <LeadsPage />, deals: <DealsPage />, pipeline: <PipelinePage />,
   tasks: <TasksPage />, inbox: <InboxPage />, conversation: <InboxPage />, workflows: <WorkflowListPage />,
   workflowNew: <WorkflowBuilderPage />, workflowDetails: <WorkflowBuilderPage />, aiAgents: <AgentsPage />,
-  agentDetails: <AgentDetailsPage />, knowledgeBase: <KnowledgeBasePage />, campaigns: <CampaignsPage />,
+  agentDetails: <AgentDetailsPage />, knowledgeBase: <KnowledgeBasePage />, campaigns: <CampaignsPage />,metaAds:<MetaAdsPage/>,
   calendar: <CalendarPage />, appointments: <AppointmentsPage />, forms: <FormsPage />,
-  landingPages: <LandingPagesPage />, funnels: <FunnelsPage />, analytics: <AnalyticsPage />,
+  landingPages: <LandingPagesPage />, funnels: <FunnelsPage />, analytics: <AnalyticsPage />,leadSourceReport:<LeadSourceReportPage/>,
   mediaLibrary: <MediaLibraryPage />, integrations: <IntegrationsPage />, developerPortal: <DeveloperPortalPage />,
   team: <TeamPage />, billing: <BillingPage />, settings: <SettingsPage />, consentManagement: <ConsentPage />,
   compliance: <CompliancePage />, admin: <AdminPage />, notifications: <NotificationsPage />,

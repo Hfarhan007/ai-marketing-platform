@@ -1,0 +1,14 @@
+import{ApiProperty,ApiPropertyOptional}from'@nestjs/swagger';
+export class IntegrationConnectionResponseDto{@ApiProperty()id!:string;@ApiProperty({enum:['facebook','instagram','whatsapp','gmail','outlook','google_calendar','stripe','shopify','highlevel']})provider!:string;@ApiProperty()name!:string;@ApiProperty({enum:['pending','active','error','disabled','needs_attention']})status!:string;@ApiProperty({type:'object',additionalProperties:true})publicMetadata!:Record<string,unknown>;@ApiPropertyOptional({nullable:true})lastValidatedAt?:Date|null;@ApiPropertyOptional({nullable:true})lastSyncAt?:Date|null;@ApiPropertyOptional({nullable:true})lastErrorCode?:string|null;@ApiPropertyOptional({nullable:true})lastFailureMessage?:string|null;@ApiPropertyOptional({nullable:true})lastFailureAt?:Date|null;}
+export class IntegrationConnectionListResponseDto{@ApiProperty({type:()=>[IntegrationConnectionResponseDto]})items!:IntegrationConnectionResponseDto[];}
+export class OAuthStartResponseDto{@ApiProperty()state!:string;@ApiProperty()codeChallenge!:string;@ApiProperty({enum:['S256']})codeChallengeMethod!:string;@ApiPropertyOptional()authorizationUrl?:string;}
+export class OAuthCallbackResponseDto{@ApiProperty()connected!:boolean;@ApiProperty()connectionId!:string;}
+export class IntegrationResourceResponseDto{@ApiProperty()type!:string;@ApiProperty()id!:string;@ApiProperty()name!:string;@ApiPropertyOptional()parentId?:string;@ApiPropertyOptional({type:'object',additionalProperties:true})metadata?:Record<string,unknown>;}
+export class IntegrationResourceListResponseDto{@ApiProperty({type:()=>[IntegrationResourceResponseDto]})resources!:IntegrationResourceResponseDto[];}
+export class OperationAcknowledgementDto{@ApiPropertyOptional()connected?:boolean;@ApiPropertyOptional()disconnected?:boolean;@ApiPropertyOptional()refreshed?:boolean;@ApiPropertyOptional()accepted?:boolean;@ApiPropertyOptional()duplicate?:boolean;}
+export class IntegrationValidationResponseDto{@ApiProperty()valid!:boolean;}
+export class IntegrationHealthResponseDto{@ApiProperty()healthy!:boolean;@ApiPropertyOptional()message?:string;@ApiProperty()checkedAt!:Date;}
+export class IntegrationSyncResponseDto{@ApiProperty()syncJobId!:string;@ApiProperty()duplicate!:boolean;}
+export class MetaConversionQueuedResponseDto{@ApiProperty()deliveryId!:string;@ApiProperty()eventId!:string;@ApiProperty()duplicate!:boolean;@ApiProperty()status!:string;}
+export class MetaConversionStatusResponseDto extends MetaConversionQueuedResponseDto{@ApiProperty()eventName!:string;@ApiProperty()pixelId!:string;@ApiProperty()attemptCount!:number;@ApiPropertyOptional({nullable:true})errorCode?:string|null;}
+export class WebhookAcceptedResponseDto{@ApiProperty()accepted!:boolean;@ApiProperty()events!:number;@ApiProperty()duplicates!:number;@ApiProperty()duplicate!:boolean;}

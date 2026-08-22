@@ -27,7 +27,7 @@ export type OnboardingRouteId = 'onboarding' | 'workspace' | 'industry' | 'goals
 export type WorkspaceRouteId =
   | 'dashboard' | 'contacts' | 'contactDetails' | 'companies' | 'leads' | 'deals'
   | 'pipeline' | 'tasks' | 'inbox' | 'conversation' | 'workflows' | 'workflowNew'
-  | 'workflowDetails' | 'aiAgents' | 'agentDetails' | 'knowledgeBase' | 'campaigns'
-  | 'calendar' | 'appointments' | 'forms' | 'landingPages' | 'funnels' | 'analytics'
+  | 'workflowDetails' | 'aiAgents' | 'agentDetails' | 'knowledgeBase' | 'campaigns' | 'metaAds'
+  | 'calendar' | 'appointments' | 'forms' | 'landingPages' | 'funnels' | 'analytics' | 'leadSourceReport'
   | 'mediaLibrary' | 'integrations' | 'developerPortal' | 'team' | 'billing'
   | 'settings' | 'consentManagement' | 'compliance' | 'admin' | 'notifications';

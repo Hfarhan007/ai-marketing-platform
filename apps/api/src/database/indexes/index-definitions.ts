@@ -263,6 +263,18 @@ export const INDEX_DEFINITIONS: readonly ExplicitIndexDefinition[] = [
   workspaceIndex('leads', { normalizedEmail: 1, status: 1 }, 'leads_workspace_normalized_email'),
   workspaceIndex('leads', { normalizedPhone: 1, status: 1 }, 'leads_workspace_normalized_phone'),
   workspaceIndex(
+    'leads',
+    { externalProvider: 1, externalLeadId: 1 },
+    'leads_workspace_external_provider_id',
+    {
+      unique: true,
+      partialFilterExpression: {
+        externalProvider: { $type: 'string' },
+        externalLeadId: { $type: 'string' },
+      },
+    },
+  ),
+  workspaceIndex(
     'deals',
     { pipelineId: 1, stageId: 1, status: 1 },
     'deals_workspace_pipeline_stage',
@@ -383,6 +395,7 @@ export const INDEX_DEFINITIONS: readonly ExplicitIndexDefinition[] = [
     options: { expireAfterSeconds: 0 },
   },
   workspaceIndex('campaigns', { status: 1, scheduledAt: 1 }, 'campaigns_workspace_status_schedule'),
+  workspaceIndex('campaigns', { externalProvider: 1, externalCampaignId: 1 }, 'campaigns_workspace_external_provider_id', { unique: true, partialFilterExpression: { externalProvider: { $type: 'string' }, externalCampaignId: { $type: 'string' } } }),
   workspaceIndex(
     'campaign_versions',
     { campaignId: 1, version: 1 },
@@ -452,6 +465,8 @@ export const INDEX_DEFINITIONS: readonly ExplicitIndexDefinition[] = [
     'webhook_deliveries_workspace_event_attempt',
     { unique: true },
   ),
+  workspaceIndex('integration_conversion_deliveries',{connectionId:1,eventId:1},'conversion_deliveries_workspace_connection_event',{unique:true}),
+  workspaceIndex('integration_conversion_deliveries',{status:1,createdAt:1},'conversion_deliveries_workspace_status_created'),
   workspaceIndex(
     'integration_sync_jobs',
     { idempotencyKey: 1 },

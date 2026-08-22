@@ -50,6 +50,7 @@ import { QueuesModule } from './queues/queues.module.js';
 import { SecurityModule } from './security/security.module.js';
 import { SearchModule } from './modules/search/search.module.js';
 import { SagasModule } from './modules/sagas/sagas.module.js';
+import { SourceReportingModule } from './modules/source-reporting/source-reporting.module.js';
 
 @Module({
   imports: [
@@ -97,6 +98,7 @@ import { SagasModule } from './modules/sagas/sagas.module.js';
     AuditModule,
     NotificationsModule,
     AdminModule,
+    SourceReportingModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

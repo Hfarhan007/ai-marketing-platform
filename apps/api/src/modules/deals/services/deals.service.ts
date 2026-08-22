@@ -11,6 +11,7 @@ import type { Deal } from '../schemas/deal.schema.js';
 import { DealStateMachine, type DealState } from '../../crm/domain/crm-state-machines.js';
 import { DealPolicy, type DealLineItem } from '../../crm/domain/deal-policy.js';
 import { CustomFieldService } from '../../custom-fields/custom-field.service.js';
+import { WorkflowService } from '../../workflows/services/workflow.service.js';
 @Injectable()
 export class DealsService extends CrmCrudService<Deal, CreateDealDto, UpdateDealDto> {
   private readonly states = new DealStateMachine();
@@ -21,6 +22,7 @@ export class DealsService extends CrmCrudService<Deal, CreateDealDto, UpdateDeal
     jobs: CrmJobsService,
     private readonly transactions: TransactionManagerService,
     private readonly fields: CustomFieldService,
+    private readonly workflows: WorkflowService,
   ) {
     super(repository, events, jobs, 'deals', mapDeal);
   }
@@ -54,6 +56,7 @@ export class DealsService extends CrmCrudService<Deal, CreateDealDto, UpdateDeal
       attributedRevenue: 0,
     });
     await this.record(context, value, 'created');
+    await this.workflows.triggerEvent(context.workspaceId,'deal.created',`deal:${String(value._id)}:created`,{dealId:String(value._id),contactId:value.contactId?String(value.contactId):null,companyId:value.companyId?String(value.companyId):null,pipelineId:String(value.pipelineId),stageId:String(value.stageId),value:value.value,currency:value.currency,status:value.status,ownerId:value.ownerId?String(value.ownerId):null});
     return mapDeal(value);
   }
   override async update(context: WorkspaceRequestContext, id: string, dto: UpdateDealDto) {

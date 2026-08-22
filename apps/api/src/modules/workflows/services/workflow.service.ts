@@ -106,6 +106,25 @@ export class WorkflowService {
     );
     return { runId: String(result.run._id), duplicate: false };
   }
+  async triggerEvent(
+    workspaceId: string,
+    triggerType: string,
+    eventId: string,
+    input: Record<string, unknown>,
+    correlationId?: string,
+  ) {
+    const versions = await this.repository.publishedForTrigger(workspaceId, triggerType);
+    return Promise.all(
+      versions.map((version) => {
+        const definitionId = String(version.workflowDefinitionId);
+        return this.trigger(workspaceId, definitionId, triggerType, {
+          idempotencyKey: `${eventId}:${definitionId}`,
+          ...(correlationId ? { correlationId } : {}),
+          input,
+        });
+      }),
+    );
+  }
   manual(c: WorkspaceRequestContext, id: string, d: TriggerWorkflowDto) {
     return this.trigger(c.workspaceId, id, 'trigger.manual', d);
   }

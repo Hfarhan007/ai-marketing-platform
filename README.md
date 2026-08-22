@@ -60,6 +60,8 @@ The API reaches MinIO as `minio:9000`. For browser-direct presigned uploads, add
 
 See [docs/architecture/README.md](docs/architecture/README.md) for repository structure.
 
+Provider setup for Meta/Facebook/Instagram and GoHighLevel is documented in [docs/integrations/README.md](docs/integrations/README.md).
+
 Production Kubernetes, Helm, Terraform, managed MongoDB Atlas, managed Redis, state-backend, and rollout guidance is in [infra/README.md](infra/README.md). Infrastructure templates are plan-only and are never applied automatically.
 
 Enterprise GitHub Actions validation, image provenance, protected deployments, and rollback procedures are documented in [docs/operations/cicd.md](docs/operations/cicd.md).

@@ -34,12 +34,17 @@ export class Campaign {
   @Prop({ type: Number, default: null }) publishedVersion!: number | null;
   @Prop({ type: Date, default: null }) scheduledAt!: Date | null;
   @Prop({ type: String, default: 'UTC' }) timezone!: string;
+  @Prop({ type: String, default: null }) externalProvider!: string | null;
+  @Prop({ type: String, default: null }) externalCampaignId!: string | null;
+  @Prop({ type: MongooseSchema.Types.ObjectId, default: null }) integrationConnectionId!: Types.ObjectId | null;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) providerMetadata!: Record<string, unknown>;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) createdBy!: Types.ObjectId;
   @Prop({ type: MongooseSchema.Types.ObjectId, required: true }) updatedBy!: Types.ObjectId;
 }
 export type CampaignDocument = HydratedDocument<Campaign>;
 export const CampaignSchema = SchemaFactory.createForClass(Campaign);
 CampaignSchema.index({ workspaceId: 1, status: 1, scheduledAt: 1 });
+CampaignSchema.index({ workspaceId: 1, externalProvider: 1, externalCampaignId: 1 }, { unique: true, partialFilterExpression: { externalProvider: { $type: 'string' }, externalCampaignId: { $type: 'string' } } });
 @Schema({ collection: 'campaign_versions', timestamps: true, versionKey: false })
 export class CampaignVersion {
   _id!: Types.ObjectId;
@@ -53,6 +58,7 @@ export class CampaignVersion {
     string
   >;
   @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) quietHours!: Record<string, number>;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) providerConfiguration!: Record<string, unknown>;
   @Prop({ type: Date, default: null }) publishedAt!: Date | null;
 }
 export const CampaignVersionSchema = SchemaFactory.createForClass(CampaignVersion);

@@ -8,6 +8,7 @@ import { AppointmentsRepository } from './repositories/appointments.repository.j
 import { Appointment, AppointmentSchema } from './schemas/appointment.schema.js';
 import { AppointmentsService } from './services/appointments.service.js';
 import { CustomFieldsModule } from '../custom-fields/custom-fields.module.js';
+import { WorkflowsModule } from '../workflows/workflows.module.js';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Appointment.name, schema: AppointmentSchema }]),
@@ -15,6 +16,7 @@ import { CustomFieldsModule } from '../custom-fields/custom-fields.module.js';
     AvailabilityModule,
     ServicesModule,
     CustomFieldsModule,
+    WorkflowsModule,
   ],
   controllers: [AppointmentsController],
   providers: [AppointmentsRepository, AppointmentsService],

@@ -24,6 +24,7 @@ import type {
   RecipientSnapshot,
 } from '../types/campaign.types.js';
 import { CampaignPolicyService } from './campaign-policy.service.js';
+import { WorkflowService } from '../../workflows/services/workflow.service.js';
 export const CAMPAIGN_QUEUE = 'campaign-delivery';
 @Injectable()
 export class CampaignService {
@@ -36,6 +37,7 @@ export class CampaignService {
     private readonly transactions: TransactionManagerService,
     private readonly outbox: OutboxService,
     private readonly consent: ConsentEvaluationService,
+    private readonly workflows: WorkflowService,
   ) {}
   create(c: WorkspaceRequestContext, d: CreateCampaignDto) {
     assertTimeZone(d.timezone);
@@ -129,6 +131,7 @@ export class CampaignService {
         },
       );
     }
+    await this.workflows.triggerEvent(c.workspaceId,'campaign.status_changed',`campaign:${id}:run:${String(reserved.run._id)}:scheduled`,{campaignId:id,runId:String(reserved.run._id),previousStatus:campaign.status,status:'scheduled',channel:campaign.channel,scheduledAt:scheduledAt.toISOString()});
     return { runId: String(reserved.run._id), duplicate: false, recipients: snapshot.length };
   }
   async testSend(c: WorkspaceRequestContext, id: string, d: TestSendDto) {
@@ -153,6 +156,7 @@ export class CampaignService {
     const status = command === 'cancel' ? 'cancelled' : command === 'pause' ? 'paused' : 'running';
     const value = await this.repository.commandRun(c.workspaceId, runId, status);
     if (!value) throw new NotFoundException('Active campaign run not found');
+    await this.workflows.triggerEvent(c.workspaceId,'campaign.status_changed',`campaign:${String(value.campaignId)}:run:${runId}:status:${status}`,{campaignId:String(value.campaignId),runId,previousStatus:command==='resume'?'paused':'running',status,command});
     return value;
   }
   metric(c: WorkspaceRequestContext, runId: string, d: MetricDto) {

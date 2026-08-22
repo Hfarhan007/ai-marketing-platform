@@ -1,0 +1,3 @@
+import{Injectable}from'@nestjs/common';import type{ProviderConnectionContext}from'../../types/provider-adapter.js';import{HighLevelApiClient}from'./highlevel-api.client.js';import{HighLevelError}from'./highlevel.errors.js';
+@Injectable()export class HighLevelPipelinesService{constructor(private readonly api:HighLevelApiClient){}list(c:ProviderConnectionContext){const token=c.credentials.accessToken,locationId=c.credentials.locationId??c.credentials.accountId;if(!token||!locationId)throw new HighLevelError('HIGHLEVEL_CONTEXT_MISSING','HighLevel token and location are required');return this.api.request(token,'/opportunities/pipelines',{query:{locationId},version:'v3'})}}
+

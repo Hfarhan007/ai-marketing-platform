@@ -1,5 +1,17 @@
-import{IsIn,IsInt,IsOptional,IsString,IsUrl,Max,MaxLength,Min}from'class-validator';import{PROVIDERS,type Provider}from'../types/provider-adapter.js';
-export class CreateConnectionDto{@IsIn(PROVIDERS)provider!:Provider;@IsString()@MaxLength(200)name!:string}
-export class BeginOAuthDto{@IsUrl({require_tld:false})redirectUri!:string}
-export class OAuthCallbackDto{@IsString()state!:string;@IsString()code!:string}
-export class SyncDto{@IsString()@MaxLength(100)resource!:string;@IsString()@MaxLength(200)idempotencyKey!:string;@IsOptional()@IsString()cursor?:string;@IsOptional()@IsInt()@Min(1)@Max(500)limit=100}
+import{Type}from'class-transformer';import{ArrayMaxSize,IsArray,IsBoolean,IsDateString,IsIn,IsInt,IsObject,IsOptional,IsString,IsUrl,Matches,Max,MaxLength,Min,ValidateNested}from'class-validator';import{PROVIDERS,type Provider}from'../types/provider-adapter.js';
+import{ApiProperty,ApiPropertyOptional}from'@nestjs/swagger';
+export class CreateConnectionDto{@ApiProperty({enum:PROVIDERS})@IsIn(PROVIDERS)provider!:Provider;@ApiProperty({maxLength:200})@IsString()@MaxLength(200)name!:string}
+export class BeginOAuthDto{@ApiProperty({format:'uri',description:'Exact registered provider redirect URI'})@IsUrl({require_tld:false})redirectUri!:string}
+export class OAuthCallbackDto{@ApiProperty({description:'Single-use opaque OAuth state'})@IsString()state!:string;@ApiProperty({description:'Provider authorization code'})@IsString()code!:string}
+export class SyncDto{@ApiProperty({maxLength:100})@IsString()@MaxLength(100)resource!:string;@ApiProperty({maxLength:200})@IsString()@MaxLength(200)idempotencyKey!:string;@ApiPropertyOptional()@IsOptional()@IsString()cursor?:string;@ApiPropertyOptional({minimum:1,maximum:500,default:100})@IsOptional()@IsInt()@Min(1)@Max(500)limit=100}
+export class SelectIntegrationResourcesDto{
+ @ApiPropertyOptional({type:[String],maxItems:100})@IsOptional()@IsArray()@ArrayMaxSize(100)@IsString({each:true})pageIds?:string[];
+ @ApiPropertyOptional({type:[String],maxItems:100})@IsOptional()@IsArray()@ArrayMaxSize(100)@IsString({each:true})businessIds?:string[];
+ @ApiPropertyOptional({type:[String],maxItems:100})@IsOptional()@IsArray()@ArrayMaxSize(100)@IsString({each:true})adAccountIds?:string[];
+ @ApiPropertyOptional({type:[String],maxItems:100})@IsOptional()@IsArray()@ArrayMaxSize(100)@IsString({each:true})instagramAccountIds?:string[];
+ @ApiPropertyOptional({type:[String],maxItems:500})@IsOptional()@IsArray()@ArrayMaxSize(500)@IsString({each:true})formIds?:string[];
+ @ApiPropertyOptional({type:[String],maxItems:100})@IsOptional()@IsArray()@ArrayMaxSize(100)@IsString({each:true})pixelIds?:string[];
+ @ApiPropertyOptional({type:[String],maxItems:100})@IsOptional()@IsArray()@ArrayMaxSize(100)@IsString({each:true})locationIds?:string[];
+}
+export class MetaCustomerInformationDto{@IsOptional()@IsString()email?:string;@IsOptional()@IsString()phone?:string;@IsOptional()@IsString()firstName?:string;@IsOptional()@IsString()lastName?:string;@IsOptional()@IsString()city?:string;@IsOptional()@IsString()state?:string;@IsOptional()@IsString()postalCode?:string;@IsOptional()@IsString()country?:string;@IsOptional()@IsString()externalId?:string;@IsOptional()@IsString()clientIpAddress?:string;@IsOptional()@IsString()clientUserAgent?:string;@IsOptional()@IsString()fbp?:string;@IsOptional()@IsString()fbc?:string;}
+export class CreateMetaConversionDto{@IsString()@Matches(/^[A-Za-z][A-Za-z0-9_]{0,39}$/u)eventName!:string;@IsOptional()@IsBoolean()allowCustomEvent=false;@IsDateString()eventTime!:string;@IsOptional()@IsString()@MaxLength(200)eventId?:string;@IsOptional()@IsString()@MaxLength(200)sourceEventId?:string;@IsIn(['website','app','phone_call','chat','email','physical_store','system_generated','other'])actionSource!:'website'|'app'|'phone_call'|'chat'|'email'|'physical_store'|'system_generated'|'other';@IsOptional()@IsUrl({require_tld:false})eventSourceUrl?:string;@ValidateNested()@Type(()=>MetaCustomerInformationDto)customer!:MetaCustomerInformationDto;@IsOptional()@IsObject()customData:Record<string,unknown>={};@IsOptional()@IsString()@MaxLength(100)testEventCode?:string;@IsOptional()@IsString()pixelId?:string;}

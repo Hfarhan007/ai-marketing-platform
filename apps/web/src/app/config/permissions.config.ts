@@ -6,6 +6,7 @@ export const permissions = [
   'campaigns:write',
   'contacts:read',
   'contacts:write',
+  'leads:read',
   'admin:access',
   'settings:manage',
   'team:manage',
@@ -15,9 +16,9 @@ export type Permission = (typeof permissions)[number];
 export const rolePermissions: Record<Role, readonly Permission[]> = {
   owner: permissions,
   admin: permissions,
-  manager: ['campaigns:read', 'campaigns:write', 'contacts:read', 'contacts:write'],
-  member: ['campaigns:read', 'campaigns:write', 'contacts:read'],
-  viewer: ['campaigns:read', 'contacts:read'],
+  manager: ['campaigns:read', 'campaigns:write', 'contacts:read', 'contacts:write', 'leads:read'],
+  member: ['campaigns:read', 'campaigns:write', 'contacts:read', 'leads:read'],
+  viewer: ['campaigns:read', 'contacts:read', 'leads:read'],
 };
 
 export function hasPermission(role: Role, permission: Permission) {

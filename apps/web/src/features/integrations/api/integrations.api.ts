@@ -1,0 +1,14 @@
+import { apiClient } from '@/shared/lib';
+import type { ConnectionHealth, IntegrationConnection, IntegrationProvider, IntegrationPublicMetadata, IntegrationResource, OAuthStart, SelectedIntegrationResources } from '../types/integration.types';
+const headers=(workspaceId:string)=>({'x-workspace-id':workspaceId});
+export async function listIntegrationConnections(workspaceId:string){const response=await apiClient.get<{items:IntegrationConnection[]}>('/integrations/connections',{headers:{'x-workspace-id':workspaceId}});return response.data.items;}
+export async function createIntegrationConnection(workspaceId:string,provider:IntegrationProvider,name:string){const response=await apiClient.post<IntegrationConnection>('/integrations/connections',{provider,name},{headers:headers(workspaceId)});return response.data;}
+export async function beginIntegrationOAuth(workspaceId:string,id:string,redirectUri:string){const response=await apiClient.post<OAuthStart>(`/integrations/connections/${id}/oauth`,{redirectUri},{headers:headers(workspaceId)});return response.data;}
+export async function completeIntegrationOAuth(state:string,code:string){const response=await apiClient.post<{connected:boolean;connectionId:string}>('/integrations/oauth/callback',{state,code});return response.data;}
+export async function discoverIntegrationResources(workspaceId:string,id:string){const response=await apiClient.get<{resources:IntegrationResource[]}>(`/integrations/connections/${id}/resources`,{headers:headers(workspaceId)});return response.data.resources;}
+export async function selectIntegrationResources(workspaceId:string,id:string,selection:SelectedIntegrationResources){const response=await apiClient.post<IntegrationPublicMetadata>(`/integrations/connections/${id}/resources`,selection,{headers:headers(workspaceId)});return response.data;}
+export async function subscribeIntegrationWebhooks(workspaceId:string,id:string){return (await apiClient.post<{subscribed:boolean}>(`/integrations/connections/${id}/webhooks/subscribe`,{}, {headers:headers(workspaceId)})).data;}
+export async function validateIntegration(workspaceId:string,id:string){return (await apiClient.post<{valid:boolean}>(`/integrations/connections/${id}/validate`,{}, {headers:headers(workspaceId)})).data;}
+export async function integrationHealth(workspaceId:string,id:string){return (await apiClient.post<ConnectionHealth>(`/integrations/connections/${id}/health`,{}, {headers:headers(workspaceId)})).data;}
+export async function refreshIntegration(workspaceId:string,id:string){return (await apiClient.post<{refreshed:boolean}>(`/integrations/connections/${id}/refresh`,{}, {headers:headers(workspaceId)})).data;}
+export async function disconnectIntegration(workspaceId:string,id:string){return (await apiClient.post<{disconnected:boolean}>(`/integrations/connections/${id}/disconnect`,{}, {headers:headers(workspaceId)})).data;}

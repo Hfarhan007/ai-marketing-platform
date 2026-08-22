@@ -17,6 +17,7 @@ import {
 import { AppointmentsRepository } from '../repositories/appointments.repository.js';
 import type { Appointment } from '../schemas/appointment.schema.js';
 import { CustomFieldService } from '../../custom-fields/custom-field.service.js';
+import { WorkflowService } from '../../workflows/services/workflow.service.js';
 const map = (v: Appointment) => ({
   id: String(v._id),
   customerId: String(v.customerId),
@@ -48,6 +49,7 @@ export class AppointmentsService {
     private readonly services: ServicesRepository,
     private readonly lock: SchedulingLockService,
     private readonly fields: CustomFieldService,
+    private readonly workflows: WorkflowService,
   ) {}
   async list(c: WorkspaceRequestContext, q: CrmListQueryDto) {
     const p = await this.repository.page(c.workspaceId, q);
@@ -120,6 +122,7 @@ export class AppointmentsService {
       }),
     );
     await this.jobs.reminders(c.workspaceId, String(value._id), value.reminders, value.startAt);
+    await this.workflows.triggerEvent(c.workspaceId,'appointment.booked',`appointment:${String(value._id)}:booked`,{appointmentId:String(value._id),customerId:String(value.customerId),staffId:String(value.staffId),serviceId:String(value.serviceId),startAt:value.startAt.toISOString(),endAt:value.endAt.toISOString(),timezone:value.timezone,status:value.status,location:value.location});
     return map(value);
   }
   async reschedule(c: WorkspaceRequestContext, id: string, dto: RescheduleAppointmentDto) {

@@ -52,6 +52,9 @@ export class CampaignRepository {
     if (!value) throw new NotFoundException('Campaign not found');
     return value;
   }
+  listCampaigns(workspaceId:string,provider?:string){return this.campaigns.find({workspaceId:new Types.ObjectId(workspaceId),...(provider?{externalProvider:provider}:{})}).sort({createdAt:-1}).lean<Campaign[]>().exec();}
+  updateCampaign(workspaceId:string,id:string,update:object){return this.campaigns.findOneAndUpdate({_id:new Types.ObjectId(id),workspaceId:new Types.ObjectId(workspaceId)},update,{new:true}).lean<Campaign>().exec();}
+  updateProviderConfiguration(workspaceId:string,campaignId:string,configuration:Record<string,unknown>){return this.versions.findOneAndUpdate({workspaceId:new Types.ObjectId(workspaceId),campaignId:new Types.ObjectId(campaignId),status:{$in:['draft','published']}},{$set:{providerConfiguration:configuration}},{new:true,sort:{version:-1}}).lean<CampaignVersion>().exec();}
   draft(workspaceId: string, id: string) {
     return this.versions
       .findOne({

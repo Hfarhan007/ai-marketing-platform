@@ -46,6 +46,11 @@ export class Lead implements CrmEntity {
   @Prop({ type: String, default: '' }) normalizedEmail!: string;
   @Prop({ type: String, default: '' }) normalizedPhone!: string;
   @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) customFields!: Record<string, unknown>;
+  @Prop({ type: String, default: null }) externalProvider!: string | null;
+  @Prop({ type: String, default: null }) externalLeadId!: string | null;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: {} }) providerMetadata!: Record<string, unknown>;
+  @Prop({ type: MongooseSchema.Types.Mixed, default: null, select: false }) rawProviderPayload!: Record<string, unknown> | null;
+  @Prop({ type: Date, default: null }) externallyReceivedAt!: Date | null;
 }
 export type LeadDocument = HydratedDocument<Lead>;
 export const LeadSchema = SchemaFactory.createForClass(Lead);
@@ -54,3 +59,7 @@ LeadSchema.index({ workspaceId: 1, ownerId: 1, followUpAt: 1 });
 LeadSchema.index({ workspaceId: 1, name: 'text', email: 'text', phone: 'text' });
 LeadSchema.index({ workspaceId: 1, normalizedEmail: 1, status: 1 });
 LeadSchema.index({ workspaceId: 1, normalizedPhone: 1, status: 1 });
+LeadSchema.index(
+  { workspaceId: 1, externalProvider: 1, externalLeadId: 1 },
+  { unique: true, partialFilterExpression: { externalProvider: { $type: 'string' }, externalLeadId: { $type: 'string' } } },
+);

@@ -1,0 +1,10 @@
+import{apiClient}from'@/shared/lib';import type{IntegrationConnection}from'../integrations/types/integration.types';import type{MetaCampaign,MetaInsight,MetaRecord}from'./types';
+const headers=(workspaceId:string)=>({'x-workspace-id':workspaceId});
+export async function connections(workspaceId:string){return(await apiClient.get<{items:IntegrationConnection[]}>('/integrations/connections',{headers:headers(workspaceId)})).data.items.filter(({provider})=>provider==='facebook'||provider==='instagram')}
+export async function campaigns(workspaceId:string,connectionId:string){return(await apiClient.get<MetaCampaign[]>('/campaigns/meta',{headers:headers(workspaceId),params:{connectionId}})).data}
+export async function insights(workspaceId:string,input:{connectionId:string;since:string;until:string;level:'account'|'campaign'|'adset'|'ad';daily?:boolean}){return(await apiClient.get<{items:MetaInsight[]}>('/campaigns/meta/insights',{headers:headers(workspaceId),params:{...input,limit:100}})).data.items}
+export async function adSets(workspaceId:string,connectionId:string,campaignId:string){return(await apiClient.get<MetaRecord[]>(`/campaigns/meta/${campaignId}/adsets`,{headers:headers(workspaceId),params:{connectionId}})).data}
+export async function ads(workspaceId:string,connectionId:string,campaignId:string){return(await apiClient.get<MetaRecord[]>(`/campaigns/meta/${campaignId}/ads`,{headers:headers(workspaceId),params:{connectionId}})).data}
+export async function audiences(workspaceId:string,connectionId:string){return(await apiClient.get<{custom:MetaRecord[];saved:MetaRecord[]}>('/campaigns/meta/audiences',{headers:headers(workspaceId),params:{connectionId}})).data}
+export async function leads(workspaceId:string){return(await apiClient.get<{items:Array<{id?:string;_id?:string;name:string;email?:string;status:string;source:string;score:number}>}>('/leads',{headers:headers(workspaceId),params:{page:1,limit:100,sort:'createdAt',order:'desc'}})).data.items.filter(({source})=>source==='facebook'||source==='instagram')}
+

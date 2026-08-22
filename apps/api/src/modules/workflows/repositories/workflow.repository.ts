@@ -88,6 +88,26 @@ export class WorkflowRepository {
     if (!v) throw new NotFoundException('Published workflow not found');
     return v;
   }
+  async publishedForTrigger(workspaceId: string, triggerType: string) {
+    const definitions = await this.definitions
+      .find({ workspaceId: new Types.ObjectId(workspaceId), status: 'active' })
+      .select({ _id: 1 })
+      .lean<Array<Pick<WorkflowDefinition, '_id'>>>()
+      .exec();
+    if (definitions.length === 0) return [];
+    const versions = await this.versions
+      .find({
+        workspaceId: new Types.ObjectId(workspaceId),
+        workflowDefinitionId: { $in: definitions.map((definition) => definition._id) },
+        status: 'published',
+      })
+      .lean<WorkflowVersion[]>()
+      .exec();
+    return versions.filter((version) => {
+      const graph = version.graph as unknown as WorkflowGraph;
+      return graph.nodes.some((node) => node.type === triggerType);
+    });
+  }
   async updateDraft(workspaceId: string, definitionId: string, graph: WorkflowGraph) {
     const v = await this.versions
       .findOneAndUpdate(

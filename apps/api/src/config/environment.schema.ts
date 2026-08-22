@@ -29,6 +29,10 @@ function environmentBoolean({ value }: { value: unknown }): unknown {
   return value;
 }
 
+function emptyStringToUndefined({ value }: { value: unknown }): unknown {
+  return value === '' ? undefined : value;
+}
+
 export class EnvironmentVariables {
   @IsIn(['fake', 'stripe'])
   BILLING_PROVIDER = 'fake';
@@ -174,6 +178,22 @@ export class EnvironmentVariables {
   @IsOptional() @IsString() OPENROUTER_API_KEY?: string;
   @IsOptional() @IsUrl({ require_tld: false }) OPENROUTER_BASE_URL?: string;
   @IsUrl({ require_tld: false }) OLLAMA_BASE_URL = 'http://127.0.0.1:11434';
+  @IsOptional() @IsString() META_APP_ID?: string;
+  @IsOptional() @IsString() META_APP_SECRET?: string;
+  @IsString() META_GRAPH_API_VERSION = 'v23.0';
+  @IsOptional() @IsString() META_WEBHOOK_VERIFY_TOKEN?: string;
+  @Transform(emptyStringToUndefined)
+  @IsOptional()
+  @IsUrl({ require_tld: false })
+  META_REDIRECT_URI?: string;
+  @IsOptional() @IsString() HIGHLEVEL_CLIENT_ID?: string;
+  @IsOptional() @IsString() HIGHLEVEL_CLIENT_SECRET?: string;
+  @Transform(emptyStringToUndefined)
+  @IsOptional()
+  @IsUrl({ require_tld: false })
+  HIGHLEVEL_REDIRECT_URI?: string;
+  @IsOptional() @IsString() HIGHLEVEL_WEBHOOK_PUBLIC_KEY?: string;
+  @IsOptional() @IsUrl() HIGHLEVEL_API_BASE_URL?: string;
 }
 
 export function validateEnvironment(input: Record<string, unknown>): Record<string, unknown> {

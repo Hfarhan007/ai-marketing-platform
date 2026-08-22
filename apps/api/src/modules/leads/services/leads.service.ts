@@ -15,6 +15,7 @@ import {
   type LeadQualification,
 } from '../../crm/domain/crm-state-machines.js';
 import { CustomFieldService } from '../../custom-fields/custom-field.service.js';
+import { WorkflowService } from '../../workflows/services/workflow.service.js';
 @Injectable()
 export class LeadsService extends CrmCrudService<Lead, CreateLeadDto, UpdateLeadDto> {
   private readonly qualificationMachine = new LeadQualificationMachine();
@@ -26,6 +27,7 @@ export class LeadsService extends CrmCrudService<Lead, CreateLeadDto, UpdateLead
     private readonly contacts: ContactsRepository,
     private readonly deals: DealsRepository,
     private readonly fields: CustomFieldService,
+    private readonly workflows: WorkflowService,
   ) {
     super(repository, events, jobs, 'leads', mapLead);
   }
@@ -35,7 +37,10 @@ export class LeadsService extends CrmCrudService<Lead, CreateLeadDto, UpdateLead
       'leads',
       dto.customFields,
     );
-    return super.create(context, { ...dto, customFields });
+    const lead=await super.create(context, { ...dto, customFields });
+    const leadId=String((lead as{id?:unknown}).id??'');
+    if(leadId)await this.workflows.triggerEvent(context.workspaceId,'lead.created',`lead:${leadId}:created`,{leadId,source:dto.source,campaignId:dto.campaignId??null,score:dto.score,qualification:dto.qualification,external:false});
+    return lead;
   }
   protected override prepare(dto: CreateLeadDto) {
     return {
@@ -114,6 +119,8 @@ export class LeadsService extends CrmCrudService<Lead, CreateLeadDto, UpdateLead
       action: current.qualification === dto.qualification ? 'updated' : 'qualification_changed',
       metadata: { from: current.qualification, to: dto.qualification },
     });
+    const trigger=current.qualification===dto.qualification?'lead.updated':dto.qualification==='disqualified'?'lead.disqualified':'lead.qualified';
+    await this.workflows.triggerEvent(context.workspaceId,trigger,`lead:${id}:version:${changed.version}`,{leadId:id,source:changed.source,campaignId:changed.campaignId?String(changed.campaignId):null,score:changed.score,qualification:changed.qualification,status:changed.status,externalProvider:changed.externalProvider,externalLeadId:changed.externalLeadId});
     return mapLead(changed);
   }
   async convert(context: WorkspaceRequestContext, id: string, dto: ConvertLeadDto) {
@@ -212,6 +219,7 @@ export class LeadsService extends CrmCrudService<Lead, CreateLeadDto, UpdateLead
       });
       return changed;
     });
+    await this.workflows.triggerEvent(context.workspaceId,'lead.converted',`lead:${id}:converted`,{leadId:id,source:result.source,campaignId:result.campaignId?String(result.campaignId):null,score:result.score,qualification:result.qualification,contactId:result.conversion?.contactId,dealId:result.conversion?.dealId,externalProvider:result.externalProvider,externalLeadId:result.externalLeadId});
     return mapLead(result);
   }
 }

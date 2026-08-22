@@ -27,6 +27,7 @@ const events = { record: vi.fn() };
 const jobs = { reminders: vi.fn() };
 const lock = { run: <T>(_workspaceId: string, _staffId: string, fn: () => Promise<T>) => fn() };
 const fields = { validateValues: vi.fn().mockResolvedValue({}) };
+const workflows = { triggerEvent: vi.fn().mockResolvedValue([]) };
 const serviceRecord = { bufferBeforeMinutes: 15, bufferAfterMinutes: 10 };
 describe('AppointmentsService', () => {
   it('returns the original reservation for a duplicate idempotency key', async () => {
@@ -52,6 +53,7 @@ describe('AppointmentsService', () => {
       { getActive: vi.fn() } as never,
       lock as never,
       fields as never,
+      workflows as never,
     );
     const value = await service.create(context, dto);
     expect(value.id).toBe(String(existing._id));
@@ -71,6 +73,7 @@ describe('AppointmentsService', () => {
       { getActive: vi.fn().mockResolvedValue(serviceRecord) } as never,
       lock as never,
       fields as never,
+      workflows as never,
     );
     await expect(service.create(context, dto)).rejects.toBeInstanceOf(ConflictException);
     expect(repo.findConflict).toHaveBeenCalledWith(
@@ -105,6 +108,7 @@ describe('AppointmentsService', () => {
       {} as never,
       lock as never,
       fields as never,
+      workflows as never,
     );
     await service.cancel(context, String(changed._id), { version: 1, reason: 'customer' });
     expect(repo.updateEntity).toHaveBeenCalledWith(
@@ -151,6 +155,7 @@ describe('AppointmentsService', () => {
       {} as never,
       lock as never,
       fields as never,
+      workflows as never,
     );
     await service.reschedule(context, String(current._id), {
       start: '2026-08-03T12:00:00Z',

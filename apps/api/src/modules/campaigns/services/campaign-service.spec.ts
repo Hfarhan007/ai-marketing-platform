@@ -64,6 +64,10 @@ describe('CampaignService', () => {
       {} as never,
       {} as never,
       {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      { triggerEvent: vi.fn().mockResolvedValue([]) } as never,
     );
     await expect(
       service.command(context, new Types.ObjectId().toHexString(), 'cancel'),

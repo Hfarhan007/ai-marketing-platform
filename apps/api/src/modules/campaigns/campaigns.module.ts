@@ -5,6 +5,10 @@ import { EventsModule } from '../../events/events.module.js';
 import { ContactsModule } from '../contacts/contacts.module.js';
 import { ConsentModule } from '../consent/consent.module.js';
 import { CampaignController } from './controllers/campaign.controller.js';
+import { MetaCampaignController } from './controllers/meta-campaign.controller.js';
+import { IntegrationsModule } from '../integrations/integrations.module.js';
+import { FilesModule } from '../files/files.module.js';
+import { MetaCampaignManagementService } from './services/meta-campaign-management.service.js';
 import { CampaignDeliveryProcessor } from './jobs/campaign-delivery.processor.js';
 import { ProviderAdapterRegistry } from './providers/provider-adapter.js';
 import { CampaignRepository } from './repositories/campaign.repository.js';
@@ -30,11 +34,15 @@ import {
 } from './schemas/campaign.schemas.js';
 import { CampaignPolicyService } from './services/campaign-policy.service.js';
 import { CAMPAIGN_QUEUE, CampaignService } from './services/campaign.service.js';
+import { WorkflowsModule } from '../workflows/workflows.module.js';
 @Module({
   imports: [
     ContactsModule,
     ConsentModule,
     EventsModule,
+    IntegrationsModule,
+    FilesModule,
+    WorkflowsModule,
     BullModule.registerQueue({ name: CAMPAIGN_QUEUE }),
     MongooseModule.forFeature([
       { name: Campaign.name, schema: CampaignSchema },
@@ -48,13 +56,14 @@ import { CAMPAIGN_QUEUE, CampaignService } from './services/campaign.service.js'
       { name: CampaignMetric.name, schema: CampaignMetricSchema },
     ]),
   ],
-  controllers: [CampaignController],
+  controllers: [CampaignController,MetaCampaignController],
   providers: [
     CampaignRepository,
     CampaignPolicyService,
     ProviderAdapterRegistry,
     CampaignService,
     CampaignDeliveryProcessor,
+    MetaCampaignManagementService,
   ],
   exports: [CampaignService, ProviderAdapterRegistry],
 })
